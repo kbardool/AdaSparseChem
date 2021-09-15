@@ -13,7 +13,7 @@ paths:
 
 dataload:
   dataset: NYU_v2
-  dataroot: "/mnt/f/MLDatasets/nyu_v2"
+  dataroot: "/mnt/f/MLDatasets/chembl_23"
   orig_dataroot: "/data/datasets/nyu_v2"
   crop_h: 321
   crop_w: 321

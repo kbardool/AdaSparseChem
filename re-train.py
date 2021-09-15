@@ -25,12 +25,22 @@ def eval_fix_policy(environ, dataloader, tasks, num_seg_cls=-1, eval_iter=10):
 
     if 'seg' in tasks:
         assert (num_seg_cls != -1)
-        records['seg'] = {'mIoUs': [], 'pixelAccs': [],  'errs': [], 'conf_mat': np.zeros((num_seg_cls, num_seg_cls)),
-                          'labels': np.arange(num_seg_cls), 'gts': [], 'preds': []}
+        records['seg'] = {'mIoUs': [], 
+                          'pixelAccs': [],  
+                          'errs'     : [], 
+                          'conf_mat' : np.zeros((num_seg_cls, num_seg_cls)),
+                          'labels'   : np.arange(num_seg_cls), 
+                          'gts': [], 
+                          'preds': []}
     if 'sn' in tasks:
         records['sn'] = {'cos_similaritys': []}
     if 'depth' in tasks:
-        records['depth'] = {'abs_errs': [], 'rel_errs': [], 'sq_rel_errs': [], 'ratios': [], 'rms': [], 'rms_log': []}
+        records['depth'] = {'abs_errs': [], 
+                            'rel_errs': [], 
+                            'sq_rel_errs': [], 
+                            'ratios'  : [], 
+                            'rms'     : [], 
+                            'rms_log' : []}
     if 'keypoint' in tasks:
         records['keypoint'] = {'errs': []}
     if 'edge' in tasks:
@@ -41,20 +51,25 @@ def eval_fix_policy(environ, dataloader, tasks, num_seg_cls=-1, eval_iter=10):
             if eval_iter != -1:
                 if batch_idx > eval_iter:
                     break
+
             environ.set_inputs(batch)
             metrics = environ.val_fix_policy()
+            
             # environ.networks['mtl-net'].task1_logits
             # mIoUs.append(mIoU)
+            
             if 'seg' in tasks:
-                records['seg']['gts'].append(metrics['seg']['gt'])
-                records['seg']['preds'].append(metrics['seg']['pred'])
                 new_mat = confusion_matrix(metrics['seg']['gt'], metrics['seg']['pred'], records['seg']['labels'])
                 assert (records['seg']['conf_mat'].shape == new_mat.shape)
                 records['seg']['conf_mat'] += new_mat
                 records['seg']['pixelAccs'].append(metrics['seg']['pixelAcc'])
                 records['seg']['errs'].append(metrics['seg']['err'])
+                records['seg']['gts'].append(metrics['seg']['gt'])
+                records['seg']['preds'].append(metrics['seg']['pred'])
+            
             if 'sn' in tasks:
                 records['sn']['cos_similaritys'].append(metrics['sn']['cos_similarity'])
+            
             if 'depth' in tasks:
                 records['depth']['abs_errs'].append(metrics['depth']['abs_err'])
                 records['depth']['rel_errs'].append(metrics['depth']['rel_err'])
@@ -62,10 +77,13 @@ def eval_fix_policy(environ, dataloader, tasks, num_seg_cls=-1, eval_iter=10):
                 records['depth']['ratios'].append(metrics['depth']['ratio'])
                 records['depth']['rms'].append(metrics['depth']['rms'])
                 records['depth']['rms_log'].append(metrics['depth']['rms_log'])
+            
             if 'keypoint' in tasks:
                 records['keypoint']['errs'].append(metrics['keypoint']['err'])
+            
             if 'edge' in tasks:
                 records['edge']['errs'].append(metrics['edge']['err'])
+            
             batch_size.append(len(batch['img']))
 
     if 'seg' in tasks:
@@ -102,8 +120,10 @@ def eval_fix_policy(environ, dataloader, tasks, num_seg_cls=-1, eval_iter=10):
         records['depth']['abs_errs'] = np.stack(records['depth']['abs_errs'], axis=0)
         records['depth']['rel_errs'] = np.stack(records['depth']['rel_errs'], axis=0)
         records['depth']['ratios'] = np.concatenate(records['depth']['ratios'], axis=0)
+
         val_metrics['depth']['abs_err'] = (records['depth']['abs_errs'] * np.array(batch_size)).sum() / sum(batch_size)
         val_metrics['depth']['rel_err'] = (records['depth']['rel_errs'] * np.array(batch_size)).sum() / sum(batch_size)
+       
         val_metrics['depth']['sigma_1.25'] = np.mean(np.less_equal(records['depth']['ratios'], 1.25)) * 100
         val_metrics['depth']['sigma_1.25^2'] = np.mean(np.less_equal(records['depth']['ratios'], 1.25 ** 2)) * 100
         val_metrics['depth']['sigma_1.25^3'] = np.mean(np.less_equal(records['depth']['ratios'], 1.25 ** 3)) * 100
@@ -115,8 +135,7 @@ def eval_fix_policy(environ, dataloader, tasks, num_seg_cls=-1, eval_iter=10):
 
     if 'edge' in tasks:
         val_metrics['edge'] = {}
-        val_metrics['edge']['err'] = (np.array(records['edge']['errs']) * np.array(batch_size)).sum() / sum(
-            batch_size)
+        val_metrics['edge']['err'] = (np.array(records['edge']['errs']) * np.array(batch_size)).sum() / sum(batch_size)
 
     return val_metrics
 
@@ -132,6 +151,7 @@ def _train(exp_id, opt, gpu_ids):
     if opt['dataload']['dataset'] == 'NYU_v2':
         trainset = NYU_v2(opt['dataload']['dataroot'], 'train', opt['dataload']['crop_h'], opt['dataload']['crop_w'], opt=opt_tmp)
         valset = NYU_v2(opt['dataload']['dataroot'], 'test', opt=opt_tmp)
+    
     elif opt['dataload']['dataset'] == 'CityScapes':
         num_seg_class = opt['tasks_num_class'][opt['tasks'].index('seg')] if 'seg' in opt['tasks'] else -1
         trainset = CityScapes(opt['dataload']['dataroot'], 'train', opt['dataload']['crop_h'],
@@ -139,17 +159,19 @@ def _train(exp_id, opt, gpu_ids):
                               opt=opt_tmp)
         valset = CityScapes(opt['dataload']['dataroot'], 'test', num_class=num_seg_class,
                             small_res=opt['dataload']['small_res'], opt=opt_tmp)
+    
     elif opt['dataload']['dataset'] == 'Taskonomy':
         trainset = Taskonomy(opt['dataload']['dataroot'], 'train', opt['dataload']['crop_h'], opt['dataload']['crop_w'])
         valset = Taskonomy(opt['dataload']['dataroot'], 'test_small')
+    
     else:
         raise NotImplementedError('Dataset %s is not implemented' % opt['dataload']['dataset'])
-    print('size of training set: ', len(trainset))
+    
+    print('size of training set  : ', len(trainset))
     print('size of validation set: ', len(valset))
 
-    train_loader = DataLoader(trainset, batch_size=opt['train']['batch_size'], drop_last=True, num_workers=2,
-                              shuffle=True)
-    val_loader = DataLoader(valset, batch_size=opt['train']['batch_size'], drop_last=True, num_workers=2, shuffle=False)
+    train_loader = DataLoader(trainset, batch_size=opt['train']['batch_size'], drop_last=True, num_workers=2, shuffle=True)
+    val_loader   = DataLoader(valset, batch_size=opt['train']['batch_size'], drop_last=True, num_workers=2, shuffle=False)
 
 
     # ********************************************************************
@@ -158,13 +180,20 @@ def _train(exp_id, opt, gpu_ids):
 
     # create the model and the pretrain model
     print_separator('CREATE THE ENVIRONMENT')
-    environ = BlockDropEnv(opt['paths']['log_dir'], opt['paths']['checkpoint_dir'], opt['exp_name'],
-                           opt['tasks_num_class'], opt['init_neg_logits'],
-                           gpu_ids[0], opt['train']['init_temp'], opt['train']['decay_temp'],
-                           is_train=True, opt=opt)
+    environ = BlockDropEnv(opt['paths']['log_dir'], 
+                           opt['paths']['checkpoint_dir'], 
+                           opt['exp_name'],
+                           opt['tasks_num_class'], 
+                           opt['init_neg_logits'],
+                           gpu_ids[0], 
+                           opt['train']['init_temp'], 
+                           opt['train']['decay_temp'],
+                           is_train=True, 
+                           opt=opt)
 
     current_iter = 0
     policy_label = 'Iter%s_rs%04d' % (opt['train']['policy_iter'], opt['seed'][exp_id])
+
     if opt['train']['retrain_resume']:
         current_iter = environ.load(opt['train']['which_iter'])
         if opt['policy_model'] == 'task-specific':
@@ -194,6 +223,7 @@ def _train(exp_id, opt, gpu_ids):
 
     environ.define_optimizer(False)
     environ.define_scheduler(False)
+    
     if torch.cuda.is_available():
         environ.cuda(gpu_ids)
 
@@ -203,6 +233,12 @@ def _train(exp_id, opt, gpu_ids):
     environ.fix_alpha()
     environ.free_w(fix_BN=opt['fix_BN'])
     batch_enumerator = enumerate(train_loader)
+    best_value, best_iter = 0, 0
+
+    best_metrics = None
+
+    opt['train']['retrain_total_iters'] = opt['train'].get('retrain_total_iters', opt['train']['total_iters'])
+
     if opt['dataload']['dataset'] == 'NYU_v2':
         if len(opt['tasks_num_class']) == 2:
             refer_metrics = {'seg': {'mIoU': 0.413, 'Pixel Acc': 0.691},
@@ -242,16 +278,20 @@ def _train(exp_id, opt, gpu_ids):
                          'depth': {'abs_err': 0.021},
                          'keypoint': {'err': 0.197},
                          'edge': {'err': 0.212}}
+    
     else:
         raise NotImplementedError('Dataset %s is not implemented' % opt['dataload']['dataset'])
 
-    best_value, best_iter = 0, 0
-    best_metrics = None
-    opt['train']['retrain_total_iters'] = opt['train'].get('retrain_total_iters', opt['train']['total_iters'])
+
+    ##
+    ## Training Loop
+    ##
+
     while current_iter < opt['train']['retrain_total_iters']:
         start_time = time.time()
         environ.train()
         current_iter += 1
+
         # image-level training
         batch_idx, batch = next(batch_enumerator)
 
@@ -262,6 +302,7 @@ def _train(exp_id, opt, gpu_ids):
             environ.print_loss(current_iter, start_time)
             environ.resize_results()
 
+        # validation 
         if should(current_iter, opt['train']['val_freq']):
             environ.eval()
             num_seg_class = opt['tasks_num_class'][opt['tasks'].index('seg')] if 'seg' in opt['tasks'] else -1
@@ -269,6 +310,7 @@ def _train(exp_id, opt, gpu_ids):
             environ.print_loss(current_iter, start_time, val_metrics)
             environ.save('retrain%03d_policyIter%s_latest' % (exp_id, opt['train']['policy_iter']), current_iter)
             environ.train()
+          
             new_value = 0
 
             for k in refer_metrics.keys():
@@ -292,6 +334,7 @@ def _train(exp_id, opt, gpu_ids):
                 environ.save('retrain%03d_policyIter%s_best' % (exp_id, opt['train']['policy_iter']), current_iter)
             print('new value: %.3f' % new_value)
             print('best iter: %d, best value: %.3f' % (best_iter, best_value), best_metrics)
+        # end validation 
 
         if batch_idx == len(train_loader) - 1:
             batch_enumerator = enumerate(train_loader)

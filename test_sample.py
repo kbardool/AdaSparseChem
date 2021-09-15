@@ -8,6 +8,8 @@ import numpy as np
 from torch.utils.data import DataLoader
 
 from dataloaders.nyu_v2_dataloader import NYU_v2_Customize
+
+
 from envs.blockdrop_env import BlockDropEnv
 import torch
 from utils.util import print_separator, read_yaml, create_path, print_yaml
@@ -147,8 +149,13 @@ def test():
     # ********************************************************************
     # create the model and the pretrain model
     print_separator('CREATE THE ENVIRONMENT')
-    environ = BlockDropEnv(opt['paths']['log_dir'], opt['paths']['checkpoint_dir'], opt['exp_name'],
-                           opt['tasks_num_class'], device=gpu_ids[0], is_train=False, opt=opt)
+    environ = BlockDropEnv(opt['paths']['log_dir'], 
+                           opt['paths']['checkpoint_dir'], 
+                           opt['exp_name'],
+                           opt['tasks_num_class'], 
+                           device=gpu_ids[0], 
+                           is_train=False, 
+                           opt=opt)
 
     current_iter = environ.load('retrain%03d_policyIter%s_best' % (exp_ids[0], opt['train']['policy_iter']))
 

@@ -137,15 +137,20 @@ def test():
     # ********************************************************************
     # load the dataloader
     print_separator('CREATE DATALOADERS')
+
     opt_tmp = opt if opt['policy_model'] == 'instance-specific' else None
+    
     if opt['dataload']['dataset'] == 'NYU_v2':
         valset = NYU_v2(opt['dataload']['dataroot'], 'test', opt=opt_tmp)
+    
     elif opt['dataload']['dataset'] == 'CityScapes':
         num_seg_class = opt['tasks_num_class'][opt['tasks'].index('seg')] if 'seg' in opt['tasks'] else -1
         valset = CityScapes(opt['dataload']['dataroot'], 'test', num_class=num_seg_class,
                             small_res=opt['dataload']['small_res'], opt=opt_tmp)
+    
     elif opt['dataload']['dataset'] == 'Taskonomy':
         valset = Taskonomy(opt['dataload']['dataroot'], 'test')
+    
     else:
         raise NotImplementedError('Dataset %s is not implemented' % opt['dataload']['dataset'])
 
@@ -158,8 +163,13 @@ def test():
     # ********************************************************************
     # create the model and the pretrain model
     print_separator('CREATE THE ENVIRONMENT')
-    environ = BlockDropEnv(opt['paths']['log_dir'], opt['paths']['checkpoint_dir'], opt['exp_name'],
-                           opt['tasks_num_class'], device=gpu_ids[0], is_train=False, opt=opt)
+    environ = BlockDropEnv(opt['paths']['log_dir'], 
+                           opt['paths']['checkpoint_dir'], 
+                           opt['exp_name'],
+                           opt['tasks_num_class'],
+                           device=gpu_ids[0], 
+                           is_train=False, 
+                           opt=opt)
 
     current_iter = environ.load('retrain%03d_policyIter%s_best' % (exp_ids[0], opt['train']['policy_iter']))
 
@@ -178,11 +188,12 @@ def test():
         environ.cuda(gpu_ids)
 
     # ********************************************************************
-    # ***************************  Training  *****************************
+    # ******************************  Test  ******************************
     # ********************************************************************
     num_seg_class = opt['tasks_num_class'][opt['tasks'].index('seg')] if 'seg' in opt['tasks'] else -1
     environ.eval()
     val_metrics = eval_fix_policy(environ, val_loader, opt['tasks'], num_seg_cls=num_seg_class, eval_iter=-1)
+    
     print(val_metrics)
 
 

@@ -27,10 +27,6 @@ def show_batch(batch):
     plt.show(block=True)
 
 
-def makedir(folder):
-    if not os.path.isdir(folder):
-        os.makedirs(folder)
-
 
 def listopt(opt, f=None):
     """Pretty-print a given namespace either to console or to a file.
@@ -177,7 +173,7 @@ class Initializer:
 
             elif isinstance(m, nn.Linear):
                 initialization(m.weight.data, **kwargs)
-                try:
+                try:    
                     initialization(m.bias.data)
                 except:
                     pass
@@ -206,18 +202,26 @@ def print_separator(text, total_len=50):
 def print_yaml(opt):
     lines = []
     if isinstance(opt, dict):
+        # lines += [f"CALL print_yaml with {key}"]
+        lines += [""]
         for key in opt.keys():
             tmp_lines = print_yaml(opt[key])
             tmp_lines = ["%s.%s" % (key, line) for line in tmp_lines]
             lines += tmp_lines
     else:
-        lines = [": " + str(opt)]
+        lines = [" : " + str(opt)]
     return lines
 
 
 def create_path(opt):
     for k, v in opt['paths'].items():
+        print(f" Create folder {os.path.join(v, opt['exp_name'])}")
         makedir(os.path.join(v, opt['exp_name']))
+
+
+def makedir(folder):
+    if not os.path.isdir(folder):
+        os.makedirs(folder)
 
 
 def read_yaml():
@@ -226,11 +230,13 @@ def read_yaml():
     parser.add_argument("--config", required=True, help="Path for the config file")
     parser.add_argument("--exp_ids", type=int, nargs='+', default=[0], help="Path for the config file")
     parser.add_argument("--gpus", type=int, nargs='+', default=[0], help="Path for the config file")
+    parser.add_argument("--cpu", default=False, action="store_true",  help="CPU instead of GPU")
     args = parser.parse_args()
 
     # torch.cuda.set_device(args.gpu)
     with open(args.config) as f:
         opt = yaml.load(f)
+    opt['cpu'] = args.cpu
     return opt, args.gpus, args.exp_ids
 
 

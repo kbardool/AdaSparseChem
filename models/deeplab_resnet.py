@@ -15,6 +15,10 @@ def get_shape(shape1, shape2):
         out_shape.append(min(d1, d2))
     return out_shape
 
+
+def resnet(num_class=10, blocks=BasicBlock):
+    return ResNet(blocks, [1, 1, 1], num_class)    
+
 class ResNet(nn.Module):
     def __init__(self, block, layers, num_class=10):
         super(ResNet, self).__init__()
@@ -99,16 +103,11 @@ class ResNet(nn.Module):
         return x
 
 
-def resnet(num_class=10, blocks=BasicBlock):
-    return ResNet(blocks, [1, 1, 1], num_class)
-
-
 class Deeplab_ResNet_Backbone(nn.Module):
     def __init__(self, block, layers):
         self.inplanes = 64
         super(Deeplab_ResNet_Backbone, self).__init__()
-        self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3,
-                               bias=False)
+        self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3, bias=False)
         self.bn1 = nn.BatchNorm2d(64, affine=affine_par)
         # for i in self.bn1.parameters():
         #     i.requires_grad = False
@@ -292,8 +291,12 @@ class Deeplab_ResNet_Backbone2(nn.Module):
 
 
 class MTL2(nn.Module):
+    """
+    Create the architecture based on the Deep lab ResNet backbone
+    """
     def __init__(self, block, layers, num_classes_tasks, init_method, init_neg_logits=None, skip_layer=0):
         super(MTL2, self).__init__()
+
         self.backbone = Deeplab_ResNet_Backbone(block, layers)
         self.num_tasks = len(num_classes_tasks)
 
@@ -341,7 +344,12 @@ class MTL2(nn.Module):
                 params.append(param)
         return params
 
+
+
+
+
     def train_sample_policy(self, temperature, hard_sampling):
+        print(f' MTL2 TRAIN SAMPLE POLICY')
         policys = []
         for t_id in range(self.num_tasks):
             policy = F.gumbel_softmax(getattr(self, 'task%d_logits' % (t_id + 1)), temperature, hard=hard_sampling)
@@ -349,7 +357,9 @@ class MTL2(nn.Module):
         return policys
 
     def test_sample_policy(self, hard_sampling):
+        print(f' MTL2 TEST SAMPLE POLICY')
         self.policys = []
+        
         if hard_sampling:
             cuda_device = self.task1_logits.get_device()
             logits1 = self.task1_logits.detach().cpu().numpy()
@@ -406,22 +416,29 @@ class MTL2(nn.Module):
             self._arch_parameters.append(getattr(self, 'task%d_logits' % (t_id + 1)))
 
     def forward(self, img, temperature, is_policy, num_train_layers=None, hard_sampling=False, mode='train'):
-        # print('num_train_layers in mtl forward = ', num_train_layers)
+        # print('num_train_layers in mtl forward = ', num_train_layers, 'is_policy: ', is_policy)
 
         if num_train_layers is None:
             num_train_layers = sum(self.layers) - self.skip_layer
+            # print(f'self.layers: {sum(self.layers)}   self.skip_layer: {self.skip_layer}    num_train_layers: {num_train_layers}')
 
         num_train_layers = min(sum(self.layers) - self.skip_layer, num_train_layers)
+        # print(f'min: {sum(self.layers) - self.skip_layer}    num_train_layers: {num_train_layers}')
+        
         # Generate features
         cuda_device = img.get_device()
+        # print(f'Cuda Device is : {cuda_device}')
+
         if is_policy:
             if mode == 'train':
                 self.policys = self.train_sample_policy(temperature, hard_sampling)
             elif mode == 'eval':
                 self.policys = self.test_sample_policy(hard_sampling)
             elif mode == 'fix_policy':
-                for p in self.policys:
-                    assert(p is not None)
+                self.policys = self.test_sample_policy(hard_sampling)
+                # pass
+                # for p in self.policys:
+                #     assert(p is not None)
             else:
                 raise NotImplementedError('mode %s is not implemented' % mode)
 
@@ -432,6 +449,7 @@ class MTL2(nn.Module):
                     self.policys[t_id] = self.policys[t_id].cpu()
 
             skip_layer = sum(self.layers) - num_train_layers
+            # print(f' forward  - skip layer: {skip_layer}')
             if cuda_device != -1:
                 padding = torch.ones(skip_layer, 2).to(cuda_device)
             else:
@@ -638,19 +656,20 @@ class MTL_SD(nn.Module):
 
 
 class MTL_Instance(nn.Module):
+    """
+
+    """
     def __init__(self, block, layers, num_classes_tasks, init_method, init_neg_logits=None, skip_layer=0):
         super(MTL_Instance, self).__init__()
+    
         self.backbone = Deeplab_ResNet_Backbone(block, layers)
         self.num_tasks = len(num_classes_tasks)
 
         for t_id, num_class in enumerate(num_classes_tasks):
             setattr(self, 'task%d_fc1_c0' % (t_id + 1), Classification_Module(512 * block.expansion, num_class, rate=6))
-            setattr(self, 'task%d_fc1_c1' % (t_id + 1),
-                    Classification_Module(512 * block.expansion, num_class, rate=12))
-            setattr(self, 'task%d_fc1_c2' % (t_id + 1),
-                    Classification_Module(512 * block.expansion, num_class, rate=18))
-            setattr(self, 'task%d_fc1_c3' % (t_id + 1),
-                    Classification_Module(512 * block.expansion, num_class, rate=24))
+            setattr(self, 'task%d_fc1_c1' % (t_id + 1), Classification_Module(512 * block.expansion, num_class, rate=12))
+            setattr(self, 'task%d_fc1_c2' % (t_id + 1), Classification_Module(512 * block.expansion, num_class, rate=18))
+            setattr(self, 'task%d_fc1_c3' % (t_id + 1), Classification_Module(512 * block.expansion, num_class, rate=24))
 
         self.layers = layers
         self.skip_layer = skip_layer
@@ -669,17 +688,17 @@ class MTL_Instance(nn.Module):
                 params.append(param)
         return params
 
-    def task_specific_parameters(self):
-        params = []
-        for name, param in self.named_parameters():
-            if 'task' in name and 'fc' in name:
-                params.append(param)
-        return params
-
     def backbone_parameters(self):
         params = []
         for name, param in self.named_parameters():
             if 'backbone' in name:
+                params.append(param)
+        return params
+
+    def task_specific_parameters(self):
+        params = []
+        for name, param in self.named_parameters():
+            if 'task' in name and 'fc' in name:
                 params.append(param)
         return params
 
@@ -695,6 +714,7 @@ class MTL_Instance(nn.Module):
         self.task_logits = self.policynet(img).contiguous().view(batch_size, -1, 2)
 
     def train_sample_policy(self, img, temperature, hard_sampling):
+        print(f' MTL_Instance TRAIN SAMPLE POLICY')
         self.get_logits(img)
         task_logits_shape = self.task_logits.shape
         policy = F.gumbel_softmax(self.task_logits.contiguous().view(-1, 2), temperature, hard=hard_sampling)
@@ -703,8 +723,12 @@ class MTL_Instance(nn.Module):
         return policys
 
     def test_sample_policy(self, img,  hard_sampling):
+        print(f' MTL_Instance TEST SAMPLE POLICY')
         self.policys = []
-        if not hard_sampling:
+
+        if  hard_sampling:
+            raise ValueError('hard sample is not supported')
+        else:
             self.get_logits(img)
             task_logits_shape = self.task_logits.shape
             cuda_device = self.task_logits.get_device()
@@ -718,8 +742,7 @@ class MTL_Instance(nn.Module):
             policy = [sampled, 1 - sampled]
             policy = torch.stack(policy, dim=-1).contiguous().view(task_logits_shape)
             policys = list(torch.split(policy, sum(self.layers) - self.skip_layer, dim=1))
-        else:
-            raise ValueError('hard sample is not supported')
+        
 
         return policys
 
@@ -729,12 +752,13 @@ class MTL_Instance(nn.Module):
         self._arch_parameters = self.policynet.parameters()
 
     def forward(self, img, temperature, is_policy, policys=None, num_train_layers=None, hard_sampling=False, mode='train'):
-        # print('num_train_layers in mtl forward = ', num_train_layers)
+        # print('deeplab_resnet.forward() num_train_layers in mtl forward = ', num_train_layers)
 
         if num_train_layers is None:
             num_train_layers = sum(self.layers) - self.skip_layer
 
         num_train_layers = min(sum(self.layers) - self.skip_layer, num_train_layers)
+        
         # Generate features
         cuda_device = img.get_device()
         if is_policy:
@@ -747,8 +771,8 @@ class MTL_Instance(nn.Module):
                 self.policys = policys
                 # import pdb
                 # pdb.set_trace()
-                # for p in policys:
-                #     print(p.shape)
+                for p in policys:
+                    print(p.shape)
             else:
                 raise NotImplementedError('mode %s is not implemented' % mode)
 
@@ -989,6 +1013,7 @@ if __name__ == '__main__':
         raise ValueError('backbone %s is invalid' % backbone)
 
     # block, layers, num_classes_tasks, init_method, init_neg_logits=None, skip_layer=0
+    print('1')
     net = MTL2_Backbone(block, layers, tasks_num_class, 'equal')
 
     img = torch.ones((1, 3, 224, 224))
@@ -1003,20 +1028,20 @@ if __name__ == '__main__':
                    1, 1, 1, 1,
                    1, 1, 1, 1,])
         policy1 = np.stack([policy1, 1 - policy1], axis=1).astype('float')
-        policy1 = torch.from_numpy(policy1).cuda()
+        # policy1 = torch.from_numpy(policy1).cuda()
         policy2 = np.array([1, 1, 1, 1,
                             1, 1, 1, 1,
                             1, 0, 0, 0,
                             1, 1, 1, 1, ])
         policy2 = np.stack([policy2, 1 - policy2], axis=1).astype('float')
-        policy2 = torch.from_numpy(policy2).cuda()
+        # policy2 = torch.from_numpy(policy2).cuda()
 
         policy3 = np.array([1, 1, 1, 1,
                             1, 0, 1, 1,
                             1, 1, 0, 0,
                             1, 1, 1, 1, ])
         policy3 = np.stack([policy3, 1 - policy3], axis=1).astype('float')
-        policy3 = torch.from_numpy(policy3).cuda()
+        # policy3 = torch.from_numpy(policy3).cuda()
         policys = [policy1, policy2, policy3]
 
     elif len(tasks_num_class) == 2 and backbone == 'ResNet34':
@@ -1025,23 +1050,23 @@ if __name__ == '__main__':
                    0, 1, 1, 1,
                    0, 1, 1, 1,])
         policy1 = np.stack([policy1, 1 - policy1], axis=1).astype('float')
-        policy1 = torch.from_numpy(policy1).cuda()
+        # policy1 = torch.from_numpy(policy1).cuda()
         policy2 = np.array([1, 1, 0, 1,
                             1, 1, 1, 1,
                             1, 0, 1, 1,
                             1, 1, 1, 1, ])
         policy2 = np.stack([policy2, 1 - policy2], axis=1).astype('float')
-        policy2 = torch.from_numpy(policy2).cuda()
+        # policy2 = torch.from_numpy(policy2).cuda()
         policys = [policy1, policy2]
     elif len(tasks_num_class) == 2 and backbone == 'ResNet18':
         policy1 = np.array([1, 0, 1, 1,
                    1, 1, 1, 1])
         policy1 = np.stack([policy1, 1 - policy1], axis=1).astype('float')
-        policy1 = torch.from_numpy(policy1).cuda()
+        # policy1 = torch.from_numpy(policy1).cuda()
         policy2 = np.array([1, 1, 1, 1,
                             1, 0, 1, 1 ])
         policy2 = np.stack([policy2, 1 - policy2], axis=1).astype('float')
-        policy2 = torch.from_numpy(policy2).cuda()
+        # policy2 = torch.from_numpy(policy2).cuda()
         policys = [policy1, policy2]
     elif len(tasks_num_class) == 5:
         policy1 = np.array([1, 1, 1, 1,
@@ -1049,31 +1074,31 @@ if __name__ == '__main__':
                    1, 1, 1, 1,
                    1, 1, 1, 1,])
         policy1 = np.stack([policy1, 1 - policy1], axis=1).astype('float')
-        policy1 = torch.from_numpy(policy1).cuda()
+        # policy1 = torch.from_numpy(policy1).cuda()
         policy2 = np.array([1, 1, 1, 1,
                             1, 0, 1, 1,
                             1, 1, 1, 1,
                             0, 1, 1, 1, ])
         policy2 = np.stack([policy2, 1 - policy2], axis=1).astype('float')
-        policy2 = torch.from_numpy(policy2).cuda()
+        # policy2 = torch.from_numpy(policy2).cuda()
         policy3 = np.array([1, 1, 1, 1,
                    0, 1, 0, 1,
                    1, 1, 1, 1,
                    1, 1, 1, 1,])
         policy3 = np.stack([policy3, 1 - policy3], axis=1).astype('float')
-        policy3 = torch.from_numpy(policy3).cuda()
+        # policy3 = torch.from_numpy(policy3).cuda()
         policy4 = np.array([1, 1, 1, 0,
                    1, 1, 1, 1,
                    1, 1, 1, 1,
                    1, 1, 1, 1,])
         policy4 = np.stack([policy4, 1 - policy4], axis=1).astype('float')
-        policy4 = torch.from_numpy(policy4).cuda()
+        # policy4 = torch.from_numpy(policy4).cuda()
         policy5 = np.array([1, 1, 1, 1,
                    1, 1, 1, 1,
                    1, 0, 0, 1,
                    0, 1, 1, 1,])
         policy5 = np.stack([policy5, 1 - policy5], axis=1).astype('float')
-        policy5 = torch.from_numpy(policy5).cuda()
+        # policy5 = torch.from_numpy(policy5).cuda()
         policys = [policy1, policy2, policy3, policy4, policy5]
     else:
         raise ValueError
@@ -1082,16 +1107,19 @@ if __name__ == '__main__':
 
     times = []
     input_dict = {'temperature': 5, 'is_policy': True, 'mode': 'fix_policy'}
-    net.cuda()
+    net
+    # net.cuda()
     for _ in tqdm.tqdm(range(1000)):
         start_time = time.time()
-        img = torch.rand((1, 3, 224, 224)).cuda()
+        img = torch.rand((1, 3, 224, 224))
+        # img = torch.rand((1, 3, 224, 224)).cuda()
         net(img, **input_dict)
         times.append(time.time() - start_time)
 
     print('Average time = ', np.mean(times))
 
-    gflops = compute_flops(net, img.cuda(), {'temperature': 5, 'is_policy': True, 'mode': 'fix_policy'})
+    gflops = compute_flops(net, img, {'temperature': 5, 'is_policy': True, 'mode': 'fix_policy'})
+    # gflops = compute_flops(net, img.cuda(), {'temperature': 5, 'is_policy': True, 'mode': 'fix_policy'})
     print('Number of FLOPs = %.2f G' % (gflops / 1e9 / 2))
     pdb.set_trace()
 

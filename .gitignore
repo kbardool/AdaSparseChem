@@ -1,6 +1,8 @@
 data/*
 checkpoints/*
+.ipynb_checkpoints
 .DS_Store
+*.code-workspace
 *.pyc
 *.xml
 *.iml

@@ -22,14 +22,23 @@ def eval(environ, dataloader, tasks, policy=False, num_train_layers=None, hard_s
     batch_size = []
     records = {}
     val_metrics = {}
+
     if 'seg' in tasks:
         assert (num_seg_cls != -1)
-        records['seg'] = {'mIoUs': [], 'pixelAccs': [],  'errs': [], 'conf_mat': np.zeros((num_seg_cls, num_seg_cls)),
-                          'labels': np.arange(num_seg_cls)}
+        records['seg'] = {'mIoUs'    : [], 
+                          'pixelAccs': [],  
+                          'errs'     : [], 
+                          'conf_mat' : np.zeros((num_seg_cls, num_seg_cls)),
+                          'labels'   : np.arange(num_seg_cls)}
     if 'sn' in tasks:
         records['sn'] = {'cos_similaritys': []}
     if 'depth' in tasks:
-        records['depth'] = {'abs_errs': [], 'rel_errs': [], 'sq_rel_errs': [], 'ratios': [], 'rms': [], 'rms_log': []}
+        records['depth'] = {'abs_errs': [], 
+                            'rel_errs': [], 
+                            'sq_rel_errs': [], 
+                            'ratios': [], 
+                            'rms': [], 
+                            'rms_log': []}
     if 'keypoint' in tasks:
         records['keypoint'] = {'errs': []}
     if 'edge' in tasks:
@@ -47,14 +56,17 @@ def eval(environ, dataloader, tasks, policy=False, num_train_layers=None, hard_s
 
             # environ.networks['mtl-net'].task1_logits
             # mIoUs.append(mIoU)
+
             if 'seg' in tasks:
                 new_mat = confusion_matrix(metrics['seg']['gt'], metrics['seg']['pred'], records['seg']['labels'])
                 assert (records['seg']['conf_mat'].shape == new_mat.shape)
                 records['seg']['conf_mat'] += new_mat
                 records['seg']['pixelAccs'].append(metrics['seg']['pixelAcc'])
                 records['seg']['errs'].append(metrics['seg']['err'])
+
             if 'sn' in tasks:
                 records['sn']['cos_similaritys'].append(metrics['sn']['cos_similarity'])
+            
             if 'depth' in tasks:
                 records['depth']['abs_errs'].append(metrics['depth']['abs_err'])
                 records['depth']['rel_errs'].append(metrics['depth']['rel_err'])
@@ -62,10 +74,13 @@ def eval(environ, dataloader, tasks, policy=False, num_train_layers=None, hard_s
                 records['depth']['ratios'].append(metrics['depth']['ratio'])
                 records['depth']['rms'].append(metrics['depth']['rms'])
                 records['depth']['rms_log'].append(metrics['depth']['rms_log'])
+            
             if 'keypoint' in tasks:
                 records['keypoint']['errs'].append(metrics['keypoint']['err'])
+            
             if 'edge' in tasks:
                 records['edge']['errs'].append(metrics['edge']['err'])
+            
             batch_size.append(len(batch['img']))
 
     # overall_mIoU = (np.array(mIoUs) * np.array(batch_size)).sum() / sum(batch_size)
@@ -105,16 +120,19 @@ def eval(environ, dataloader, tasks, policy=False, num_train_layers=None, hard_s
         records['depth']['rel_errs'] = np.stack(records['depth']['rel_errs'], axis=0)
         records['depth']['sq_rel_errs'] = np.stack(records['depth']['sq_rel_errs'], axis=0)
         records['depth']['ratios'] = np.concatenate(records['depth']['ratios'], axis=0)
+
         records['depth']['rms'] = np.concatenate(records['depth']['rms'], axis=0)
         records['depth']['rms_log'] = np.concatenate(records['depth']['rms_log'], axis=0)
         records['depth']['rms_log'] = records['depth']['rms_log'][~np.isnan(records['depth']['rms_log'])]
+        
         val_metrics['depth']['abs_err'] = (records['depth']['abs_errs'] * np.array(batch_size)).sum() / sum(batch_size)
         val_metrics['depth']['rel_err'] = (records['depth']['rel_errs'] * np.array(batch_size)).sum() / sum(batch_size)
-        val_metrics['depth']['sq_rel_err'] = (records['depth']['sq_rel_errs'] * np.array(batch_size)).sum() / sum(
-            batch_size)
+        val_metrics['depth']['sq_rel_err'] = (records['depth']['sq_rel_errs'] * np.array(batch_size)).sum() / sum(batch_size)
+        
         val_metrics['depth']['sigma_1.25'] = np.mean(np.less_equal(records['depth']['ratios'], 1.25)) * 100
         val_metrics['depth']['sigma_1.25^2'] = np.mean(np.less_equal(records['depth']['ratios'], 1.25 ** 2)) * 100
         val_metrics['depth']['sigma_1.25^3'] = np.mean(np.less_equal(records['depth']['ratios'], 1.25 ** 3)) * 100
+        
         val_metrics['depth']['rms'] = (np.sum(records['depth']['rms']) / len(records['depth']['rms'])) ** 0.5
         # val_metrics['depth']['rms_log'] = (np.sum(records['depth']['rms_log']) / len(records['depth']['rms_log'])) ** 0.5
 
@@ -125,8 +143,7 @@ def eval(environ, dataloader, tasks, policy=False, num_train_layers=None, hard_s
 
     if 'edge' in tasks:
         val_metrics['edge'] = {}
-        val_metrics['edge']['err'] = (np.array(records['edge']['errs']) * np.array(batch_size)).sum() / sum(
-            batch_size)
+        val_metrics['edge']['err'] = (np.array(records['edge']['errs']) * np.array(batch_size)).sum() / sum(batch_size)
 
     return val_metrics
 
@@ -154,16 +171,17 @@ def train():
     print_separator('CREATE DATALOADERS')
     if opt['dataload']['dataset'] == 'NYU_v2':
         # To warm up
-        trainset = NYU_v2(opt['dataload']['dataroot'], 'train', opt['dataload']['crop_h'], opt['dataload']['crop_w'])
+        trainset  = NYU_v2(opt['dataload']['dataroot'], 'train', opt['dataload']['crop_h'], opt['dataload']['crop_w'])
         # To update the network parameters
         trainset1 = NYU_v2(opt['dataload']['dataroot'], 'train1', opt['dataload']['crop_h'], opt['dataload']['crop_w'])
         # To update the policy weights
         trainset2 = NYU_v2(opt['dataload']['dataroot'], 'train2', opt['dataload']['crop_h'], opt['dataload']['crop_w'])
-        valset = NYU_v2(opt['dataload']['dataroot'], 'test')
+        valset    = NYU_v2(opt['dataload']['dataroot'], 'test')
+
     elif opt['dataload']['dataset'] == 'CityScapes':
         num_seg_class = opt['tasks_num_class'][opt['tasks'].index('seg')] if 'seg' in opt['tasks'] else -1
         # To warm up
-        trainset = CityScapes(opt['dataload']['dataroot'], 'train', opt['dataload']['crop_h'], opt['dataload']['crop_w'],
+        trainset  = CityScapes(opt['dataload']['dataroot'], 'train' , opt['dataload']['crop_h'], opt['dataload']['crop_w'],
                               num_class=num_seg_class, small_res=opt['dataload']['small_res'])
         # To update the network parameters
         trainset1 = CityScapes(opt['dataload']['dataroot'], 'train1', opt['dataload']['crop_h'], opt['dataload']['crop_w'],
@@ -171,24 +189,27 @@ def train():
         # To update the policy weights
         trainset2 = CityScapes(opt['dataload']['dataroot'], 'train2', opt['dataload']['crop_h'], opt['dataload']['crop_w'],
                                num_class=num_seg_class, small_res=opt['dataload']['small_res'])
-        valset = CityScapes(opt['dataload']['dataroot'], 'test', num_class=num_seg_class, small_res=opt['dataload']['small_res'])
+        valset    = CityScapes(opt['dataload']['dataroot'], 'test'  , num_class=num_seg_class, small_res=opt['dataload']['small_res'])
+    
     elif opt['dataload']['dataset'] == 'Taskonomy':
-        trainset = Taskonomy(opt['dataload']['dataroot'], 'train', opt['dataload']['crop_h'], opt['dataload']['crop_w'])
+        trainset  = Taskonomy(opt['dataload']['dataroot'], 'train' , opt['dataload']['crop_h'], opt['dataload']['crop_w'])
         trainset1 = Taskonomy(opt['dataload']['dataroot'], 'train1', opt['dataload']['crop_h'], opt['dataload']['crop_w'])
         trainset2 = Taskonomy(opt['dataload']['dataroot'], 'train2', opt['dataload']['crop_h'], opt['dataload']['crop_w'])
-        valset = Taskonomy(opt['dataload']['dataroot'], 'test_small')
+        valset    = Taskonomy(opt['dataload']['dataroot'], 'test_small')
+    
     else:
         raise NotImplementedError('Dataset %s is not implemented' % opt['dataload']['dataset'])
 
-    print('size of training set: ', len(trainset))
+    print('size of training set  : ', len(trainset))
     print('size of training set 1: ', len(trainset1))
     print('size of training set 2: ', len(trainset2))
-    print('size of test set: ', len(valset))
+    print('size of test set      : ', len(valset))
 
-    train_loader = DataLoader(trainset, batch_size=opt['train']['batch_size'], drop_last=True, num_workers=2, shuffle=True)
+    train_loader  = DataLoader(trainset , batch_size=opt['train']['batch_size'], drop_last=True, num_workers=2, shuffle=True)
+    ## Weight training iterations
     train1_loader = DataLoader(trainset1, batch_size=opt['train']['batch_size'], drop_last=True, num_workers=2, shuffle=True)
     train2_loader = DataLoader(trainset2, batch_size=opt['train']['batch_size'], drop_last=True, num_workers=2, shuffle=True)
-    val_loader = DataLoader(valset, batch_size=opt['train']['batch_size'], drop_last=True, num_workers=2, shuffle=False)
+    val_loader    = DataLoader(valset   , batch_size=opt['train']['batch_size'], drop_last=True, num_workers=2, shuffle=False)
 
     opt['train']['weight_iter_alternate'] = opt['train'].get('weight_iter_alternate', len(train1_loader))
     opt['train']['alpha_iter_alternate'] = opt['train'].get('alpha_iter_alternate', len(train2_loader))
@@ -199,25 +220,34 @@ def train():
 
     # create the model and the pretrain model
     print_separator('CREATE THE ENVIRONMENT')
-    environ = BlockDropEnv(opt['paths']['log_dir'], opt['paths']['checkpoint_dir'], opt['exp_name'],
-                           opt['tasks_num_class'], opt['init_neg_logits'], gpu_ids[0],
-                           opt['train']['init_temp'], opt['train']['decay_temp'], is_train=True, opt=opt)
+    environ = BlockDropEnv(opt['paths']['log_dir'],
+                           opt['paths']['checkpoint_dir'], 
+                           opt['exp_name'],
+                           opt['tasks_num_class'], 
+                           opt['init_neg_logits'], 
+                           gpu_ids[0],
+                           opt['train']['init_temp'], 
+                           opt['train']['decay_temp'], 
+                           is_train=True, 
+                           opt=opt)
 
     current_iter = 0
     current_iter_w, current_iter_a = 0, 0
+
     if opt['train']['resume']:
         current_iter = environ.load(opt['train']['which_iter'])
         environ.networks['mtl-net'].reset_logits()
 
-    environ.define_optimizer(False)
-    environ.define_scheduler(False)
+    environ.define_optimizer(policy_learning=False)
+    environ.define_scheduler(policy_learning=False)
+    
     if torch.cuda.is_available():
         environ.cuda(gpu_ids)
 
     # ********************************************************************
     # ***************************  Training  *****************************
     # ********************************************************************
-    batch_enumerator = enumerate(train_loader)
+    batch_enumerator  = enumerate(train_loader)
     batch_enumerator1 = enumerate(train1_loader)
     batch_enumerator2 = enumerate(train2_loader)
     flag = 'update_w'
@@ -225,6 +255,23 @@ def train():
     environ.free_w(opt['fix_BN'])
     best_value, best_iter = 0, 0
 
+    best_metrics = None
+    p_epoch = 0
+    flag_warmup = True
+    
+    if opt['backbone'] == 'ResNet18':
+        num_blocks = 8
+    elif opt['backbone'] in ['ResNet34', 'ResNet50']:
+        num_blocks = 18
+    elif opt['backbone'] == 'ResNet101':
+        num_blocks = 33
+    elif opt['backbone'] == 'WRN':
+        num_blocks = 15
+    else:
+        raise ValueError('Backbone %s is invalid' % opt['backbone'])
+    ##
+    ## Setup Reference Metrics (?)
+    ## 
     if opt['dataload']['dataset'] == 'NYU_v2':
         if len(opt['tasks_num_class']) == 2:
             refer_metrics = {'seg': {'mIoU': 0.413, 'Pixel Acc': 0.691},
@@ -256,8 +303,7 @@ def train():
                                     'sigma_1.25^2': 86.3, 'sigma_1.25^3': 93.3}}
         else:
             raise ValueError('num_seg_class = %d and small res = %d are not supported' % (num_seg_class, opt['dataload']['small_res']))
- 
-    
+  
     elif opt['dataload']['dataset'] == 'Taskonomy':
         refer_metrics = {'seg': {'err': 0.517},
                          'sn': {'cosine_similarity': 0.716},
@@ -267,29 +313,24 @@ def train():
     else:
         raise NotImplementedError('Dataset %s is not implemented' % opt['dataload']['dataset'])
 
-    best_metrics = None
-    p_epoch = 0
-    flag_warmup = True
-    if opt['backbone'] == 'ResNet18':
-        num_blocks = 8
-    elif opt['backbone'] in ['ResNet34', 'ResNet50']:
-        num_blocks = 18
-    elif opt['backbone'] == 'ResNet101':
-        num_blocks = 33
-    elif opt['backbone'] == 'WRN':
-        num_blocks = 15
-    else:
-        raise ValueError('Backbone %s is invalid' % opt['backbone'])
+
+
+    ## ********************************************************************
+    ## Training Loop
+    ## ********************************************************************
 
     while current_iter < opt['train']['total_iters']:
         start_time = time.time()
         environ.train()
         current_iter += 1
-        # warm up
+
+        # warm-up
         if current_iter < opt['train']['warm_up_iters']:
             batch_idx, batch = next(batch_enumerator)
+
             environ.set_inputs(batch)
             environ.optimize(opt['lambdas'], is_policy=False, flag='update_w')
+            
             if batch_idx == len(train_loader) - 1:
                 batch_enumerator = enumerate(train_loader)
 
@@ -305,13 +346,13 @@ def train():
                 environ.print_loss(current_iter, start_time, val_metrics)
                 environ.save('latest', current_iter)
                 environ.train()
-
+            # end validation
+        #end warm-up
         else:
             if flag_warmup:
                 environ.define_optimizer(policy_learning=True)
-                environ.define_scheduler(True)
-
-                flag_warmup = False
+                environ.define_scheduler(policy_learning=True)
+                flag_warmup = False 
 
             if current_iter == opt['train']['warm_up_iters']:
                 environ.save('warmup', current_iter)
@@ -384,6 +425,7 @@ def train():
                 current_iter_a += 1
                 batch_idx_a, batch = next(batch_enumerator2)
                 environ.set_inputs(batch)
+
                 if opt['is_curriculum']:
                     num_train_layers = p_epoch // opt['curriculum_speed'] + 1
                 else:

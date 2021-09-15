@@ -25,3 +25,38 @@ def compute_flops(model, input, kwargs_dict):
     gflops = model.compute_average_flops_cost()
 
     return gflops
+
+
+##########################################################################################################
+##
+##  SparseChem functions 
+##
+##########################################################################################################
+def sparse_split2(tensor, split_size, dim=0):
+    """
+    Splits tensor into two parts.
+    Args:
+        split_size   index where to split
+        dim          dimension which to split
+    """
+    assert tensor.layout == torch.sparse_coo
+    indices = tensor._indices()
+    values  = tensor._values()
+
+    shape  = tensor.shape
+    shape0 = shape[:dim] + (split_size,) + shape[dim+1:]
+    shape1 = shape[:dim] + (shape[dim] - split_size,) + shape[dim+1:]
+
+    mask0 = indices[dim] < split_size
+    X0 = torch.sparse_coo_tensor(
+            indices = indices[:, mask0],
+            values  = values[mask0],
+            size    = shape0)
+
+    indices1       = indices[:, ~mask0]
+    indices1[dim] -= split_size
+    X1 = torch.sparse_coo_tensor(
+            indices = indices1,
+            values  = values[~mask0],
+            size    = shape1)
+    return X0, X1

@@ -28,8 +28,10 @@ class BaseEnv():
         self.tasks_num_class = tasks_num_class
         self.device_id = device
         self.opt = opt
+        self.device  = 'cpu' if self.opt['cpu'] else 'gpu'
         self.dataset = self.opt['dataload']['dataset']
         self.tasks = self.opt['tasks']
+
         if torch.cuda.is_available():
             self.device = torch.device("cuda:%d" % device)
 
@@ -41,6 +43,7 @@ class BaseEnv():
 
         self.optimizers = {}
         self.schedulers = {}
+        
         if is_train:
             # define optimizer
             self.define_optimizer()
@@ -81,7 +84,8 @@ class BaseEnv():
     def define_scheduler(self):
         pass
 
-    # ##################### train / test ####################################
+    # ################################### train / test ####################################
+    
     def set_inputs(self, batch):
         """
         :param batch: {'images': a tensor [batch_size, c, video_len, h, w], 'categories': np.ndarray [batch_size,]}
@@ -486,14 +490,20 @@ class BaseEnv():
         :param label: str, the label for the loading checkpoint
         :param path: str, specify if knowing the checkpoint path
         """
+        save_filename = '%s_model.pth.tar' % label
         if path is None:
-            save_filename = '%s_model.pth.tar' % label
             save_path = os.path.join(self.checkpoint_dir, save_filename)
         else:
-            save_path = path
+            save_path = os.path.join(path,save_filename)
+            # save_path = path
         if os.path.isfile(save_path):
             print('=> loading snapshot from {}'.format(save_path))
-            snapshot = torch.load(save_path, map_location='cuda:%d' % self.device_id)
+            if self.device == 'gpu':
+                print(f'Loading to GPU {self.device_id}')
+                snapshot = torch.load(save_path, map_location='cuda:%d' % self.device_id)
+            else:
+                print(f'Loading to CPU')
+                snapshot = torch.load(save_path, map_location='cpu')
             return self.load_snapshot(snapshot)
         else:
             raise ValueError('snapshot %s does not exist' % save_path)
@@ -548,7 +558,9 @@ class BaseEnv():
                 self.networks[k].to(self.device)
 
     def cpu(self):
+        print(f'base_env.cpu()')
         for k, v in self.networks.items():
+            print(f' Network item {k} moved to cpu')
             v.cpu()
 
     def name(self):

@@ -10,12 +10,14 @@ policy_model: task-specific
 paths:
   log_dir: ../experiments/logs
   result_dir: ../experiments/results
-  checkpoint_dir: ../experiments/checkpoints
+  orig_checkpoint_dir: ../experiments/checkpoints
+  checkpoint_dir: /mnt/f/models_adashare 
 
 
 dataload:
   dataset: NYU_v2
-  dataroot: "/data/datasets/nyu_v2"
+  dataroot: "./nyu_v2_samples/"
+  original_dataroot: "/data/datasets/nyu_v2"
   crop_h: 321
   crop_w: 321
 
