@@ -4,7 +4,8 @@ import numpy as np
 import torch
 from torch import nn
 import torch.nn.functional as F
-from tensorboardX import SummaryWriter
+# from tensorboardX import SummaryWriter
+from torch.utils.tensorboard import SummaryWriter
 from utils.util import print_current_errors
 # from data_utils.image_decoder import inv_preprocess, decode_labels2
 
@@ -21,7 +22,7 @@ class BaseEnv():
         :param lr: float, the learning rate
         :param is_train: bool, specify during the training
         """
-        print(self.name())
+        print(self.name(),".super()")
         self.checkpoint_dir = os.path.join(checkpoint_dir, exp_name)
         self.log_dir = os.path.join(log_dir, exp_name)
         self.is_train = is_train
@@ -31,18 +32,26 @@ class BaseEnv():
         self.device  = 'cpu' if self.opt['cpu'] else 'gpu'
         self.dataset = self.opt['dataload']['dataset']
         self.tasks = self.opt['tasks']
-
         if torch.cuda.is_available():
             self.device = torch.device("cuda:%d" % device)
 
+        print(  '\n log_dir        : ', self.log_dir, 
+                '\n checkpoint_dir : ', self.checkpoint_dir, 
+                '\n exp_name       : ', exp_name, 
+                '\n tasks_num_class: ', self.tasks_num_class,
+                '\n device         : ', self.device,
+                '\n device id      : ', self.device_id,
+                '\n dataset        : ', self.dataset, 
+                '\n tasks          : ', self.tasks, '\n')
+
         self.networks = {}
-        self.define_networks(tasks_num_class)
-
-        self.define_loss()
         self.losses = {}
-
         self.optimizers = {}
         self.schedulers = {}
+
+        self.define_networks(tasks_num_class)
+        self.define_loss()
+
         
         if is_train:
             # define optimizer
@@ -51,27 +60,38 @@ class BaseEnv():
             # define summary writer
             self.writer = SummaryWriter(log_dir=self.log_dir)
 
+        print(  '\n\n networks       : \n ----------------\n', self.networks)
+        print(  '\n\n losses         : \n ----------------\n', self.losses)
+        print(  '\n\n optimizers     : \n ----------------\n', self.optimizers)
+        print(  '\n\n schedulers     : \n ----------------\n', self.schedulers)
+
     # ##################### define networks / optimizers / losses ####################################
 
     def define_loss(self):
+        """
+        ignore_index – Specifies a target value that is ignored and does not contribute to the input gradient. 
+                        When size_average is True, the loss is averaged over non-ignored targets.
+        """
         self.cosine_similiarity = nn.CosineSimilarity()
-        self.l1_loss = nn.L1Loss()
+        self.l1_loss  = nn.L1Loss()
         self.l1_loss2 = nn.L1Loss(reduction='none')
+
         if self.dataset == 'NYU_v2':
             self.cross_entropy = nn.CrossEntropyLoss(ignore_index=255)
             self.cross_entropy_sparsity = nn.CrossEntropyLoss(ignore_index=255)
+            self.cross_entropy2 = nn.CrossEntropyLoss(ignore_index=255, reduction='none')
 
-            self.cross_entropy2 = nn.CrossEntropyLoss(ignore_index=255, reduction='none')
-        elif self.dataset == 'Taskonomy':
-            dataroot = self.opt['dataload']['dataroot']
-            weight = torch.from_numpy(np.load(os.path.join(dataroot, 'semseg_prior_factor.npy'))).to(self.device).float()
-            self.cross_entropy = nn.CrossEntropyLoss(weight=weight, ignore_index=255)
-            self.cross_entropy2 = nn.CrossEntropyLoss(ignore_index=255, reduction='none')
-            self.cross_entropy_sparisty = nn.CrossEntropyLoss(ignore_index=255)
-        elif self.dataset == 'CityScapes':
-            self.cross_entropy = nn.CrossEntropyLoss(ignore_index=-1)
-            self.cross_entropy2 = nn.CrossEntropyLoss(ignore_index=-1, reduction='none')
-            self.cross_entropy_sparsity = nn.CrossEntropyLoss(ignore_index=-1)
+        # elif self.dataset == 'Taskonomy':
+        #     dataroot = self.opt['dataload']['dataroot']
+        #     weight = torch.from_numpy(np.load(os.path.join(dataroot, 'semseg_prior_factor.npy'))).to(self.device).float()
+        #     self.cross_entropy = nn.CrossEntropyLoss(weight=weight, ignore_index=255)
+        #     self.cross_entropy2 = nn.CrossEntropyLoss(ignore_index=255, reduction='none')
+        #     self.cross_entropy_sparisty = nn.CrossEntropyLoss(ignore_index=255)
+
+        # elif self.dataset == 'CityScapes':
+        #     self.cross_entropy = nn.CrossEntropyLoss(ignore_index=-1)
+        #     self.cross_entropy2 = nn.CrossEntropyLoss(ignore_index=-1, reduction='none')
+        #     self.cross_entropy_sparsity = nn.CrossEntropyLoss(ignore_index=-1)
         else:
             raise NotImplementedError('Dataset %s is not implemented' % self.dataset)
 
@@ -84,8 +104,6 @@ class BaseEnv():
     def define_scheduler(self):
         pass
 
-    # ################################### train / test ####################################
-    
     def set_inputs(self, batch):
         """
         :param batch: {'images': a tensor [batch_size, c, video_len, h, w], 'categories': np.ndarray [batch_size,]}
@@ -157,27 +175,47 @@ class BaseEnv():
     def resize_results(self):
         new_shape = self.img.shape[-2:]
         if 'seg' in self.tasks:
+            print(f"resize results  {self.seg_pred.shape} to {new_shape}")
             self.seg_output = F.interpolate(self.seg_pred, size=new_shape)
+
         if 'sn' in self.tasks:
+            print(f"resize results  {self.sn_pred.shape} to {new_shape}")
             self.sn_output = F.interpolate(self.sn_pred, size=new_shape)
+
         if 'depth' in self.tasks:
+            print(f"resize results  {self.depth_pred.shape} to {new_shape}")
             self.depth_output = F.interpolate(self.depth_pred, size=new_shape)
+
         if 'keypoint' in self.tasks:
+            print(f"resize results  {self.keypoint_pred.shape} to {new_shape}")
             self.keypoint_output = F.interpolate(self.keypoint_pred, size=new_shape)
+
         if 'edge' in self.tasks:
+            print(f"resize results  {self.edge_pred.shape} to {new_shape}")
             self.edge_output = F.interpolate(self.edge_pred, size=new_shape)
 
     def get_seg_loss(self, seg_num_class, instance=False):
+        """
+        seg_pred: semantic segmentation predictions. shape: (BatchSize, NumClasses, W, H)
+        """
         self.losses['seg'] = {}
+        ## convert to (Batchsize x W x H, NumClasses )
         prediction = self.seg_pred.permute(0, 2, 3, 1).contiguous().view(-1, seg_num_class)
+        print(f"       get_seg_loss:  self.seg_pred:{self.seg_pred.shape}   prediction: {prediction.shape}")
+        
+        ## build ground truth 
         batch_size = self.seg_pred.shape[0]
-        new_shape = self.seg_pred.shape[-2:]
+        new_shape  = self.seg_pred.shape[-2:]
         seg_resize = F.interpolate(self.seg.float(), size=new_shape)
         gt = seg_resize.permute(0, 2, 3, 1).contiguous().view(-1)
+        print(f"       seg:{seg.shape}   seg_resize:{seg_resize.shape}    gt: {gt.shape}")
+        
         # max_label_num = prediction.argmax(dim=-1).max()
         # print(max_label_num)
+        
         loss = self.cross_entropy(prediction, gt.long())
         self.losses['seg']['total'] = loss
+        
         if instance:
             instance_loss = self.cross_entropy2(prediction, gt.long()).view(batch_size, -1).mean(dim=-1)
             return instance_loss
@@ -186,10 +224,17 @@ class BaseEnv():
 
     def get_sn_loss(self, instance=False):
         self.losses['sn'] = {}
+
+        ## convert to (Batchsize x W x H, 3 )
         prediction = self.sn_pred.permute(0, 2, 3, 1).contiguous().view(-1, 3)
+        print(f"       get_seg_loss:  self.sn_pred:{self.sn_pred.shape}   prediction: {prediction.shape}")
+        
+        ## build ground truth 
         new_shape = self.sn_pred.shape[-2:]
         sn_resize = F.interpolate(self.normal.float(), size=new_shape)
         gt = sn_resize.permute(0, 2, 3, 1).contiguous().view(-1, 3)
+        print(f"       normal:{self.normal.shape}   seg_resize:{sn_resize.shape}    gt: {gt.shape}")
+        
         labels = (gt.max(dim=1)[0] < 255)
         if hasattr(self, 'normal_mask'):
             normal_mask_resize = F.interpolate(self.normal_mask.float(), size=new_shape)
@@ -203,6 +248,7 @@ class BaseEnv():
         gt = F.normalize(gt)
 
         self.losses['sn']['total'] = 1 - self.cosine_similiarity(prediction, gt).mean()
+
         if instance:
             batch_size = self.sn_pred.shape[0]
             instance_stats = labels.view(batch_size, -1).long().sum(dim=-1)
@@ -416,7 +462,6 @@ class BaseEnv():
         abs_err = torch.abs(edge_output_true - edge_gt_true).mean()
         return abs_err.cpu().numpy()
 
-    # ##################### print loss ####################################
     def get_loss_dict(self):
         loss = {}
         for key in self.losses.keys():
@@ -425,19 +470,22 @@ class BaseEnv():
                 loss[key][subkey] = v.data
         return loss
 
-    def print_loss(self, current_iter, start_time, metrics=None):
+    # ##################### print loss ####################################
+    def print_loss(self, current_iter, start_time, metrics=None, title='Iteration'):
         if metrics is None:
             loss = self.get_loss_dict()
         else:
             # loss = {'metrics': metrics}
             loss = metrics
+        print('\n-------------------------------------------------------------')
+        print(f"{title}  {current_iter} Loss : {loss}")
+        print('-------------------------------------------------------------\n')
 
-        print('-------------------------------------------------------------')
         for key in loss.keys():
-            print(key + ':')
+            # print(key + ':')
             for subkey in loss[key].keys():
                 self.writer.add_scalar('%s/%s'%(key, subkey), loss[key][subkey], current_iter)
-            print_current_errors(os.path.join(self.log_dir, 'loss.txt'), current_iter, loss[key],
+            print_current_errors(os.path.join(self.log_dir, 'loss.txt'), current_iter,key, loss[key],
                                  time.time() - start_time)
 
     # ##################### change the state of each module ####################################
@@ -453,7 +501,7 @@ class BaseEnv():
         current_state['iter'] = current_iter
         return current_state
 
-    def save(self, label, current_iter):
+    def save_checkpoint(self, label, current_iter):
         """
         Save the current checkpoint
         :param label: str, the label for the loading checkpoint
@@ -484,7 +532,7 @@ class BaseEnv():
                     self.optimizers[k].load_state_dict(snapshot[k])
         return snapshot['iter']
 
-    def load(self, label, path=None):
+    def load_checkpoint(self, label, path=None):
         """
         load the checkpoint
         :param label: str, the label for the loading checkpoint

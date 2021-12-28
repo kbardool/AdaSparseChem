@@ -10,6 +10,79 @@ import torch.nn as nn
 import numpy as np
 import matplotlib.pyplot as plt
 
+from datetime import datetime
+timestring = lambda : datetime.now().strftime('%F %H:%M:%S:%f')
+timestring()
+
+# ---------------------------------------------------------------------------------------
+# Decorators 
+# ---------------------------------------------------------------------------------------
+def debug_on(fn):
+    def wrapper(*args, **kwargs):
+        # print(f"debug_on wrapper for function {fn.__name__} - verbose is {kwargs.get('verbose', 'not provided')}")
+        kwargs['verbose'] = True
+        return fn(*args, **kwargs)
+    return wrapper
+
+def debug_off(fn):
+    def wrapper(*args, **kwargs):
+        # print(f"debug_off wrapper for function {fn.__name__} - verbose is {kwargs.get('verbose', 'not provided')}")
+        kwargs['verbose'] = False
+        return fn(*args, **kwargs)
+    return wrapper
+
+def debug_off_m(method):
+    def wrapper(*args, **kwargs):
+        # print(f"debug_off_m wrapper for function {fn.__name__} - verbose is {kwargs.get('verbose', 'not provided')}")
+        kwargs['verbose'] = False
+        return method(*args, **kwargs)
+    return wrapper
+
+# ---------------------------------------------------------------------------------------
+# Display routines 
+# ---------------------------------------------------------------------------------------
+
+def print_separator(text, total_len=50):
+    print('#' * total_len)
+    left_width = (total_len - len(text))//2
+    right_width = total_len - len(text) - left_width
+    print("#" * left_width + text + "#" * right_width)
+    print('#' * total_len)
+
+def print_dbg(text, verbose = False):
+    if verbose:
+        print(text)
+
+# @debug_off
+def print_heading(text,  verbose = False, force = False):
+    len_ttl = max(len(text)+4, 50)
+    len_ttl = min(len_ttl, 120)
+    if verbose or force:
+        print('-' * len_ttl)
+        print(f" {text}")
+        # left_width = (total_len - len(text))//2
+        # right_width = total_len - len(text) - left_width
+        # print("#" * left_width + text + "#" * right_width)
+        print('-' * len_ttl, '\n')
+
+def print_underline(text,  verbose = False):
+    len_ttl = len(text)+2
+    if verbose:
+        print(f"\n {text}")
+        print('-' * len_ttl)
+
+def print_yaml(opt):
+    lines = []
+    if isinstance(opt, dict):
+        # lines += [f"CALL print_yaml with {key}"]
+        lines += [""]
+        for key in opt.keys():
+            tmp_lines = print_yaml(opt[key])
+            tmp_lines = ["%s.%s" % (key, line) for line in tmp_lines]
+            lines += tmp_lines
+    else:
+        lines = [" : " + str(opt)]
+    return lines
 
 def show_batch(batch):
     normed = batch * 0.5 + 0.5
@@ -53,15 +126,15 @@ def listopt(opt, f=None):
         print('-------------- End ----------------')
 
 
-def print_current_errors(log_name, update, errors, t):
-    message = 'update: %d, time: %.3f ' % (update, t)
+def print_current_errors(log_name, update, log_key, errors, t):
+    message = 'update: %d, timestamp: %s wall clock time: %.3f  %s errors:' % (update, timestring(), t, log_key)
     for k, v in errors.items():
         if k.startswith('Update'):
             message += '%s: %s ' % (k, str(v))
         else:
             message += '%s: %.3f ' % (k, v)
 
-    print(message)
+    # print(message)
     with open(log_name, 'a') as log_file:
         log_file.write('%s \n' % message)
 
@@ -188,29 +261,6 @@ class Initializer:
 
         model.apply(weights_init)
 
-# ********************************************************************************
-
-
-def print_separator(text, total_len=50):
-    print('#' * total_len)
-    left_width = (total_len - len(text))//2
-    right_width = total_len - len(text) - left_width
-    print("#" * left_width + text + "#" * right_width)
-    print('#' * total_len)
-
-
-def print_yaml(opt):
-    lines = []
-    if isinstance(opt, dict):
-        # lines += [f"CALL print_yaml with {key}"]
-        lines += [""]
-        for key in opt.keys():
-            tmp_lines = print_yaml(opt[key])
-            tmp_lines = ["%s.%s" % (key, line) for line in tmp_lines]
-            lines += tmp_lines
-    else:
-        lines = [" : " + str(opt)]
-    return lines
 
 
 def create_path(opt):
@@ -239,7 +289,23 @@ def read_yaml():
     opt['cpu'] = args.cpu
     return opt, args.gpus, args.exp_ids
 
+def read_yaml_from_input(input_args):
+    # read in yaml
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", required=True, help="Path for the config file")
+    parser.add_argument("--exp_ids", type=int, nargs='+', default=[0], help="Path for the config file")
+    parser.add_argument("--gpus", type=int, nargs='+', default=[0], help="Path for the config file")
+    parser.add_argument("--cpu", default=False, action="store_true",  help="CPU instead of GPU")
+    args = parser.parse_args(input_args)
 
+    print(vars(args))
+    # torch.cuda.set_device(args.gpu)
+    with open(args.config) as f:
+        opt = yaml.safe_load(f)
+    opt['cpu'] = args.cpu
+    return opt, args.gpus, args.exp_ids
+
+    
 def should(current_freq, freq):
     return current_freq % freq == 0
 

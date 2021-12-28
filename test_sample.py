@@ -157,7 +157,7 @@ def test():
                            is_train=False, 
                            opt=opt)
 
-    current_iter = environ.load('retrain%03d_policyIter%s_best' % (exp_ids[0], opt['train']['policy_iter']))
+    current_iter = environ.load_checkpoint('retrain%03d_policyIter%s_best' % (exp_ids[0], opt['train']['policy_iter']))
 
     print('Evaluating the snapshot saved at %d iter' % current_iter)
 

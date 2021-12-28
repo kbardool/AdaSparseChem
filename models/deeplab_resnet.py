@@ -104,36 +104,45 @@ class ResNet(nn.Module):
 
 
 class Deeplab_ResNet_Backbone(nn.Module):
+
     def __init__(self, block, layers):
+
         self.inplanes = 64
         super(Deeplab_ResNet_Backbone, self).__init__()
         self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3, bias=False)
         self.bn1 = nn.BatchNorm2d(64, affine=affine_par)
         # for i in self.bn1.parameters():
         #     i.requires_grad = False
-        self.relu = nn.ReLU(inplace=True)
+
+        self.relu = nn.ReLU(inplace=True)               
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1, ceil_mode=True) # change
 
-        strides = [1, 2, 1, 1]
-        dilations = [1, 1, 2, 4]
-        filt_sizes = [64, 128, 256, 512]
-        self.blocks, self.ds = [], []
+        strides     = [1, 2, 1, 1]
+        dilations   = [1, 1, 2, 4]
+        filt_sizes  = [64, 128, 256, 512]
+        self.blocks = []
+        self.ds     = []
 
         for idx, (filt_size, num_blocks, stride, dilation) in enumerate(zip(filt_sizes, layers, strides, dilations)):
+            print(f" making layer {idx}  filter size: {filt_size}  num-blocks(layer):{num_blocks}  strides: {stride} dilation: {dilation} \n")
+
             blocks, ds = self._make_layer(block, filt_size, num_blocks, stride=stride, dilation=dilation)
+
             self.blocks.append(nn.ModuleList(blocks))
             self.ds.append(ds)
 
         self.blocks = nn.ModuleList(self.blocks)
-        self.ds = nn.ModuleList(self.ds)
+        self.ds     = nn.ModuleList(self.ds)
 
         #
         # self.layer1 = self._make_layer(block, 64, layers[0])
         # self.layer2 = self._make_layer(block, 128, layers[1], stride=2)
         # self.layer3 = self._make_layer(block, 256, layers[2], stride=1, dilation=2)
         # self.layer4 = self._make_layer(block, 512, layers[3], stride=1, dilation=4)
+        #
         self.layer_config = layers
 
+        ## Initialize weights and biases
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
                 n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
@@ -150,6 +159,12 @@ class Deeplab_ResNet_Backbone(nn.Module):
         return x
 
     def _make_layer(self, block, planes, blocks, stride=1, dilation=1):
+        """
+        block:  type of 'ResNet' block to create: {BasicBlock, Bottleneck}
+        planes: filter size
+        blocks: number of resnet blocks to create in this layer
+
+        """
         downsample = None
         if stride != 1 or self.inplanes != planes * block.expansion or dilation == 2 or dilation == 4:
             downsample = nn.Sequential(
@@ -197,11 +212,11 @@ class Deeplab_ResNet_Backbone(nn.Module):
 
 
 class Deeplab_ResNet_Backbone2(nn.Module):
+
     def __init__(self, block, layers):
         self.inplanes = 64
         super(Deeplab_ResNet_Backbone2, self).__init__()
-        self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3,
-                               bias=False)
+        self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3, bias=False)
         self.bn1 = nn.BatchNorm2d(64, affine=affine_par)
         # for i in self.bn1.parameters():
         #     i.requires_grad = False
@@ -214,6 +229,8 @@ class Deeplab_ResNet_Backbone2(nn.Module):
         self.blocks, self.ds = [], []
 
         for idx, (filt_size, num_blocks, stride, dilation) in enumerate(zip(filt_sizes, layers, strides, dilations)):
+            print(f" making layer {idx}  filter size: {filt_size}  num-blocks(layer):{num_blocks}"
+                  f"  strides: {stride} dilation: {dilation} \n")            
             blocks, ds = self._make_layer(block, filt_size, num_blocks, stride=stride, dilation=dilation)
             self.blocks.append(nn.ModuleList(blocks))
             self.ds.append(ds)
@@ -289,7 +306,7 @@ class Deeplab_ResNet_Backbone2(nn.Module):
                     t += 1
         return x
 
-
+'''
 class MTL2(nn.Module):
     """
     Create the architecture based on the Deep lab ResNet backbone
@@ -300,6 +317,7 @@ class MTL2(nn.Module):
         self.backbone = Deeplab_ResNet_Backbone(block, layers)
         self.num_tasks = len(num_classes_tasks)
 
+        ## define task specific layers 
         for t_id, num_class in enumerate(num_classes_tasks):
             setattr(self, 'task%d_fc1_c0' % (t_id + 1), Classification_Module(512 * block.expansion, num_class, rate=6))
             setattr(self, 'task%d_fc1_c1' % (t_id + 1), Classification_Module(512 * block.expansion, num_class, rate=12))
@@ -312,6 +330,7 @@ class MTL2(nn.Module):
         self.init_neg_logits = init_neg_logits
         self.reset_logits()
 
+        ## Initialize policies - there is one policy for each task
         self.policys = []
         for t_id in range(self.num_tasks):
             self.policys.append(None)
@@ -338,14 +357,14 @@ class MTL2(nn.Module):
         return params
 
     def network_parameters(self):
+        """
+        return backbone + task_specific parameters
+        """
         params = []
         for name, param in self.named_parameters():
             if not ('task' in name and 'logits' in name):
                 params.append(param)
         return params
-
-
-
 
 
     def train_sample_policy(self, temperature, hard_sampling):
@@ -416,7 +435,7 @@ class MTL2(nn.Module):
             self._arch_parameters.append(getattr(self, 'task%d_logits' % (t_id + 1)))
 
     def forward(self, img, temperature, is_policy, num_train_layers=None, hard_sampling=False, mode='train'):
-        # print('num_train_layers in mtl forward = ', num_train_layers, 'is_policy: ', is_policy)
+        # print('** MTL2 num_train_layers in mtl forward = ', num_train_layers, 'is_policy: ', is_policy)
 
         if num_train_layers is None:
             num_train_layers = sum(self.layers) - self.skip_layer
@@ -476,9 +495,12 @@ class MTL2(nn.Module):
             outputs.append(output)
 
         return outputs, self.policys, [None] * self.num_tasks
-
+'''
 
 class MTL2_Backbone(nn.Module):
+    """
+        MTL_Backbone is Multi-Task Learning architecture  used to calculate the backbone parameters  
+    """
     def __init__(self, block, layers, num_classes_tasks, init_method, init_neg_logits=None, skip_layer=0):
         super(MTL2_Backbone, self).__init__()
         self.backbone = Deeplab_ResNet_Backbone2(block, layers)
@@ -582,82 +604,9 @@ class MTL2_Backbone(nn.Module):
         return outputs, self.policys, [None] * self.num_tasks
 
 
-class MTL_SD(nn.Module):
-    def __init__(self, block, layers, num_classes_tasks):
-        super(MTL_SD, self).__init__()
-        self.backbone = Deeplab_ResNet_Backbone(block, layers)
-        self.num_tasks = len(num_classes_tasks)
-
-        for t_id, num_class in enumerate(num_classes_tasks):
-            setattr(self, 'task%d_fc1_c0' % (t_id + 1), Classification_Module(512 * block.expansion, num_class, rate=6))
-            setattr(self, 'task%d_fc1_c1' % (t_id + 1), Classification_Module(512 * block.expansion, num_class, rate=12))
-            setattr(self, 'task%d_fc1_c2' % (t_id + 1), Classification_Module(512 * block.expansion, num_class, rate=18))
-            setattr(self, 'task%d_fc1_c3' % (t_id + 1), Classification_Module(512 * block.expansion, num_class, rate=24))
-
-        self.layers = layers
-        self.reset_logits()
-
-        self.policys = []
-        for t_id in range(self.num_tasks):
-            self.policys.append(None)
-
-    def network_params(self):
-        params = []
-        for name, param in self.named_parameters():
-            params.append(param)
-        return params
-
-    def train_sample_policy(self):
-        policys = []
-        for t_id in range(self.num_tasks):
-            logit = getattr(self, 'task%d_logits' % (t_id + 1))
-            policy = torch.bernoulli(logit)
-            policys.append(policy)
-        return policys
-
-    def test_sample_policy(self):
-        policys = []
-        for t_id in range(self.num_tasks):
-            logit = getattr(self, 'task%d_logits' % (t_id + 1))
-            policys.append(logit)
-        return policys
-
-    def reset_logits(self):
-        num_layers = sum(self.layers)
-        self.p_l = (1 - torch.arange(start=1, end=num_layers+1) / num_layers * 0.5)
-        for t_id in range(self.num_tasks):
-            task_logits = self.p_l * torch.ones(num_layers)
-            self.register_buffer('task%d_logits' % (t_id + 1), task_logits)
-
-    def forward(self, img, mode='train'):
-        feats = []
-        if mode == 'train':
-            self.policys = self.train_sample_policy()
-        elif mode == 'eval':
-            self.policys = self.test_sample_policy()
-        else:
-            raise NotImplementedError('mode %s is not implemented' % mode)
-
-        for t_id in range(self.num_tasks):
-            policy = self.policys[t_id].float()
-
-            feats.append(self.backbone(img, policy))
-
-        # Get the output
-        outputs = []
-        for t_id in range(self.num_tasks):
-            output = getattr(self, 'task%d_fc1_c0' % (t_id + 1))(feats[t_id]) + \
-                     getattr(self, 'task%d_fc1_c1' % (t_id + 1))(feats[t_id]) + \
-                     getattr(self, 'task%d_fc1_c2' % (t_id + 1))(feats[t_id]) + \
-                     getattr(self, 'task%d_fc1_c3' % (t_id + 1))(feats[t_id])
-            outputs.append(output)
-
-        return outputs
-
-
 class MTL_Instance(nn.Module):
     """
-
+    MTL_instance is Multi-Task Learning architecture  used for instance-specific policy generation . 
     """
     def __init__(self, block, layers, num_classes_tasks, init_method, init_neg_logits=None, skip_layer=0):
         super(MTL_Instance, self).__init__()
@@ -820,6 +769,9 @@ class MTL_Instance(nn.Module):
 
 
 class MTL_RL(nn.Module):
+    """
+    MTL_RL is the one we use RL instead of Gumbel Softmax Sampling in generating discrete samples. 
+    """
     def __init__(self, block, layers, num_classes_tasks, init_method, init_neg_logits=None, skip_layer=0):
         super(MTL_RL, self).__init__()
         self.backbone = Deeplab_ResNet_Backbone(block, layers)
@@ -991,6 +943,82 @@ class MTL_RL(nn.Module):
             outputs.append(output)
 
         return outputs, padding_policys
+
+class MTL_SD(nn.Module):
+    """
+    do not quite remember what MTL_SD  is, but it is not related to task-specific adashare.
+    """
+    def __init__(self, block, layers, num_classes_tasks):
+        super(MTL_SD, self).__init__()
+        self.backbone = Deeplab_ResNet_Backbone(block, layers)
+        self.num_tasks = len(num_classes_tasks)
+
+        for t_id, num_class in enumerate(num_classes_tasks):
+            setattr(self, 'task%d_fc1_c0' % (t_id + 1), Classification_Module(512 * block.expansion, num_class, rate=6))
+            setattr(self, 'task%d_fc1_c1' % (t_id + 1), Classification_Module(512 * block.expansion, num_class, rate=12))
+            setattr(self, 'task%d_fc1_c2' % (t_id + 1), Classification_Module(512 * block.expansion, num_class, rate=18))
+            setattr(self, 'task%d_fc1_c3' % (t_id + 1), Classification_Module(512 * block.expansion, num_class, rate=24))
+
+        self.layers = layers
+        self.reset_logits()
+
+        self.policys = []
+        for t_id in range(self.num_tasks):
+            self.policys.append(None)
+
+    def network_params(self):
+        params = []
+        for name, param in self.named_parameters():
+            params.append(param)
+        return params
+
+    def train_sample_policy(self):
+        policys = []
+        for t_id in range(self.num_tasks):
+            logit = getattr(self, 'task%d_logits' % (t_id + 1))
+            policy = torch.bernoulli(logit)
+            policys.append(policy)
+        return policys
+
+    def test_sample_policy(self):
+        policys = []
+        for t_id in range(self.num_tasks):
+            logit = getattr(self, 'task%d_logits' % (t_id + 1))
+            policys.append(logit)
+        return policys
+
+    def reset_logits(self):
+        num_layers = sum(self.layers)
+        self.p_l = (1 - torch.arange(start=1, end=num_layers+1) / num_layers * 0.5)
+        for t_id in range(self.num_tasks):
+            task_logits = self.p_l * torch.ones(num_layers)
+            self.register_buffer('task%d_logits' % (t_id + 1), task_logits)
+
+    def forward(self, img, mode='train'):
+        feats = []
+        if mode == 'train':
+            self.policys = self.train_sample_policy()
+        elif mode == 'eval':
+            self.policys = self.test_sample_policy()
+        else:
+            raise NotImplementedError('mode %s is not implemented' % mode)
+
+        for t_id in range(self.num_tasks):
+            policy = self.policys[t_id].float()
+
+            feats.append(self.backbone(img, policy))
+
+        # Get the output
+        outputs = []
+        for t_id in range(self.num_tasks):
+            output = getattr(self, 'task%d_fc1_c0' % (t_id + 1))(feats[t_id]) + \
+                     getattr(self, 'task%d_fc1_c1' % (t_id + 1))(feats[t_id]) + \
+                     getattr(self, 'task%d_fc1_c2' % (t_id + 1))(feats[t_id]) + \
+                     getattr(self, 'task%d_fc1_c3' % (t_id + 1))(feats[t_id])
+            outputs.append(output)
+
+        return outputs
+
 
 
 if __name__ == '__main__':

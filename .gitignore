@@ -1,5 +1,6 @@
 data/*
 checkpoints/*
+nyu_v2_samples/**
 .ipynb_checkpoints
 .DS_Store
 *.code-workspace

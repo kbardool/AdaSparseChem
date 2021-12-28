@@ -36,9 +36,9 @@ def eval(environ, dataloader, tasks, policy=False, num_train_layers=None, hard_s
         records['depth'] = {'abs_errs': [], 
                             'rel_errs': [], 
                             'sq_rel_errs': [], 
-                            'ratios': [], 
-                            'rms': [], 
-                            'rms_log': []}
+                            'ratios'  : [], 
+                            'rms'     : [], 
+                            'rms_log' : []}
     if 'keypoint' in tasks:
         records['keypoint'] = {'errs': []}
     if 'edge' in tasks:
@@ -212,7 +212,7 @@ def train():
     val_loader    = DataLoader(valset   , batch_size=opt['train']['batch_size'], drop_last=True, num_workers=2, shuffle=False)
 
     opt['train']['weight_iter_alternate'] = opt['train'].get('weight_iter_alternate', len(train1_loader))
-    opt['train']['alpha_iter_alternate'] = opt['train'].get('alpha_iter_alternate', len(train2_loader))
+    opt['train']['alpha_iter_alternate']  = opt['train'].get('alpha_iter_alternate' , len(train2_loader))
 
     # ********************************************************************
     # ********************Create the environment *************************
@@ -235,7 +235,7 @@ def train():
     current_iter_w, current_iter_a = 0, 0
 
     if opt['train']['resume']:
-        current_iter = environ.load(opt['train']['which_iter'])
+        current_iter = environ.load_checkpoint(opt['train']['which_iter'])
         environ.networks['mtl-net'].reset_logits()
 
     environ.define_optimizer(policy_learning=False)
@@ -315,16 +315,18 @@ def train():
 
 
 
-    ## ********************************************************************
+    ##---------------------------------------------------------------------
     ## Training Loop
-    ## ********************************************************************
+    ##---------------------------------------------------------------------
 
     while current_iter < opt['train']['total_iters']:
         start_time = time.time()
         environ.train()
         current_iter += 1
 
-        # warm-up
+        #----------------------------------------
+        # warm-up phase
+        #---------------------------------------- 
         if current_iter < opt['train']['warm_up_iters']:
             batch_idx, batch = next(batch_enumerator)
 
@@ -344,10 +346,14 @@ def train():
                 num_seg_class = opt['tasks_num_class'][opt['tasks'].index('seg')] if 'seg' in opt['tasks'] else -1
                 val_metrics = eval(environ, val_loader, opt['tasks'], policy=False, num_train_layers=None, num_seg_cls=num_seg_class)
                 environ.print_loss(current_iter, start_time, val_metrics)
-                environ.save('latest', current_iter)
+                environ.save_checkpoint('latest', current_iter)
                 environ.train()
             # end validation
         #end warm-up
+
+        #----------------------------------------
+        # Training Phase
+        #---------------------------------------- 
         else:
             if flag_warmup:
                 environ.define_optimizer(policy_learning=True)
@@ -355,10 +361,12 @@ def train():
                 flag_warmup = False 
 
             if current_iter == opt['train']['warm_up_iters']:
-                environ.save('warmup', current_iter)
+                environ.save_checkpoint('warmup', current_iter)
                 environ.fix_alpha()
 
+            #-------------------------------------
             # Update the network weights
+            #-------------------------------------
             if flag == 'update_w':
                 current_iter_w += 1
                 batch_idx_w, batch = next(batch_enumerator1)
@@ -380,6 +388,7 @@ def train():
                     flag = 'update_alpha'
                     environ.fix_w()
                     environ.free_alpha()
+                    
                     # do the validation on the test set
                     environ.eval()
                     print('Evaluating...')
@@ -388,7 +397,7 @@ def train():
                                        num_train_layers=num_train_layers, hard_sampling=opt['train']['hard_sampling'],
                                        num_seg_cls=num_seg_class)
                     environ.print_loss(current_iter, start_time, val_metrics)
-                    environ.save('latest', current_iter)
+                    environ.save_checkpoint('latest', current_iter)
 
                     if current_iter - opt['train']['warm_up_iters'] >= num_blocks * opt['curriculum_speed'] * \
                             (opt['train']['weight_iter_alternate'] + opt['train']['alpha_iter_alternate']):
@@ -412,7 +421,7 @@ def train():
                             best_value = new_value
                             best_metrics = val_metrics
                             best_iter = current_iter
-                            environ.save('best', current_iter)
+                            environ.save_checkpoint('best', current_iter)
                         print('new value: %.3f' % new_value)
                         print('best iter: %d, best_value: %.3f' % (best_iter, best_value), best_metrics)
                     environ.train()
@@ -420,7 +429,9 @@ def train():
                 if batch_idx_w == len(train1_loader) - 1:
                     batch_enumerator1 = enumerate(train1_loader)
 
+            #-------------------------------------
             # update the policy network
+            #-------------------------------------
             elif flag == 'update_alpha':
                 current_iter_a += 1
                 batch_idx_a, batch = next(batch_enumerator2)

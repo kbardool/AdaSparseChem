@@ -58,7 +58,6 @@ class BasicBlock(nn.Module):
         # self.keep_channels = [0, 16, 32, 64]
         # self.keep_masks list of 4 (1, plane,1,1) tensors where 0, %25, %50, and %100
         # of elements are set to 1. 
-
         self.keep_channels = (planes * np.cumsum([0, 0.25, 0.25, 0.5])).astype('int')
         self.keep_masks = []
         for kc in self.keep_channels:
@@ -74,6 +73,7 @@ class BasicBlock(nn.Module):
         self.relu  = nn.ReLU(inplace=True)
         self.conv2 = conv3x3(planes, planes, dilation=dilation)
         self.bn2   = nn.BatchNorm2d(planes, affine = affine_par)
+
 
     def forward(self, x, keep=None):
         # keep: [batch_size], int
@@ -93,7 +93,7 @@ class BasicBlock(nn.Module):
 
         out = self.relu(out)
         out = self.conv2(out)
-        y = self.bn2(out)
+        y   = self.bn2(out)
         return y
 
 
@@ -124,9 +124,13 @@ class Bottleneck(nn.Module):
 
     # |----------------------------------------------------------------|
     # 1x1 conv -> bn -> relu -> 3x3 conv -> bn -> relu -> 1x1 conv -> bn -> relu
+
     def __init__(self, inplanes, planes, stride=1, dilation=1):
+        """
+        """
         super(Bottleneck, self).__init__()
         self.conv1 = nn.Conv2d(inplanes, planes, kernel_size=1, stride=stride, bias=False) # change
+        
         self.bn1 = nn.BatchNorm2d(planes, affine=affine_par)
         for i in self.bn1.parameters():
             i.requires_grad = False
@@ -134,14 +138,19 @@ class Bottleneck(nn.Module):
         padding = dilation
         self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=1,
                                padding=padding, bias=False, dilation=dilation)
+        
         self.bn2 = nn.BatchNorm2d(planes, affine=affine_par)
         for i in self.bn2.parameters():
             i.requires_grad = False
+
         self.conv3 = nn.Conv2d(planes, planes * self.expansion, kernel_size=1, bias=False)
+        
         self.bn3 = nn.BatchNorm2d(planes * self.expansion, affine = affine_par)
         for i in self.bn3.parameters():
             i.requires_grad = False
+
         self.relu = nn.ReLU(inplace=True)
+        
         self.stride = stride
 
     def forward(self, x):
@@ -254,6 +263,7 @@ class Classification_Module(nn.Module):
         x = self.dropout(x)
         x = self.conv3(x)
         return x
+
 
 
 if __name__ == '__main__':

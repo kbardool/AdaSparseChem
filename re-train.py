@@ -25,7 +25,7 @@ def eval_fix_policy(environ, dataloader, tasks, num_seg_cls=-1, eval_iter=10):
 
     if 'seg' in tasks:
         assert (num_seg_cls != -1)
-        records['seg'] = {'mIoUs': [], 
+        records['seg'] = {'mIoUs'    : [], 
                           'pixelAccs': [],  
                           'errs'     : [], 
                           'conf_mat' : np.zeros((num_seg_cls, num_seg_cls)),
@@ -53,6 +53,7 @@ def eval_fix_policy(environ, dataloader, tasks, num_seg_cls=-1, eval_iter=10):
                     break
 
             environ.set_inputs(batch)
+
             metrics = environ.val_fix_policy()
             
             # environ.networks['mtl-net'].task1_logits
@@ -195,7 +196,7 @@ def _train(exp_id, opt, gpu_ids):
     policy_label = 'Iter%s_rs%04d' % (opt['train']['policy_iter'], opt['seed'][exp_id])
 
     if opt['train']['retrain_resume']:
-        current_iter = environ.load(opt['train']['which_iter'])
+        current_iter = environ.load_checkpoint(opt['train']['which_iter'])
         if opt['policy_model'] == 'task-specific':
             environ.load_policy(policy_label)
     else:
@@ -204,7 +205,7 @@ def _train(exp_id, opt, gpu_ids):
             if environ.check_exist_policy(policy_label):
                 environ.load_policy(policy_label)
             else:
-                environ.load(opt['train']['policy_iter'])
+                environ.load_checkpoint(opt['train']['policy_iter'])
                 dists = environ.get_policy_prob()
                 overall_dist = np.concatenate(dists, axis=-1)
                 print(overall_dist)
@@ -212,7 +213,7 @@ def _train(exp_id, opt, gpu_ids):
                 environ.save_policy(policy_label)
 
             if opt['retrain_from_pl']:
-                environ.load(opt['train']['policy_iter'])
+                environ.load_checkpoint(opt['train']['policy_iter'])
             else:
                 environ.load_snapshot(init_state)
 
@@ -283,9 +284,10 @@ def _train(exp_id, opt, gpu_ids):
         raise NotImplementedError('Dataset %s is not implemented' % opt['dataload']['dataset'])
 
 
-    ##
+
+    ## ********************************************************************
     ## Training Loop
-    ##
+    ## ********************************************************************
 
     while current_iter < opt['train']['retrain_total_iters']:
         start_time = time.time()
@@ -308,8 +310,10 @@ def _train(exp_id, opt, gpu_ids):
             num_seg_class = opt['tasks_num_class'][opt['tasks'].index('seg')] if 'seg' in opt['tasks'] else -1
             val_metrics = eval_fix_policy(environ, val_loader, opt['tasks'], num_seg_class)
             environ.print_loss(current_iter, start_time, val_metrics)
-            environ.save('retrain%03d_policyIter%s_latest' % (exp_id, opt['train']['policy_iter']), current_iter)
+            environ.save_checkpoint('retrain%03d_policyIter%s_latest' % (exp_id, opt['train']['policy_iter']), current_iter)
             environ.train()
+        # end validation
+
           
             new_value = 0
 
@@ -331,7 +335,7 @@ def _train(exp_id, opt, gpu_ids):
                 best_value = new_value
                 best_metrics = val_metrics
                 best_iter = current_iter
-                environ.save('retrain%03d_policyIter%s_best' % (exp_id, opt['train']['policy_iter']), current_iter)
+                environ.save_checkpoint('retrain%03d_policyIter%s_best' % (exp_id, opt['train']['policy_iter']), current_iter)
             print('new value: %.3f' % new_value)
             print('best iter: %d, best value: %.3f' % (best_iter, best_value), best_metrics)
         # end validation 

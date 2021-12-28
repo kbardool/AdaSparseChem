@@ -1,6 +1,7 @@
 exp_name: nyu_v2_2task
 seed: [88, 45, 50, 100, 44, 48, 2048, 2222, 9999]
-backbone: ResNet18
+backbone: ResNet34
+original_backbone: ResNet18
 tasks: ["seg", "sn"]
 lambdas: [1, 20]
 tasks_num_class: [40, 3]
@@ -13,7 +14,7 @@ paths:
 
 dataload:
   dataset: NYU_v2
-  dataroot: "/mnt/f/MLDatasets/nyu_v2"
+  dataroot: "/home/kbardool/MLDatasets/nyu_v2"
   orig_dataroot: "/data/datasets/nyu_v2"
   crop_h: 321
   crop_w: 321
@@ -31,7 +32,7 @@ retrain_from_pl: False
 
 
 train:
-  batch_size: 16
+  batch_size: 32
   total_iters: 20000
   warm_up_iters: 4000
   lr: 0.001

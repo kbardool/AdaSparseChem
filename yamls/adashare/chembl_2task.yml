@@ -1,49 +1,103 @@
-exp_name: nyu_v2_2task
+exp_name: SparseChem
 seed: [88, 45, 50, 100, 44, 48, 2048, 2222, 9999]
-backbone: ResNet18
-tasks: ["seg", "sn"]
-lambdas: [1, 20]
-tasks_num_class: [40, 3]
+backbone: SparseChem
+backbone_orig: ResNet18
+orig_tasks: ["seg", "sn"]
+tasks: ["class", "class", "class"]
+tasks_num_class: [5, 5, 5]
+lambdas: [1, 1, 1]
 policy_model: task-specific
+verbose: True
+
 
 paths:
-  log_dir: ../experiments/logs/
-  result_dir: ../experiments/results
-  checkpoint_dir: ../experiments/checkpoints
+  log_dir:        ../experiments/logs/SparseChem
+  result_dir:     ../experiments/results/SparseChem
+  checkpoint_dir: ../experiments/checkpoints/SparseChem
 
 dataload:
-  dataset: NYU_v2
-  dataroot: "/mnt/f/MLDatasets/chembl_23"
-  orig_dataroot: "/data/datasets/nyu_v2"
+  dataset: Chembl_23_mini
+  dataroot: "/home/kbardool/kusanagi/MLDatasets/chembl_23_mini"
+  x: "chembl_23mini_x.npy"
+  folding: "chembl_23mini_folds.npy"  
+  weights_class:
+  fold_inputs: 32000
+  input_transform: 
+  y_tasks: ["chembl_23_adashare_y1_bin_sparse.npy", "chembl_23_adashare_y2_bin_sparse.npy", "chembl_23_adashare_y3_bin_sparse.npy"]
+  y_censor:
+  fold_te:
+  weights_class:  
   crop_h: 321
   crop_w: 321
+  min_samples_class : 5
+  fold_va: 0
+  fold_te:  
+
+##------------------------------------------------------
+## sparsechem related parameters
+##------------------------------------------------------
+SC:
+  batch_ratio: 0.02
+  # internal_batch_max: 200
+  normalize_loss:
+
+input_size_freq: 
+input_size: 32000
+hidden_sizes: [41, 42, 43, 44]
+tail_hidden_size: 50
+
+first_non_linearity: "relu"
+
+middle_non_linearity: "relu"
+middle_dropout: 0.2
+
+last_non_linearity: "relu"
+last_dropout: 0.2  
+
+class_output_size:
+regr_output_size:
 
 policy: True
 init_neg_logits:
 is_sparse: True
+
+diff_sparsity_weights: True
 is_sharing: True
+
 skip_layer: 0
 is_curriculum: True
 curriculum_speed: 3
 fix_BN: False
-diff_sparsity_weights: True
 retrain_from_pl: False
 
-
+##------------------------------------------------------
+## training parameters
+##------------------------------------------------------
 train:
-  batch_size: 16
-  total_iters: 20000
+  batch_size: 64
+  total_iters: 200
   warm_up_iters: 4000
-  lr: 0.001
-  policy_lr: 0.01
-  backbone_lr: 0.001
+  # lr: 0.001
+  task_lr: 0.0001
+  backbone_lr: 0.0001
+  policy_lr: 0.0001
+  
+  # Lambda sparsity (cross entropy) 
   reg_w: 0.05
-  reg_w_hamming: 0.05
+  Lambda_sparsity: 0.05
+
+  # Lambda sharing (hamming) - original 0.05
+  reg_w_hamming: 0.5
+  Lambda_sharing: 0.5
+  
+  
   print_freq: 100
   val_freq: 400
+  #
   decay_lr_freq: 4000
   decay_lr_rate: 0.5
   decay_temp_freq: 100
+  #
   init_temp: 5
   decay_temp: 0.965
   resume: False

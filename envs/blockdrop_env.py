@@ -15,8 +15,13 @@ class BlockDropEnv(BaseEnv):
     The environment to train a simple classification model
     """
 
-    def __init__(self, log_dir, checkpoint_dir, exp_name, tasks_num_class, init_neg_logits=-10, device=0, init_temperature=5.0, temperature_decay=0.965,
-                 is_train=True, opt=None):
+    def __init__(self, log_dir, checkpoint_dir, exp_name, tasks_num_class, 
+                 init_neg_logits=-10, 
+                 device=0, 
+                 init_temperature=5.0, 
+                 temperature_decay=0.965,
+                 is_train=True, 
+                 opt=None):
         """
         :param num_class: int, the number of classes in the dataset
         :param log_dir: str, the path to save logs
@@ -24,10 +29,21 @@ class BlockDropEnv(BaseEnv):
         :param lr: float, the learning rate
         :param is_train: bool, specify during the training
         """
+        print("* ",self.name(), "Initializtion")
+        print(  '\n log_dir        : ', log_dir, 
+                '\n checkpoint_dir : ', checkpoint_dir, 
+                '\n exp_name       : ', exp_name, 
+                '\n tasks_num_class: ', tasks_num_class,
+                '\n init_neg_logits: ', init_neg_logits, 
+                '\n gpu device     : ', device,
+                '\n init temp      : ', init_temperature, 
+                '\n decay temp     : ', temperature_decay, 
+                '\n is_train       : ', is_train, '\n')
+        
         self.init_neg_logits = init_neg_logits
-        self.temp = init_temperature
-        self._tem_decay = temperature_decay
-        self.num_tasks = len(tasks_num_class)
+        self.temp            = init_temperature
+        self._tem_decay      = temperature_decay
+        self.num_tasks       = len(tasks_num_class)
         super(BlockDropEnv, self).__init__(log_dir, checkpoint_dir, exp_name, tasks_num_class, device,
                                            is_train, opt)
 
@@ -115,11 +131,18 @@ class BlockDropEnv(BaseEnv):
 
 
     def define_optimizer(self, policy_learning=False):
+        """"
+        if we are in policy learning phase - use SGD
+        otherwise, we use ADAM
+        """
         task_specific_params = self.get_task_specific_parameters()
         arch_parameters = self.get_arch_parameters()
         backbone_parameters = self.get_backbone_parameters()
         # TODO: add policy learning to yaml
 
+        #----------------------------------------
+        # weight optimizers
+        #----------------------------------------
         if policy_learning:
             print('define the optimizer (policy learning mode)')
             self.optimizers['weights'] = optim.SGD([{'params': task_specific_params, 'lr': self.opt['train']['lr']},
@@ -131,6 +154,9 @@ class BlockDropEnv(BaseEnv):
                                                      {'params': backbone_parameters,'lr': self.opt['train']['backbone_lr']}],
                                                     betas=(0.5, 0.999), weight_decay=0.0001)
 
+        #---------------------------------------
+        # optimizers for alpha (logits??)
+        #---------------------------------------
         if self.opt['train']['init_method'] == 'all_chosen':
             self.optimizers['alphas'] = optim.Adam(arch_parameters, lr=self.opt['train']['policy_lr'], weight_decay=5*1e-4)
         else:
@@ -151,6 +177,8 @@ class BlockDropEnv(BaseEnv):
                 self.schedulers['weights'] = scheduler.StepLR(self.optimizers['weights'],
                                                               step_size=self.opt['train']['decay_lr_freq'],
                                                               gamma=self.opt['train']['decay_lr_rate'])
+
+
 
     # ##################### train / test ####################################
     def decay_temperature(self, decay_ratio=None):
@@ -196,7 +224,10 @@ class BlockDropEnv(BaseEnv):
 
 
     def optimize_fix_policy(self, lambdas, num_train_layer=None):
+        # print('num_train_layers in optimize = ', num_train_layers)
+
         self.forward_fix_policy(num_train_layer)
+        
         if 'seg' in self.tasks:
             seg_num_class = self.tasks_num_class[self.tasks.index('seg')]
             self.get_seg_loss(seg_num_class)
@@ -369,6 +400,10 @@ class BlockDropEnv(BaseEnv):
 
 
     def get_sparsity_loss2(self, num_train_layers):
+        """
+            get taskxx_logits parameters
+            
+        """
         self.losses['sparsity'] = {}
         self.losses['sparsity']['total'] = 0
         num_policy_layers = None

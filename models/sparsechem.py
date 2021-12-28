@@ -73,6 +73,7 @@ class SparseInputNet(nn.Module):
         if type(m) == SparseLinear:
             torch.nn.init.xavier_uniform_(m.weight, gain=torch.nn.init.calculate_gain("relu"))
             m.bias.data.fill_(0.1)
+
         if type(m) == nn.Linear:
             torch.nn.init.xavier_uniform_(m.weight, gain=torch.nn.init.calculate_gain("relu"))
             if m.bias is not None:
@@ -161,11 +162,12 @@ class SparseFFN(nn.Module):
 
     def forward(self, X, last_hidden=False):
         if last_hidden:
-            H = self.net[:-1](X)
-            return self.net[-1].net[:-1](H)
+            H = self.net[:-1](X)                ## pass through all except the last layer of SparseFFN (LastNet)
+            return self.net[-1].net[:-1](H)     ## pass through all except the last layer of LastNet
         out = self.net(X)
+        ## single output 
         if self.class_output_size is None:
             return out
-        ## splitting to class and regression
+        ## splitting to class and regression outputs
         return out[:, :self.class_output_size], out[:, self.class_output_size:]
 
