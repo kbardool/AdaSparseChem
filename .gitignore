@@ -12,3 +12,4 @@ nyu_v2_samples/**
 *.json
 *.tar
 *.pickle
+ScratchPad.ipynb
