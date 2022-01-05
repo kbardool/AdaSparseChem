@@ -1,5 +1,4 @@
 import sys
-sys.path.insert(0, '..')
 
 import os
 import time
@@ -12,6 +11,7 @@ from dataloaders.taskonomy_dataloader import Taskonomy
 from envs.blockdrop_env import BlockDropEnv
 import torch
 from utils.util import makedir, print_separator, read_yaml, create_path, print_yaml, should, fix_random_seed
+sys.path.insert(0, '..')
 import numpy as np
 from sklearn.metrics import confusion_matrix
 from tqdm import tqdm
