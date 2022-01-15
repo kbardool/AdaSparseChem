@@ -1,19 +1,28 @@
 import os
 import pickle
+# import time
+import pandas as pd
+import numpy  as np
 from scipy.special import softmax
 import torch
 from torch import nn
 import torch.optim as optim
 import torch.optim.lr_scheduler as scheduler
-from models.base import Bottleneck, BasicBlock
-from dev.MTL3_Dev import MTL3_Dev
-from dev.MTL_Instance_Dev import MTL_Instance_Dev
-from dev.sc_model_dev import censored_mse_loss, censored_mae_loss
-from dev.base_env_dev import BaseEnv
-from dev.sparsechem_models import SparseChemBlock
-from utils.util import timestring, print_heading, print_dbg, print_underline, debug_on, debug_off
+import torch.nn.functional as F
+# from models.base   import Bottleneck, BasicBlock
+# from dev.MTL_Instance_Dev import MTL_Instance_Dev
+from dev.MTL3_Dev      import MTL3_Dev
+from models.sparsechem import censored_mse_loss, censored_mae_loss
+from dev.base_env_dev  import BaseEnv
+from utils.util        import timestring, print_heading, print_dbg, print_underline, debug_on, debug_off
+from tqdm.notebook     import tqdm,trange
+from dev.sparsechem_utils_dev    import aggregate_results, compute_metrics
+from dev.sparsechem_adashare_dev import SparseChemBlock
 import pprint
 pp = pprint.PrettyPrinter(indent=4)
+
+    
+
 
 
 class SparseChemEnv_Dev(BaseEnv):
@@ -116,6 +125,8 @@ class SparseChemEnv_Dev(BaseEnv):
         
         if self.dataset == 'Chembl_23_mini':
             self.loss_class = torch.nn.BCEWithLogitsLoss(reduction="none")
+            self.loss_class_sum = torch.nn.BCEWithLogitsLoss(reduction="sum")
+            self.loss_class_mean = torch.nn.BCEWithLogitsLoss(reduction="mean")
             self.loss_regr  = censored_mse_loss
 
         else:
@@ -145,7 +156,7 @@ class SparseChemEnv_Dev(BaseEnv):
         if policy_learning:
             self.optimizers['weights'] = optim.SGD([{'params': task_specific_params, 'lr': self.opt['train']['task_lr']},
                                                     {'params': backbone_parameters , 'lr': self.opt['train']['backbone_lr']}],
-                                                   momentum=0.9, weight_decay=1e-4)
+                                                     momentum=0.9, weight_decay=1e-4)
         else:
             self.optimizers['weights'] = optim.Adam([{'params': task_specific_params, 'lr': self.opt['train']['task_lr']},
                                                      {'params': backbone_parameters , 'lr': self.opt['train']['backbone_lr']}],
@@ -235,7 +246,8 @@ class SparseChemEnv_Dev(BaseEnv):
                 gt = torch.ones((num_blocks)).long().to(self.device)
 
                 if self.opt['diff_sparsity_weights'] and not self.opt['is_sharing']:
-
+                    
+                    ## Assign higher weights to higher layers 
                     loss_weights = ((torch.arange(0, num_policy_layers, 1) + 1).float() / num_policy_layers).to(self.device)
                     self.losses['sparsity'][task_key] = 2 * (loss_weights[-num_blocks:] * self.cross_entropy2(logits[-num_blocks:], gt)).mean()
                    
@@ -270,8 +282,8 @@ class SparseChemEnv_Dev(BaseEnv):
 
         print_heading(f"{timestring()} -  get_hamming_loss START  ", verbose = verbose)        
         
-        self.losses['hamming'] = {}
-        self.losses['hamming']['total'] = 0
+        self.losses['sharing'] = {}
+        self.losses['sharing']['total'] = 0
 
         ## Get logits for task I 
         for t_id in range(self.num_tasks):
@@ -293,7 +305,7 @@ class SparseChemEnv_Dev(BaseEnv):
                 assert (num_policy_layers == logits_i.shape[0]) 
 
             task_i_loss = 0.0
-            print_underline(f" {task_i_attr} Hamming loss: ",verbose=verbose)
+            print_underline(f" {task_i_attr} Sharing (Hamming) loss: ",verbose=verbose)
 
             ## Get logits for all other tasks  
             for t_j in range(t_id, self.num_tasks):
@@ -309,7 +321,7 @@ class SparseChemEnv_Dev(BaseEnv):
                     assert (num_policy_layers == logits_j.shape[0])
                 task_i_j_loss = torch.sum(loss_weights * torch.abs(logits_i[:, 0] - logits_j[:, 0]))
                 task_i_loss += task_i_j_loss
-                self.losses['hamming']['total'] +=  task_i_j_loss
+                self.losses['sharing']['total'] +=  task_i_j_loss
                 
                 print_underline(f" between {task_i_attr} and {task_j_attr} : ",verbose=verbose)
                 print_dbg(f" {task_i_attr:12s}: {logits_i[:,0]}  "
@@ -319,10 +331,10 @@ class SparseChemEnv_Dev(BaseEnv):
                           f"\n\t sum       : {torch.sum(torch.abs(logits_i[:, 0] - logits_j[:, 0])):.5f} "
                           f"\n\t weighted  : {torch.sum(loss_weights * torch.abs(logits_i[:, 0] - logits_j[:, 0])):.5f} ", verbose = verbose)
 
-            print_underline(f" Total hamming loss for {task_i_attr} :  {task_i_loss} ", verbose=verbose)
+            print_underline(f" Total Sharing loss for {task_i_attr} :  {task_i_loss} ", verbose=verbose)
 
 
-        print_underline(f" Total hamming loss for ALL TASKS  :  {self.losses['hamming']['total']:.5f} ", verbose=verbose)
+        print_underline(f" Total Sharing loss for ALL TASKS  :  {self.losses['sharing']['total']:.5f} ", verbose=verbose)
         print_heading(f"{timestring()} -  get_hamming_loss END  ", verbose = verbose)        
         return 
 
@@ -390,13 +402,16 @@ class SparseChemEnv_Dev(BaseEnv):
         print_dbg(f"\t flag: {flag}      num_train_layers: {num_train_layers}     is_policy: {is_policy}      hard_sampling: {hard_sampling}"
               f"    task lambdas:  {lambdas}", verbose = False)
         
-        self.losses = {}
         self.task_lambdas = lambdas
-
-        # self.losses['total']['total']    = torch.tensor(0.0, device  = self.device, dtype=torch.float64)
-        # self.losses['sparsity']['total'] = torch.tensor(0.0, device  = self.device, dtype=torch.float64)
-        # self.losses['hamming']['total']  = torch.tensor(0.0, device  = self.device, dtype=torch.float64)
-        # self.losses['tasks']['total']    = torch.tensor(0.0, device  = self.device, dtype=torch.float64)        
+        ## reset losses & get training hyper parms
+        self.losses = {}
+        self.losses['parms'] = {}
+        self.losses['parms']['gumbel_temp'] = self.temp
+        curr_lrs = self.schedulers['weights'].get_last_lr()
+        for i in range(len(curr_lrs)):
+            self.losses['parms'][f'lr_{i}'] = curr_lrs[i]
+     
+        
         ## Forward Pass 
         self.forward(is_policy = is_policy, num_train_layers = num_train_layers, hard_sampling = hard_sampling, verbose = verbose)     
         
@@ -432,45 +447,6 @@ class SparseChemEnv_Dev(BaseEnv):
         self.backward_network()
 
 
-
-    # def val2_old(self, is_policy, num_train_layers=None, hard_sampling=False):
-        # metrics = {}
-       
-        # if is_policy:
-        #     self.forward_eval(is_policy = is_policy, num_train_layers = num_train_layers, hard_sampling = hard_sampling)
-        # else:
-        #     self.forward(is_policy = is_policy, num_train_layers = num_train_layers, hard_sampling = hard_sampling)
-        # self.resize_results()
-       
-        # if 'seg' in self.tasks:
-        #     metrics['seg'] = {}
-        #     seg_num_class = self.tasks_num_class[self.tasks.index('seg')]
-        #     pred, gt, pixelAcc, err = self.seg_error(seg_num_class)
-        #     metrics['seg']['pred'] = pred
-        #     metrics['seg']['gt'] = gt
-        #     metrics['seg']['pixelAcc'] = pixelAcc.cpu().numpy()
-        #     metrics['seg']['err'] = err                            
-        # return metrics
-
-
-    def val2(self, is_policy, num_train_layers=None, hard_sampling=False, verbose = None):
-        
-        self.losses = {}
-
-        if is_policy:
-            self.forward_eval(is_policy = is_policy, num_train_layers = num_train_layers, hard_sampling = hard_sampling)
-        else:
-            self.forward(is_policy = is_policy, num_train_layers = num_train_layers, hard_sampling = hard_sampling)
-        # self.resize_results()
-        
-        self.compute_task_losses()
-        # pp.pprint(self.losses)
-
-        self.classification_metrics()
-        # pp.pprint(self.metrics)
-        return
-
-
     def val_fix_policy(self, num_train_layers=None):
         
         self.forward_fix_policy(num_train_layers)
@@ -502,23 +478,24 @@ class SparseChemEnv_Dev(BaseEnv):
         return  
 
  
-    def forward(self, is_policy, num_train_layers = None, hard_sampling = False, verbose = None):
+    def forward(self, is_policy, num_train_layers = None, policy_sampling_mode = "train" , hard_sampling = False, verbose = None):
+        '''
+        mode: Policy sampling mode (train, eval, fix_policy)
+        '''
         if verbose is None:
             verbose = self.verbose
 
         if verbose: 
             print_heading(f" {timestring()} - SparseChem network FORWARD() start ", verbose = True)
-            print_dbg(f"\t num_train_layers:{num_train_layers}   is_policy: {is_policy}    hard_sampling: {hard_sampling}", verbose = True)
+            print_dbg(f"\t num_train_layers:{num_train_layers}   is_policy: {is_policy}   policy_sampling_mode: {policy_sampling_mode}    hard_sampling: {hard_sampling}", verbose = True)
 
         outputs, policys, logits = self.networks['mtl-net'](img              = self.input, 
                                                             temperature      = self.temp, 
                                                             is_policy        = is_policy, 
                                                             num_train_layers = num_train_layers, 
                                                             hard_sampling    = hard_sampling,
-                                                            mode             = 'train')
-        # import pdb
-        # pdb.set_trace()
-        
+                                                            policy_sampling_mode  = policy_sampling_mode)
+
         for t_id,  task in enumerate(self.tasks):
             print_dbg(f" set attributes: task id {t_id+1}  task: {task}", verbose = verbose)
             print_dbg(f"    output[{t_id+1}]:  {outputs[t_id].shape}", verbose = verbose)
@@ -534,43 +511,44 @@ class SparseChemEnv_Dev(BaseEnv):
         return 
 
 
-    def forward_eval(self, is_policy,  num_train_layers = None, hard_sampling = False, verbose = None):
-        '''
-        Multi-task network called with mode == 'eval'
-                mode:   specifies the policy sampling method 
-                mode == 'eval'  AND  hard_sampling == False:  Uses softmax on task logits to generate sample policies 
-        '''
-        if verbose is None:
-            verbose = self.verbose
-
-        if verbose:
-            print_heading(f" {timestring()} - SparseChem network FORWARD_EVAL() start ")        
-            print_dbg(" num_train_layers:{num_train_layers}   is_policy: {is_policy}    hard_sampling: {hard_sampling}", verbose = verbose)
-
-        outputs, policys, logits = self.networks['mtl-net'](img              = self.input, 
-                                                            temperature      = self.temp, 
-                                                            is_policy        = is_policy, 
-                                                            num_train_layers = num_train_layers, 
-                                                            hard_sampling    = hard_sampling,  
-                                                            mode             = 'eval')  
-
-        for t_id, task in enumerate(self.tasks):
-            setattr(self, 'task%d_pred' % (t_id + 1), outputs[t_id])
-            setattr(self, 'policy%d' % (t_id + 1), policys[t_id])
-            setattr(self, 'logit%d' % (t_id + 1), logits[t_id])
-
-            if verbose:
-                print_underline(f" MTL-net output: task id {t_id+1}  task: {task}", verbose = True)
-                print_dbg(f"    output[{t_id+1}]:  {outputs[t_id]}.shape", verbose = True)
-                print_dbg(f"    policy{t_id+1}  :    {policys[t_id]}", verbose = True)
-                print_dbg(f"    logits{t_id+1}  :    {logits[t_id]} ", verbose = True)
-                print_dbg(f"    task{t_id+1}_logits:   {getattr(self.networks['mtl-net'], f'task{t_id+1}_logits')}   ", verbose = True)
-
-
-        print_heading(f" {timestring()} - SparseChem network FORWARD_EVAL() end ", verbose = verbose)
+    # def forward_eval(self, is_policy,  num_train_layers = None, hard_sampling = False,  verbose = None):
+    #     '''
+    #     Multi-task network called with mode == 'eval'
+    #             mode:   specifies the policy sampling method 
+    #             mode == 'eval'  AND  hard_sampling == False:  Uses softmax on task logits to generate sample policies 
+    #     '''
+    #     if verbose is None:
+    #         verbose = self.verbose
+    #
+    #     if verbose:
+    #         print_heading(f" {timestring()} - SparseChem network FORWARD_EVAL() start ")        
+    #         print_dbg(" num_train_layers:{num_train_layers}   is_policy: {is_policy}    hard_sampling: {hard_sampling}", verbose = verbose)
+    #
+    #     outputs, policys, logits = self.networks['mtl-net'](img              = self.input, 
+    #                                                         temperature      = self.temp, 
+    #                                                         is_policy        = is_policy, 
+    #                                                         num_train_layers = num_train_layers, 
+    #                                                         hard_sampling    = hard_sampling,  
+    #                                                         mode             = 'eval')  
+    #
+    #     for t_id, task in enumerate(self.tasks):
+    #         setattr(self, 'task%d_pred' % (t_id + 1), outputs[t_id])
+    #         setattr(self, 'policy%d' % (t_id + 1), policys[t_id])
+    #         setattr(self, 'logit%d' % (t_id + 1), logits[t_id])
+    #
+    #         if verbose:
+    #             print_underline(f" MTL-net output: task id {t_id+1}  task: {task}", verbose = True)
+    #             print_dbg(f"    output[{t_id+1}]:  {outputs[t_id]}.shape", verbose = True)
+    #             print_dbg(f"    policy{t_id+1}  :    {policys[t_id]}", verbose = True)
+    #             print_dbg(f"    logits{t_id+1}  :    {logits[t_id]} ", verbose = True)
+    #             print_dbg(f"    task{t_id+1}_logits:   {getattr(self.networks['mtl-net'], f'task{t_id+1}_logits')}   ", verbose = True)
+    #
+    #
+    #     print_heading(f" {timestring()} - SparseChem network FORWARD_EVAL() end ", verbose = verbose)
 
 
     def forward_fix_policy(self, is_policy = True, num_train_layers = None, hard_sampling = False, verbose = None):
+
         if verbose is None:
             verbose = self.verbose
 
@@ -612,97 +590,104 @@ class SparseChemEnv_Dev(BaseEnv):
         print_heading(f" {timestring()} - SparseChem backward Policy start", verbose = verbose )
         
         self.optimizers['alphas'].zero_grad()
-        self.losses['tasks'] = {}
+        self.losses['losses'] = {}
+        self.losses['losses_mean'] = {}
         self.losses['total'] = {}
+        self.losses['total_mean'] = {}
 
         total_loss = 0
         total_tasks_loss =  0 
-
-        for t_id, task in enumerate(self.tasks):
-            task_key = f"task{t_id+1}"
-            # task_loss = self.task_lambdas[t_id] * self.losses[task_key]['total']
-            # print_dbg(f"\t backward_policy - {task_key}   loss: {self.task_lambdas[t_id]} * {self.losses[task_key]['total']:.4f}"
-                #   f" = {task_loss:.4f}" , verbose = verbose )            
-            # self.losses['tasks'][task_key] = task_loss
-            self.losses['tasks'][task_key] = self.losses[task_key]['total']
-            total_tasks_loss += self.losses[task_key]['total']
-
-        self.losses['tasks']['total'] = total_tasks_loss        
-        self.losses['total']['total'] = total_tasks_loss
-
-        # print_dbg(f"\t backward Policy - Sum of weighted task losses :  {self.losses['tasks']['total']:.4f} ", verbose=True )
-
-        # for t_id, task in enumerate(self.tasks):
-        #     task_key = f"task{t_id+1}"
-        #     task_loss = (self.task_lambdas[t_id] * self.losses[task_key]['total']).detach()
-        #     print_dbg(f"\t backward_policy - {task_key}   loss: {self.task_lambdas[t_id]} * {self.losses[task_key]['total']:.4f}"
-        #           f" = {task_loss:.4f}" , verbose = verbose )            
-        #     self.losses['tasks'][task_key] = task_loss
-        #     total_tasks_loss += task_loss
-
-        # self.losses['tasks']['total'] = total_tasks_loss
+        total_tasks_loss_mean = 0 
 
         if self.opt['is_sharing']:
             self.get_hamming_loss()
-            sharing_loss = self.opt['train']['Lambda_sharing'] * self.losses['hamming']['total']
-            self.losses['hamming']['total']  = sharing_loss
+            sharing_loss = self.opt['train']['Lambda_sharing'] * self.losses['sharing']['total']
+            self.losses['sharing']['total']  = sharing_loss
 
         if self.opt['is_sparse']:
             self.get_sparsity_loss(num_train_layers)
             sparsity_loss = self.opt['train']['Lambda_sparsity'] * self.losses['sparsity']['total']
             self.losses['sparsity']['total'] = sparsity_loss
-        
-        total_loss = total_tasks_loss + sparsity_loss + sharing_loss
-        
+
+        for t_id, task in enumerate(self.tasks):
+            task_key = f"task{t_id+1}"
+            # print_dbg(f"\t backward_policy - {task_key}   loss: {self.task_lambdas[t_id]} * {self.losses[task_key]['total']:.4f}"
+                #   f" = {task_loss:.4f}" , verbose = verbose )            
+            self.losses['losses'][task_key] = self.losses[task_key]['cls_loss']
+            self.losses['losses_mean'][task_key] = self.losses[task_key]['cls_loss_mean'] 
+            total_tasks_loss += self.losses[task_key]['cls_loss']
+            total_tasks_loss_mean += self.losses[task_key]['cls_loss_mean']
+
+        self.losses['losses']['total'] = total_tasks_loss   
+        self.losses['losses_mean']['total'] = total_tasks_loss_mean
+
+        self.losses['total']['total'] = total_tasks_loss + sparsity_loss + sharing_loss
+        self.losses['total']['total_mean'] = total_tasks_loss_mean + sparsity_loss + sharing_loss
+                
         if verbose:
-            print(f"\n Total Task losses                           : {total_tasks_loss:.4f}")
-            print(f" Sharing loss (Lambda_sharing *  hamming Loss) : {self.opt['train']['Lambda_sharing']} * {self.losses['hamming']['total']:.4f}"
+            print() 
+            print(f" Total Task losses                                             : {total_tasks_loss:.4f}")
+            print(f" Sharing loss  (Lambda_sharing * Sharing (Hamming) Loss)       : {self.opt['train']['Lambda_sharing']} * {self.losses['sharing']['total']:.4f}"
                   f" = {sharing_loss:.5e}")
-            print(f" Sparsity loss (Lambda_sharing *  CE Loss)     : {self.opt['train']['Lambda_sparsity']} * {self.losses['sparsity']['total']:.4f}"
+            print(f" Sparsity loss (Lambda_sharing * Sparsity (CrossEntropy) Loss) : {self.opt['train']['Lambda_sparsity']} * {self.losses['sparsity']['total']:.4f}"
                   f" = {sparsity_loss:.5e}")
-            print(f"        Total Loss (Task + Sharing + Sparsity) : { total_loss:.4f}")
+            print(f"                        Total Loss (Task + Sharing + Sparsity) : { total_loss:.4f}")
 
 
-        self.losses['total']['total']    = total_loss
+
         self.losses['total']['total'].backward()
 
         self.optimizers['alphas'].step()
         
+        ## Added 1/11/22 - currently alpha has no schedulers.    
+        if 'alphas' in self.schedulers.keys():
+            self.schedulers['alphas'].step()
+
         print_heading(f" {timestring()} - SparseChem backward Policy end  " , verbose = verbose )
         return
 
 
     def backward_network(self, verbose = None):
+        '''
+        Aggregate losses and back-propagate
+        '''
         if verbose is None:
             verbose = self.verbose
         
         print_heading(f" {timestring()} - SparseChem backward Network start" , verbose = verbose)
         
         self.optimizers['weights'].zero_grad()
-
-        self.losses['tasks'] = {}
+        self.losses['losses'] = {}
+        self.losses['losses_mean'] = {}
         self.losses['total'] = {}
+        self.losses['total_mean'] = {}
+
         
         total_loss = 0
         total_tasks_loss =  0 
+        total_tasks_loss_mean =  0 
         
         for t_id, task in enumerate(self.tasks):
             task_key = f"task{t_id+1}"
-            # task_loss = self.task_lambdas[t_id] * self.losses[task_key]['total']
             # print_dbg(f"\t backward_policy - {task_key}   loss: {self.task_lambdas[t_id]} * {self.losses[task_key]['total']:.4f}"
                 #   f" = {task_loss:.4f}" , verbose = verbose )            
-            # self.losses['tasks'][task_key] = task_loss
-            self.losses['tasks'][task_key] = self.losses[task_key]['total']
-            total_tasks_loss += self.losses[task_key]['total']
+            self.losses['losses'][task_key] = self.losses[task_key]['cls_loss']
+            self.losses['losses_mean'][task_key] = self.losses[task_key]['cls_loss_mean']
+            total_tasks_loss += self.losses[task_key]['cls_loss']
+            total_tasks_loss_mean += self.losses[task_key]['cls_loss_mean']
 
-        self.losses['tasks']['total'] = total_tasks_loss        
+        self.losses['losses']['total'] = total_tasks_loss        
+        self.losses['losses_mean']['total'] = total_tasks_loss_mean
+
         self.losses['total']['total'] = total_tasks_loss
+        self.losses['total']['total_mean'] = total_tasks_loss_mean
         
-        print_dbg(f"\t backward Network - Sum of weighted task losses :  {self.losses['tasks']['total']:.4f} ", verbose=verbose)
-
+        print_dbg(f"\t backward Network - Sum of weighted task losses :  {self.losses['losses']['total']:.4f} ", verbose=verbose)
         print_dbg(f"\t {timestring()} - backward pass & optimize step begin  ", verbose=verbose )
-        
+
+
         self.losses['total']['total'].backward()
+
         self.optimizers['weights'].step()
 
         print_dbg(f"\t {timestring()} - backward pass & optimize step end  ", verbose=verbose )
@@ -767,7 +752,6 @@ class SparseChemEnv_Dev(BaseEnv):
 
         return policys
 
-    # ##################### change the state of each module ####################################
 
     def get_current_state(self, current_iter):
         current_state = super(SparseChemEnv_Dev, self).get_current_state(current_iter)
@@ -908,7 +892,7 @@ class SparseChemEnv_Dev(BaseEnv):
         #     setattr(self.networks['mtl-net'].module, 'policys', policys)
         # else:
         setattr(self.networks['mtl-net'], 'policys', policys)
-        print(f'environ.cpu policy: {policys}')
+        print(f'environ cpu policy: {policys}')
 
 
     def display_parameters(self):
@@ -973,7 +957,7 @@ class SparseChemEnv_Dev(BaseEnv):
         pass
 
 
-    def compute_task_losses(self,  instance=False, verbose = None):
+    def compute_task_losses(self,  instance=False, verbose = False):
         """
         seg_pred: semantic segmentation predictions. shape: (BatchSize, NumClasses, W, H)
         """
@@ -998,12 +982,14 @@ class SparseChemEnv_Dev(BaseEnv):
             yc_data = self.batch[task_data].to(self.device, non_blocking=True)                
             trn_weights =( self.batch[task_weights].training_weight).to(self.device, non_blocking=True)                 
             yc_w    = trn_weights[yc_ind[1]]
-            # self.losses[task_key][task_ind]  = yc_ind
-            # self.losses[task_key][task_data] = yc_data
-            
+
+            ## yc_hat_all shape : [batch_size , # classes]         
             yc_hat_all = getattr(self, task_pred)
+            ## yc_hat shape : ( batch_size x # classes,) (one dimensional)
             yc_hat  = yc_hat_all[yc_ind[0], yc_ind[1]]
 
+            # self.losses[task_key][task_ind]  = yc_ind
+            # self.losses[task_key][task_data] = yc_data
             # self.y_hat[task_key] = yc_hat
             
             # print(f" {task_key} Classification loss calculation ")
@@ -1019,33 +1005,54 @@ class SparseChemEnv_Dev(BaseEnv):
             # print(f"\t yc_loss * yc_w : {self.loss_class(yc_hat, yc_data) * yc_w}")
             # print(f"\t yc_w.sum()     : {yc_w.sum()}")            
 
+            ##---------------------------------------------------------------------------------------
+            ## SparseChem normalizes the loss prior to backproping. The default is the batchsize
+            ##---------------------------------------------------------------------------------------
+            ## norm_loss : Is the Normalization constant to divide the loss (default uses batch size)
+            ##
+            ## if self.norm_loss is None:
+            ##     norm = self.batch['batch_size']
+            ## else:
+            ##     norm = self.norm_loss
+            ##
+            ## Normalize loss we want to back prop - total_tasks_loss or whatever
+            ##  
+            ##   loss_normalized  = total_task_loss / norm
+            ##   loss_normalzied.backward()
+            ##
+            ##---------------------------------------------------------------------------------------
+            # task_loss_none = self.loss_class(yc_hat, yc_data)
+            task_loss_sum  = self.loss_class_sum(yc_hat, yc_data)
+            task_loss_mean = self.loss_class_mean(yc_hat, yc_data)
+
             if self.norm_loss is None:
                 norm = self.batch['batch_size']
             else:
                 norm = self.norm_loss
-
-            task_loss  = (self.loss_class(yc_hat, yc_data) ).sum()
-            task_loss /= norm
-
-            self.losses[task_key]['total'] = self.task_lambdas[t_id] * task_loss
             
-            # print_dbg(f"\t compute task losses - {task_key}   loss: {self.task_lambdas[t_id]} * {task_loss:.4f}"
-            #       f" = {self.losses[task_key]['total'] :.4f}" , verbose = True )   
+            ## Normalize loss we want to back prop - total_tasks_loss or whatever
+             
+            self.losses[task_key]['cls_loss']      = self.task_lambdas[t_id] * task_loss_sum / norm
+            self.losses[task_key]['cls_loss_mean'] = self.task_lambdas[t_id] * task_loss_mean
 
+            
+            print_dbg(f"  task {t_id+1} "  
+                      f"  BCE Mean : {self.losses[task_key]['cls_loss_mean']:.4f} = {task_loss_mean:.4f} * {self.task_lambdas[t_id]}" 
+                      f"  BCE Norm : {self.losses[task_key]['cls_loss']:.4f}      = {task_loss_sum:.4f}  * {self.task_lambdas[t_id]} / {norm} ", verbose = verbose)            
+            
 
-
-            # print(f"\t Loss for task id {t_id+1} before normalization: {self.losses[task_key]['total']}    norm: {norm}")            
-            # self.losses['tasks']['total']+= self.losses[task_key]['total'] 
+            
+            # print_dbg(f"      task training weight {self.batch[task_weights].training_weight.shape}   {self.batch[task_weights].training_weight}" , verbose = True )   
+            # print_dbg(f"      task training weight {yc_w.shape}  {yc_w}" , verbose = True )   
+            # print_dbg(f"      task {t_id+1} y_hat shape: {yc_hat.shape}    y_data.shape{yc_data.shape}" , verbose = True )   
+            # print_dbg(f"      " , verbose = verbose )   
+            # print_dbg(f"  BCE None: {task_loss_none.shape}  view(batch_size,-1): {task_loss_none.view(self.batch['batch_size'], -1).shape}"
+            #           f"   mean: {task_loss_none.view(self.batch['batch_size'], -1).mean(dim=-1).shape}" , verbose = verbose )   
+            # print_dbg(f"      yc_hat: {yc_hat.shape}  task_loss_none: {task_loss_none.shape}  " , verbose = verbose )   
 
             # print(f"\t Loss for task id {t_id+1} after  normalization: {self.losses[task_key]['total']} ")            
             # print('\n\n')
             
-            # loss_wo_reduction = torch.nn.BCEWithLogitsLoss(reduction="none")
-            # loss_sum_reduction = torch.nn.BCEWithLogitsLoss(reduction="sum")
-            # loss_mean_reduction = torch.nn.BCEWithLogitsLoss(reduction="mean")
-            # print(f"\t Loss wo reduction   {t_id+1} : {loss_wo_reduction(yc_hat, yc_data)} ")            
-            # print(f"\t Loss sum reduction  {t_id+1} : {loss_sum_reduction(yc_hat, yc_data)} ")            
-            # print(f"\t Loss mean reduction {t_id+1} : {loss_mean_reduction(yc_hat, yc_data)} ")            
             
         print_heading(f" {timestring()} - SparseChem network compute_task_losses end ", verbose = verbose)
         return
@@ -1069,42 +1076,218 @@ class SparseChemEnv_Dev(BaseEnv):
 
             self.metrics[task_key] =  {}        
             self.metrics[task_key]['task_num_class']  = self.tasks_num_class[t_id]
-            self.metrics[task_key]['err_lambda']      = self.opt['lambdas'][t_id]
-            self.metrics[task_key]['err']             = self.losses[task_key]['total'] 
+            self.metrics[task_key]['task_lambda']     = self.opt['lambdas'][t_id]
+            self.metrics[task_key]['cls_loss']            = self.losses[task_key]['cls_loss'] 
+            self.metrics[task_key]['cls_loss_mean']       = self.losses[task_key]['cls_loss_mean'] 
             self.metrics[task_key]['yc_ind']          = self.batch[task_ind].to(self.device, non_blocking=True)
             self.metrics[task_key]['yc_data']         = self.batch[task_data].to(self.device, non_blocking=True)    
-            self.metrics[task_key]['yc_wghts_sum']    = self.batch[task_weights].training_weight[self.metrics[task_key]['yc_ind'][1]].sum()
-            self.metrics[task_key]['yc_trn_weights']  = ( self.batch[task_weights].training_weight).to(self.device, non_blocking=True)  
-            self.metrics[task_key]['yc_aggr_weights'] = ( self.batch[task_weights].aggregation_weight)
             self.metrics[task_key]['yc_hat']          = yc_hat_all[self.metrics[task_key]['yc_ind'][0], self.metrics[task_key]['yc_ind'][1]]
+
+            ## batch_size x number of populated outputs in the yc batch , indiccated by yc_ind. 
+            self.metrics[task_key]['yc_wghts_sum']    = self.batch[task_weights].training_weight[self.metrics[task_key]['yc_ind'][1]].sum()
+            
+            ## weights of each indivudal class within a classification task
+            self.metrics[task_key]['yc_trn_weights']  = ( self.batch[task_weights].training_weight).to(self.device, non_blocking=True)  
+            
+            ## weights of each indivudal class within a regression task
+            self.metrics[task_key]['yc_aggr_weights'] = ( self.batch[task_weights].aggregation_weight)
 
         print_heading(f" {timestring()} - SparseChem classification_metrics end ", verbose = verbose)
 
         return
 
-    # def seg_error(self, seg_num_class):
-    #     """
-    #     Returns:
+
+    def evaluate(self, dataloader, tasks_class, is_policy= False, num_train_layers=None, hard_sampling=False,
+                 device = None, progress=True, eval_iter=-1, leave = False, verbose = False):
+
+        self.val_metrics = {}
+        loss_sum = 0.0
+        loss_sum_mean = 0.0
+        task_loss_sum = {}
+        task_loss_sum_mean = {}
+        task_loss_avg= {}
+        task_class_weights  = {}
+        data = {}
+        num_class_tasks  = dataloader.dataset.class_output_size
+        # num_regr_tasks   = dataloader.dataset.regr_output_size
+        # class_w = tasks_class.aggregation_weight
+
+        self.eval()
+
+        for t_id, task in enumerate(self.tasks):
+            task_key = f"task{t_id+1}"
+            data[task_key] = { "yc_ind":  [],
+                        "yc_data": [],
+                        "yc_hat":  [],
+                        }
+            task_loss_sum[task_key] = 0.0
+            task_loss_sum_mean[task_key] = 0.0
+            task_loss_avg[task_key] = 0.0
+            task_class_weights[task_key]  = 0.0
+
+        if eval_iter == -1:
+            eval_iter = len(dataloader)
+
+
+        with torch.no_grad():
+
+            ## Note: len(tt) is equal to len(dataloader)
+            # with tqdm(dataloader, total=eval_iter, initial=0, leave=True, disable=(progress==False), position=0, desc = "validation") as tt:
+            #     for batch_idx, batch in enumerate(tt,1) :
+            #         # if batch_idx > eval_iter :
+            #         #     break
+
+            with trange(1,eval_iter+1, total=eval_iter, initial=0, leave=leave, disable=(progress==False), position=0, desc = "validation") as t_validation:
+                
+                for batch_idx in t_validation:
+            
+                    print_dbg(f"\n + Validation Loop Start - batch_idx:{batch_idx}  eval_iter: {eval_iter}  t_validation: {len(t_validation)} \n",verbose=verbose)
+
+                    batch = next(dataloader)
+                    self.set_inputs(batch, dataloader.dataset.input_size)  
+                    self.val2(is_policy, num_train_layers, hard_sampling, verbose = verbose)            
+                    
+                    for t_id, _ in enumerate(self.tasks):
+                        task_key = f"task{t_id+1}"
+                        loss_sum      += self.metrics[task_key]['cls_loss']
+                        loss_sum_mean += self.metrics[task_key]['cls_loss_mean']
+
+                        task_loss_sum[task_key]      += self.metrics[task_key]['cls_loss']                    
+                        task_loss_sum_mean[task_key] += self.metrics[task_key]['cls_loss_mean']
+                        
+                        task_class_weights[task_key]  += self.metrics[task_key]['yc_wghts_sum']
+                        
+                        data[task_key]['yc_trn_weights']  = self.metrics[task_key]['yc_trn_weights']
+                        data[task_key]['yc_aggr_weights'] = self.metrics[task_key]['yc_aggr_weights']
+                        
+                        ## storing Y data for EACH TASK (for metric computations)
+                        for key in ["yc_ind", "yc_data", "yc_hat"]:
+                            if (key in self.metrics[task_key]) and (self.metrics[task_key][key] is not None):
+                                data[task_key][key].append(self.metrics[task_key][key].cpu())            
+                    
+                    t_validation.set_postfix({'bch_idx': batch_idx, 
+                                    'loss'   : f"{loss_sum.item()/batch_idx:.4f}" ,
+                                    'row_ids': f"{batch['row_id'][0]} - {batch['row_id'][-1]}" ,
+                                    'task_wght': f"{self.metrics[task_key]['yc_wghts_sum']}"})
+
+                    if verbose:                
+                        for t_id, _ in enumerate(self.tasks):
+                            task_key = f"task{t_id+1}"
+                            print_dbg(f" + Validation Loop - batch_idx:{batch_idx}  eval_iter: {eval_iter}\n"
+                                    f"    task {t_id+1:3d}: loss     : {self.metrics[task_key]['cls_loss']:.4f}   sum(err)     : {task_loss_sum[task_key]:.4f}    avg(err)=sum(err)/batch_id: {task_loss_sum[task_key]/batch_idx:.4f}   \n"
+                                    f"    task {t_id+1:3d}: loss_mean: {self.metrics[task_key]['cls_loss_mean']:.4f}   sum(err_mean): {task_loss_sum_mean[task_key]:.4f}    avg(err_mean): {task_loss_sum_mean[task_key]/batch_idx:.4f}",
+                                    verbose = True)
+                            print_dbg(f"    self.metrics[task_key][yc_wghts_sum] {self.metrics[task_key]['yc_wghts_sum']}  task_weights[task_key]: {task_class_weights[task_key]}  ", verbose = True)
+                        
+                        print_dbg(f"\n + Validation Loop end - batch_idx:{batch_idx}  eval_iter: {eval_iter} \n"
+                                f"    all tasks: loss_sum     : {loss_sum:.4f}   avg(loss_sum)     : {loss_sum/batch_idx:.4f} \n"
+                                f"    all tasks: loss_sum_mean: {loss_sum_mean:6.4f}    avg(loss_sum_mean): {loss_sum_mean / batch_idx:.4f}", verbose = True)
+                    
+
+            ##-----------------------------------------------------------------------
+            ## All Validation batches have been feed to network - calcualte metrics
+            ##-----------------------------------------------------------------------
+            if verbose:
+                print_heading(f" + Validation Loops complete- batch_idx:{batch_idx}  eval_iter: {eval_iter}", verbose = True)
+                for t_id, _ in enumerate(self.tasks):
+                    task_key = f"task{t_id+1}"
+                    print_dbg(f"    task {t_id+1:3d}: sum(err)     : {task_loss_sum[task_key]:6.4f}    avg(err)=sum(err)/batch_id: {task_loss_sum[task_key]/batch_idx:.4f}   \n"
+                            f"    task {t_id+1:3d}: sum(err_mean): {task_loss_sum_mean[task_key]:6.4f}   avg(err_mean): {task_loss_sum_mean[task_key]/batch_idx:.4f}\n"
+                            f"    self.metrics[task_key][yc_wghts_sum] {self.metrics[task_key]['yc_wghts_sum']}  task_weights[task_key]: {task_class_weights[task_key]} \n", verbose = True)
+                    # print_dbg(f"    yc_aggr_weight          : {data[task_key]['yc_aggr_weights']}", verbose = True)
+                
+                print_dbg(f"    all tasks: loss_sum     : {loss_sum:.4f}   avg(loss_sum)     : {loss_sum/eval_iter:.4f}      \n"
+                        f"    all tasks: loss_sum_mean: {loss_sum_mean:.4f}   avg(loss_sum_mean): {loss_sum_mean / eval_iter:.4f} \n ", verbose = True)
+
+
+            loss_sum /= batch_idx
+            loss_sum_mean /= batch_idx
+    
+            self.val_metrics["loss"]  = {"total": loss_sum.item()}
+            self.val_metrics["loss_mean"] = {"total" : loss_sum_mean.item()}
+            task_classification_metrics = []
+            task_aggregation_weights = [] 
+
+            for t_id, task in enumerate(self.tasks):
+                task_key = f"task{t_id+1}"
+                self.val_metrics["loss"][task_key] = task_loss_sum[task_key].cpu().item() / batch_idx
+                self.val_metrics["loss_mean"][task_key] = task_loss_sum_mean[task_key].cpu().item() / batch_idx 
+
+                self.val_metrics[task_key] = {}
+                # yc_ind  = torch.cat(batch["yc_ind"], dim=1).numpy()
+                # yc_data = torch.cat(batch["yc_data"], dim=0).numpy()
+                yc_ind  = torch.cat(data[task_key]["yc_ind"] , dim=1).numpy()
+                yc_data = torch.cat(data[task_key]["yc_data"], dim=0).numpy()
+                yc_hat  = torch.cat(data[task_key]["yc_hat"] , dim=0).numpy()
+                yc_aggr_weight = data[task_key]["yc_aggr_weights"]
+                
+                # print(f" num_tasks: {num_class_tasks[t_id]}")
+                # print(f" yc_ind  : {type(yc_ind)}  shape: {yc_ind.shape}")
+                # print(f" yc_data : {type(yc_data)} shape: {yc_data.shape}")
+                # print(f" yc_hat  : {type(yc_hat)}  shape: {yc_hat.shape}")
+                # print(f" yc_aggr_weight  : {type(yc_aggr_weight)}  shape: {yc_aggr_weight}")
+
+                # out["classification"]     = compute_metrics(yc_ind[1], y_true=yc_data, y_score=yc_hat, num_tasks=num_class_tasks)
+                # out["classification_agg"] = aggregate_results(out["classification"], weights=class_w)
+
+                self.val_metrics[task_key]["classification"]     = compute_metrics(yc_ind[1], 
+                                                                                y_true=yc_data, 
+                                                                                y_score=yc_hat, 
+                                                                                num_tasks=num_class_tasks[t_id])
+
+                ## to_dict(): convert pandas series to dict to make it compatible with print_loss()
+                self.val_metrics[task_key]["classification_agg"] = aggregate_results(self.val_metrics[task_key]["classification"], 
+                                                                                    weights = yc_aggr_weight).to_dict() 
+
+                self.val_metrics[task_key]['classification_agg']['sc_loss'] = task_loss_sum[task_key].cpu().item() / eval_iter 
+                self.val_metrics[task_key]["classification_agg"]["logloss"] = task_loss_sum[task_key].cpu().item() / task_class_weights[task_key].cpu().item()
+
+                task_classification_metrics.append(self.val_metrics[task_key]['classification'])
+                task_aggregation_weights.append(yc_aggr_weight)
+            
+                # self.val_metrics[task_key]["classification_agg"]["logloss"] = loss_class_sum[task_key].cpu().item() / loss_class_weights[task_key].cpu().item()    
+                # self.val_metrics[task_key]["classification_agg"]["num_tasks_total"] = dataloader.dataset.class_output_size[t_id]
+                # self.val_metrics[task_key]["classification_agg"]["num_tasks_agg"]   = (tasks_class.aggregation_weight > 0).sum()
+                # self.val_metrics[task_key]['classification_agg']['yc_weights_sum'] = self.metrics[task_key]["yc_wghts_sum"].cpu().item()
+    
+            ## Calculate aggregated metrics across all task groups
+            
+            self.val_metrics['aggregated'] = aggregate_results( pd.concat(task_classification_metrics),
+                                                                weights = np.concatenate(task_aggregation_weights)).to_dict()
         
-    #     predictions: Predictions (y_hat)
-    #     gt:          Ground truth values
-    #     pixelAcc:    Pixel accuracy 
-    #     err:         Cross Entropy loss
-    #     """
-    #     gt = self.seg.view(-1)
-    #     labels = gt < seg_num_class
-    #     gt = gt[labels].int()
+            
+            self.train()
+            return
 
-    #     logits = self.seg_output.permute(0, 2, 3, 1).contiguous().view(-1, seg_num_class)
-    #     logits = logits[labels]
-    #     err = self.cross_entropy(logits, gt.long())
 
-    #     prediction = torch.argmax(self.seg_output, dim=1)
-    #     prediction = prediction.unsqueeze(1)
 
-    #     # pixel acc
-    #     prediction = prediction.view(-1)
-    #     prediction = prediction[labels].int()
-    #     pixelAcc = (gt == prediction).float().mean()
+    def val2(self, is_policy, num_train_layers=None, hard_sampling=False, verbose = None):
+        
+        ## reset losses & get training hyper parms       
+        self.losses = {}
+        self.losses['parms'] = {}
+        self.losses['parms']['gumbel_temp'] = self.temp
+        curr_lrs = self.schedulers['weights'].get_last_lr()
+        for i in range(len(curr_lrs)):
+            self.losses['parms'][f'lr_{i}'] = curr_lrs[i]
 
-    #     return prediction.cpu().numpy(), gt.cpu().numpy(), pixelAcc, err.cpu().numpy()
+        ## only difference between forward_eval and forward is the policy_sampling_mode, refactored these
+        # if is_policy:
+        #     self.forward_eval(is_policy = is_policy, num_train_layers = num_train_layers, hard_sampling = hard_sampling)
+        # else:
+        #     self.forward(is_policy = is_policy, num_train_layers = num_train_layers, hard_sampling = hard_sampling)
+
+        if is_policy:
+            policy_sampling = "eval"
+        else:
+            policy_sampling = None     ## originally set to "train" , but never used when is_policy == False
+        
+        self.forward(is_policy = is_policy, num_train_layers = num_train_layers, policy_sampling_mode = policy_sampling, hard_sampling = hard_sampling)
+        # self.resize_results()
+        
+        self.compute_task_losses(verbose = verbose)
+        # pp.pprint(self.losses)
+
+        self.classification_metrics(verbose = False)
+        # pp.pprint(self.metrics)
+        return

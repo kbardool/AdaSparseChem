@@ -1,50 +1,21 @@
-exp_name: SparseChem
-seed: [88, 45, 50, 100, 44, 48, 2048, 2222, 9999]
-backbone: SparseChem
-backbone_orig: ResNet18
-orig_tasks: ["seg", "sn"]
-tasks: ["class", "class", "class"]
-tasks_num_class: [5, 5, 5]
-lambdas: [1, 1, 1]
-policy_model: task-specific
-verbose: True
+exp_name         : SparseChem
+## Leave empty to have date_time used 
+exp_instance     :
+exp_description  : brief description
+seed             : [88, 45, 50, 100, 44, 48, 2048, 2222, 9999]
+backbone         : SparseChem
+backbone_orig    : ResNet18
+orig_tasks       : ["seg", "sn"]
+tasks            : ["class", "class", "class"]
+tasks_num_class  : [5, 5, 5]
+lambdas          : [1, 1, 1]
+policy_model     : task-specific
+verbose          : False
 
-
-paths:
-  log_dir:        ../experiments/logs/SparseChem
-  result_dir:     ../experiments/results/SparseChem
-  checkpoint_dir: ../experiments/checkpoints/SparseChem
-
-dataload:
-  dataset: Chembl_23_mini
-  dataroot: "/home/kbardool/kusanagi/MLDatasets/chembl_23_mini"
-  x: "chembl_23mini_x.npy"
-  folding: "chembl_23mini_folds.npy"  
-  weights_class:
-  fold_inputs: 32000
-  input_transform: 
-  y_tasks: ["chembl_23_adashare_y1_bin_sparse.npy", "chembl_23_adashare_y2_bin_sparse.npy", "chembl_23_adashare_y3_bin_sparse.npy"]
-  y_censor:
-  fold_te:
-  weights_class:  
-  crop_h: 321
-  crop_w: 321
-  min_samples_class : 5
-  fold_va: 0
-  fold_te:  
-
-##------------------------------------------------------
-## sparsechem related parameters
-##------------------------------------------------------
-SC:
-  batch_ratio: 0.02
-  # internal_batch_max: 200
-  normalize_loss:
-
-input_size_freq: 
-input_size: 32000
-hidden_sizes: [41, 42, 43, 44]
-tail_hidden_size: 50
+input_size_freq : 
+input_size      : 32000
+hidden_sizes    : [25, 25, 25, 25, 25, 25]
+tail_hidden_size: 25
 
 first_non_linearity: "relu"
 
@@ -61,51 +32,101 @@ policy: True
 init_neg_logits:
 is_sparse: True
 
-diff_sparsity_weights: True
-is_sharing: True
+diff_sparsity_weights:   True
+is_sharing           :   True
 
-skip_layer: 0
-is_curriculum: True
-curriculum_speed: 3
-fix_BN: False
-retrain_from_pl: False
+skip_layer           :     0
+is_curriculum        :   True
+curriculum_speed     :     20
+fix_BN               :  False
+retrain_from_pl      :  False
+
+
+##------------------------------------------------------
+## Data & Folder parameters
+##------------------------------------------------------
+paths:
+  experiment_dir :     ../experiments/SparseChem
+  log_dir        :     ../experiments/SparseChem
+  result_dir     :     ../experiments/SparseChem
+  checkpoint_dir :     ../experiments/SparseChem
+
+dataload:
+  dataset        : Chembl_23_mini
+  dataroot       : "/home/kbardool/kusanagi/MLDatasets/chembl_23mini_synthetic"
+  x              : "chembl_23mini_x.npy"
+  x_split_ratios : [0.75, 0.001, 0.001, 0.248]
+  # x_split_ratios : [0.2, 0.35, 0.35, 0.1]
+  folding        : "chembl_23mini_folds.npy"  
+  weights_class  :
+  fold_inputs    : 32000
+  input_transform: 
+  y_tasks        : ["chembl_23mini_adashare_y1_bin_sparse.npy", "chembl_23mini_adashare_y2_bin_sparse.npy", "chembl_23mini_adashare_y3_bin_sparse.npy"]
+  y_censor       :
+  fold_te        :
+  weights_class  :  
+  crop_h         : 321
+  crop_w         : 321
+  min_samples_class : 5
+  fold_va        : 0
+  fold_te        :  
 
 ##------------------------------------------------------
 ## training parameters
 ##------------------------------------------------------
 train:
-  batch_size: 64
-  total_iters: 200
-  warm_up_iters: 4000
-  # lr: 0.001
-  task_lr: 0.0001
-  backbone_lr: 0.0001
-  policy_lr: 0.0001
+  batch_size     :     128
+  
+  # Learning Rates
+  task_lr        :   0.0001
+  backbone_lr    :   0.0001
+  
+  #
+  decay_lr_rate  :     0.1
+  decay_lr_freq  :    8000
+  
+  #
+  total_iters    :   15000
+  warm_up_iters  :   15000
+  
+  # Policy LR
+  policy_lr      :  0.0001
   
   # Lambda sparsity (cross entropy) 
-  reg_w: 0.05
-  Lambda_sparsity: 0.05
+  reg_w          :    0.05
+  Lambda_sparsity:    0.05
 
   # Lambda sharing (hamming) - original 0.05
-  reg_w_hamming: 0.5
-  Lambda_sharing: 0.5
-  
-  
-  print_freq: 100
-  val_freq: 400
-  #
-  decay_lr_freq: 4000
-  decay_lr_rate: 0.5
-  decay_temp_freq: 100
-  #
-  init_temp: 5
-  decay_temp: 0.965
-  resume: False
-  retrain_resume: False
-  policy_iter: best
-  which_iter: warmup
-  init_method: equal
-  hard_sampling: False
+  reg_w_hamming  :     0.1
+  Lambda_sharing :     0.1
 
+  #
+  print_freq     :      -1
+  val_freq       :     500
+
+  #
+  init_temp      :       5
+  decay_temp     :   0.965
+  decay_temp_freq:     100
+  #
+  resume         :   False
+  retrain_resume :   False
+  policy_iter    :    best
+  which_iter     :  warmup
+  init_method    :   equal
+  hard_sampling  :   False
+
+##------------------------------------------------------
+## sparsechem related parameters
+##------------------------------------------------------
+SC:
+  batch_ratio: 0.02
+  # internal_batch_max: 200
+  normalize_loss:
+
+
+##------------------------------------------------------
+## test parameters
+##------------------------------------------------------
 test:
   which_iter: best

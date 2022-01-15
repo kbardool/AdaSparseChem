@@ -3,7 +3,7 @@ sys.path.insert(0, '..')
 from models.base import *
 import torch.nn.functional as F
 from scipy.special import softmax
-from models.util import count_params, compute_flops
+from models.sparsechem_util import count_params, compute_flops
 import torch
 import tqdm
 import time

@@ -21,8 +21,8 @@ def conv3x3(in_channels, out_channels, stride=1, dilation=1):
 
     kernel_size = np.asarray((3, 3))
 
-    # Compute the size of the upsampled filter with
-    # a specified dilation rate.
+    # If a dilation > 1 is specified , Compute the size of the 
+    # upsampled filter using the  specified dilation rate.
     upsampled_kernel_size = (kernel_size - 1) * (dilation - 1) + kernel_size
 
     # Determine the padding that is necessary for full padding,
@@ -75,6 +75,7 @@ class BasicBlock(nn.Module):
         self.conv2 = conv3x3(planes, planes, dilation=dilation)
         self.bn2   = nn.BatchNorm2d(planes, affine = affine_par)
 
+
     def forward(self, x, keep=None):
         # keep: [batch_size], int
         cuda_device = x.get_device()
@@ -93,7 +94,7 @@ class BasicBlock(nn.Module):
 
         out = self.relu(out)
         out = self.conv2(out)
-        y = self.bn2(out)
+        y   = self.bn2(out)
         return y
 
 
@@ -103,17 +104,17 @@ class BasicBlock2(nn.Module):
     def __init__(self, inplanes, planes, stride=1, dilation=1):
         super(BasicBlock2, self).__init__()
         self.conv1 = conv3x3(inplanes, planes, stride, dilation=dilation)
-        self.bn1 = nn.BatchNorm2d(planes, affine = affine_par)
-        self.relu = nn.ReLU(inplace=True)
+        self.bn1   = nn.BatchNorm2d(planes, affine = affine_par)
+        self.relu  = nn.ReLU(inplace=True)
         self.conv2 = conv3x3(planes, planes, dilation=dilation)
-        self.bn2 = nn.BatchNorm2d(planes, affine = affine_par)
+        self.bn2   = nn.BatchNorm2d(planes, affine = affine_par)
 
     def forward(self, x):
-        out = self.conv1(x)
-        out = self.bn1(out)
+        out  = self.conv1(x)
+        out  = self.bn1(out)
         out1 = self.relu(out)
-        out = self.conv2(out1)
-        y = self.bn2(out)
+        out  = self.conv2(out1)
+        y    = self.bn2(out)
 
         return y, out1
 

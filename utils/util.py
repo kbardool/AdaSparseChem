@@ -41,6 +41,10 @@ def debug_off_m(method):
 # ---------------------------------------------------------------------------------------
 # Display routines 
 # ---------------------------------------------------------------------------------------
+def vprint(s="", verbose = False):
+    if verbose:
+        print(s)
+
 
 def print_separator(text, total_len=50):
     print('#' * total_len)
@@ -59,17 +63,19 @@ def print_heading(text,  verbose = False, force = False):
     len_ttl = min(len_ttl, 120)
     if verbose or force:
         print('-' * len_ttl)
-        print(f" {text}")
+        print(f"{text}")
         # left_width = (total_len - len(text))//2
         # right_width = total_len - len(text) - left_width
         # print("#" * left_width + text + "#" * right_width)
         print('-' * len_ttl, '\n')
+
 
 def print_underline(text,  verbose = False):
     len_ttl = len(text)+2
     if verbose:
         print(f"\n {text}")
         print('-' * len_ttl)
+
 
 def print_yaml(opt):
     lines = []
@@ -83,6 +89,22 @@ def print_yaml(opt):
     else:
         lines = [" : " + str(opt)]
     return lines
+
+
+def print_yaml2(opt, key = ""):
+    lines = []
+    if isinstance(opt, dict):
+        # lines += [f"CALL print_yaml with {key}"]
+        if key != "":
+            lines += ["", key, '-'*len(key)]
+        for key in opt.keys():
+            tmp_lines = print_yaml2(opt[key], key)
+            tmp_lines = ["%s" % (line) for line in tmp_lines]
+            lines += tmp_lines
+    else:
+        lines = [f"{key:>20s} : {str(opt)}"]
+    return lines
+
 
 def show_batch(batch):
     normed = batch * 0.5 + 0.5
@@ -98,7 +120,6 @@ def show_batch(batch):
 
     plt.imshow(im)
     plt.show(block=True)
-
 
 
 def listopt(opt, f=None):
@@ -262,11 +283,22 @@ class Initializer:
         model.apply(weights_init)
 
 
+def write_parms_report(opt, output = None, mode = 'w+'):
+    with open(os.path.join(opt['paths']['log_dir'], opt['paths']['exp_folder'], 'run_parms.txt'), mode= mode) as f:
+        if output is None:
+            output = print_yaml2(opt)
+            for line in output:
+                f.writelines(line+"\n")
+        else:
+                f.writelines(output+"\n")
 
 def create_path(opt):
-    for k, v in opt['paths'].items():
-        print(f" Create folder {os.path.join(v, opt['exp_name'])}")
-        makedir(os.path.join(v, opt['exp_name']))
+    # for k, v in opt['paths'].items():
+    folder_path = opt['paths']['log_dir']
+
+    full_folder_path = os.path.join(folder_path, opt['paths']['exp_folder'])
+    print(f" Create folder {full_folder_path}")
+    makedir(full_folder_path)
 
 
 def makedir(folder):
@@ -274,35 +306,66 @@ def makedir(folder):
         os.makedirs(folder)
 
 
-def read_yaml():
-    # read in yaml
+##
+##  Command line and YAML configuration files
+##
+def get_command_line_args(input = None):
+    """ get and parse command line arguments """
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", required=True, help="Path for the config file")
-    parser.add_argument("--exp_ids", type=int, nargs='+', default=[0], help="Path for the config file")
-    parser.add_argument("--gpus", type=int, nargs='+', default=[0], help="Path for the config file")
-    parser.add_argument("--cpu", default=False, action="store_true",  help="CPU instead of GPU")
-    args = parser.parse_args()
+    parser.add_argument("--config"       , required=True, help="Path for the config file")
+    parser.add_argument("--exp_instance" , type=str, help="experiment instance, used as folder prefix, defaults to mmdd_hhmm")
+    parser.add_argument("--exp_ids"      , type=int, nargs='+', default=[0], help="Seed Override - default is 0")
+    parser.add_argument("--batch_size"   , type=int, help="Backbone Learning Rate Override - default read from config file")
+    parser.add_argument("--backbone_lr"  , type=float, help="Backbone Learning Rate Override - default read from config file")
+    parser.add_argument("--task_lr"      , type=float, help="Task Heads Learning Rate Override - default read from config file")
+    parser.add_argument("--decay_lr_rate", type=float, help="LR Decay Rate Override - default read from config file")
+    parser.add_argument("--decay_lr_freq", type=float, help="LR Decay Frequency Override - default read from config file")
+    parser.add_argument("--gpus"         , type=int, nargs='+', default=[0], help="GPU Device Ids")
+    parser.add_argument("--cpu"          , default=False, action="store_true",  help="CPU instead of GPU")
+    if input is None:
+        args = parser.parse_args()
+    else:
+        args = parser.parse_args(input)
+    print(' command line parms : ' , vars(args))
+    return args
 
+
+def read_yaml():
+    # get command line arguments
+    args = get_command_line_args()
+    
     # torch.cuda.set_device(args.gpu)
+    
     with open(args.config) as f:
         opt = yaml.load(f)
+    opt['exp_instance'] = args.exp_instance
     opt['cpu'] = args.cpu
+    opt['paths']['exp_folder'] = f"{opt['exp_instance']}_bs{opt['train']['batch_size']:03d}" \
+                                  f"_lr{opt['train']['backbone_lr']}"   \
+                                  f"_dr{opt['train']['decay_lr_rate']:3.2f}" \
+                                  f"_df{opt['train']['decay_lr_freq']:04d}"      
     return opt, args.gpus, args.exp_ids
 
-def read_yaml_from_input(input_args):
-    # read in yaml
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--config", required=True, help="Path for the config file")
-    parser.add_argument("--exp_ids", type=int, nargs='+', default=[0], help="Path for the config file")
-    parser.add_argument("--gpus", type=int, nargs='+', default=[0], help="Path for the config file")
-    parser.add_argument("--cpu", default=False, action="store_true",  help="CPU instead of GPU")
-    args = parser.parse_args(input_args)
 
-    print(vars(args))
+def read_yaml_from_input(args = None, exp_instance = None):
+    """ read yaml passing command line arguments """
+        
     # torch.cuda.set_device(args.gpu)
     with open(args.config) as f:
         opt = yaml.safe_load(f)
+
+
     opt['cpu'] = args.cpu
+    
+    if exp_instance is not None:
+        opt['exp_instance'] = exp_instance
+    elif args.exp_instance is not None:
+        opt['exp_instance'] = args.exp_instance
+
+    opt['paths']['exp_folder'] = f"{opt['exp_instance']}_bs{opt['train']['batch_size']:03d}" \
+                                  f"_lr{opt['train']['backbone_lr']}"   \
+                                  f"_dr{opt['train']['decay_lr_rate']:3.2f}" \
+                                  f"_df{opt['train']['decay_lr_freq']:04d}"      
     return opt, args.gpus, args.exp_ids
 
     
@@ -329,7 +392,7 @@ def create_meta_batch(batch, n_way, n_support, n_query):
     train_labels, test_labels = create_meta_labels(n_way, n_support, n_query)
     whole_batch = {'videos': batch['videos'], 'labels': torch.cat((train_labels, test_labels), dim=0), 'names': batch['names']}
     train_batch = {'videos': batch['videos'][: n_way * n_support], 'labels': train_labels, 'names': batch['names'][: n_way * n_support]}
-    test_batch = {'videos': batch['videos'][n_way * n_support:], 'labels': test_labels, 'names': batch['names'][n_way * n_support:]}
+    test_batch  = {'videos': batch['videos'][n_way * n_support:], 'labels': test_labels, 'names': batch['names'][n_way * n_support:]}
 
     return whole_batch, train_batch, test_batch
 
@@ -361,7 +424,7 @@ def parse_config():
     for line in lines: print(line)
     print('-----------------------------------------------------')
     # print to file
-    with open(os.path.join(opt['paths']['log_dir'], opt['exp_name'], 'opt.txt'), 'w+') as f:
+    with open(os.path.join(opt['paths']['log_dir'], opt['paths']['exp_folder'], 'opt.txt'), 'w+') as f:
         f.writelines(lines)
     return opt, gpu_ids
 

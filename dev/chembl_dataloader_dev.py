@@ -1,14 +1,30 @@
 # Copyright (c) 2020 KU Leuven
 import os, copy
 import torch
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader 
 import scipy.sparse
 import numpy as np
-from .sparsechem_utils import load_sparse, load_task_weights, class_fold_counts, fold_and_transform_inputs
+from .sparsechem_utils_dev import load_sparse, load_task_weights, class_fold_counts, fold_and_transform_inputs
 from utils.util import print_heading, timestring, print_dbg, print_underline, debug_off, debug_on
 
 
+class InfiniteDataLoader(DataLoader):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Initialize an iterator over the dataset.
+        self.dataset_iterator = super().__iter__()
 
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        try:
+            batch = next(self.dataset_iterator)
+        except StopIteration:
+            # Dataset exhausted, use a new fresh iterator.
+            self.dataset_iterator = super().__iter__()
+            batch = next(self.dataset_iterator)
+        return batch
 
 def sparse_collate(batch):
     x_ind  = [b["x_ind"]  for b in batch]
@@ -234,8 +250,9 @@ class ClassRegrSparseDataset(Dataset):
 
 
 class ClassRegrSparseDataset_v3(Dataset):
-    @debug_off
-    def __init__(self, opt, x = None, y_files = None, folding =  None, y_censor=None, index = None, verbose = False):
+ 
+    def __init__(self, opt, x = None, y_files = None, folding =  None, y_censor=None, 
+                split_ratios = None, ratio_index = None,  index = None, verbose = False):
         '''
         Creates the 
         Creates dataset for two outputs Y.
@@ -246,6 +263,11 @@ class ClassRegrSparseDataset_v3(Dataset):
             y_censor (sparse matrix): censoring matrix, for regression data [n_samples, regr_task]
         '''
         assert len(opt['dataload']['y_tasks']) == len(opt['tasks']), "List of y_tasks and tasks must contain same number of elements"
+        
+        if verbose:
+            print_heading(f" {timestring()}  Create new  {self.name()} instance ", verbose = verbose)
+            print_dbg(f" verbose        : {verbose}", verbose = verbose)
+
         dataroot      = opt['dataload']['dataroot']
         y_files       = opt['dataload']['y_tasks']
         yc_weights    = opt['dataload']['weights_class']
@@ -254,20 +276,32 @@ class ClassRegrSparseDataset_v3(Dataset):
 
         self.ecfp     = load_sparse(dataroot, opt['dataload']['x'])
         self.folding  = np.load(os.path.join(dataroot, opt['dataload']['folding']))
+        assert self.ecfp.shape[0] == self.folding.shape[0], "x and folding must have same number of rows" 
         
+        if index is None:
+            total_input   = self.ecfp.shape[0]
+            ranges        = (np.cumsum([0]+split_ratios)* total_input).astype(np.int32)
+            index = np.arange(ranges[ratio_index], ranges[ratio_index+1])
+            size = len(index)
+            print_dbg(f" totalInput     : {total_input} ", verbose = verbose)
+            print_dbg(f" ranges         : {ranges}      ", verbose = verbose) 
+            print_dbg(f" ratio_index    : {ratio_index}", verbose = verbose)
+            print_dbg(f" select rows    : {ranges[ratio_index]:6d} to {ranges[ratio_index+1]:6d}", verbose = verbose)
+            print_dbg(f" rows in dataset: {size} ", verbose = verbose)
+            print_dbg(f" indexes used   : {index}", verbose = verbose)
+ 
+
         self.class_tasks = 0 
         self.regr_tasks  = 0
         self.y_class_list = [] 
         self.tasks_weights_list = []
         self.batch_id = 0 
-        assert self.ecfp.shape[0] == self.folding.shape[0], "x and folding must have same number of rows" 
         
-        print_heading(f" {timestring()}  Create new  {self.name()} instance ", verbose = verbose)
-        print_dbg(f" verbose   : {verbose}", verbose = verbose)
-        print_dbg(f" Input     : {opt['dataload']['x']:32s} - type : {type(self.ecfp)} shape : {self.ecfp.shape}", verbose = verbose)
-        print_dbg(f" Folding   : {opt['dataload']['folding']:32s} - type : {type(self.folding)} shape : {self.folding.shape}", verbose = verbose)
-        print_dbg(f" Index len : {'-':32s} {len(index) :6d}  - {(index)} ", verbose = verbose)
-        print_dbg(f" yc_weights: {yc_weights}", verbose = verbose)
+        if verbose:
+            print_dbg(f" Input          : {opt['dataload']['x']:32s} - type : {type(self.ecfp)} shape : {self.ecfp.shape}", verbose = verbose)
+            print_dbg(f" Folding        : {opt['dataload']['folding']:32s} - type : {type(self.folding)} shape : {self.folding.shape}", verbose = verbose)
+            print_dbg(f" Index len      : {'-':32s} {len(index) :6d}  - {(index)} ", verbose = verbose)
+            print_dbg(f" yc_weights     : {yc_weights}", verbose = verbose)
         
         ## Load label files for each task
         self.ecfp = fold_and_transform_inputs(self.ecfp, folding_size=opt['dataload']['fold_inputs'], 
@@ -290,7 +324,6 @@ class ClassRegrSparseDataset_v3(Dataset):
             else:
                 # self.y_class  = y_class.tocsr(copy=False).astype(np.float32)
                 stat = 'Supplied'
-            
             
             ## Get number of positive / neg and total for each classes
             ## ensure there are no labels besides {-1,0,+1}
@@ -324,7 +357,6 @@ class ClassRegrSparseDataset_v3(Dataset):
             ##-----------------------------------------------------------------------------------
             ## Classification task aggregation weights 
             ##-----------------------------------------------------------------------------------
-            print()
             weights_temp = load_task_weights(yc_weights[task_id], y=y_temp, label=f"y_task{task_id+1}", verbose = verbose)
             if weights_temp.aggregation_weight is None:
                 '''
@@ -393,19 +425,20 @@ class ClassRegrSparseDataset_v3(Dataset):
             self.tasks_weights_list.append(weights_temp)
             self.class_tasks += 1
             
-            print_dbg(f"\t y_task[{task_id+1}]  {stat:22s} - type : {type(y_temp)}    shape : {y_temp.shape}", verbose = verbose)
-            print_dbg(f"\t y_task[{task_id+1}]  {stat:22s} - type : {type(self.y_class_list[task_id])}    shape : {self.y_class_list[task_id].shape}"  , verbose = verbose)
-            print_dbg(f"\t Input dimension       : {self.ecfp.shape[1]}", verbose = verbose)
-            print_dbg(f"\t # samples             : {self.ecfp.shape[0]}", verbose = verbose)
-            print_dbg(f"\t # classification tasks: {self.class_tasks}", verbose = verbose)
-            print_dbg(f"\t # regression tasks    : {self.regr_tasks}", verbose = verbose)
-            # print(f" Using {(tasks_class.aggregation_weight > 0).sum()} classification tasks for calculating aggregated metrics (AUCROC, F1_max, etc).")
-            # print(f"Using {(tasks_regr.aggregation_weight > 0).sum()} regression tasks for calculating metrics (RMSE, Rsquared, correlation).")
+            if verbose:
+                print_dbg(f"\t y_task[{task_id+1}]  {stat:22s} - type : {type(y_temp)}    shape : {y_temp.shape}", verbose = verbose)
+                print_dbg(f"\t y_task[{task_id+1}]  {stat:22s} - type : {type(self.y_class_list[task_id])}    shape : {self.y_class_list[task_id].shape}"  , verbose = verbose)
+                print_dbg(f"\t Input dimension       : {self.ecfp.shape[1]}", verbose = verbose)
+                print_dbg(f"\t # samples             : {self.ecfp.shape[0]}", verbose = verbose)
+                print_dbg(f"\t # classification tasks: {self.class_tasks}", verbose = verbose)
+                print_dbg(f"\t # regression tasks    : {self.regr_tasks}", verbose = verbose)
+                # print_dbg(f"Using {(tasks_regr.aggregation_weight > 0).sum()} regression tasks for calculating metrics (RMSE, Rsquared, correlation).")
+                # print_dbg(f" Using {(tasks_class.aggregation_weight > 0).sum()} classification tasks for calculating aggregated metrics (AUCROC, F1_max, etc).")
         
         print_heading(f"{self.name()} Create complete", verbose = verbose)
         return 
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx, verbose = False):
         """
         returns: 
         out[x_ind] : indices to columns of X row containing data 
@@ -421,8 +454,9 @@ class ClassRegrSparseDataset_v3(Dataset):
 
         out["row_id"] = idx
         out["x_ind"], out["x_data"] = get_row(self.x, idx)
-        # print(f" x indexes: {out['x_ind'].shape}   {out['x_ind'][:10]}")
-        # print(f" x data   : {out['x_data'].shape}  {out['x_data'][:10]}")
+        print_dbg(f" x indexes: {out['x_ind'].shape}   {out['x_ind'][:10]}", verbose = verbose)
+        print_dbg(f" x data   : {out['x_data'].shape}  {out['x_data'][:10]}", verbose = verbose)
+
         for i in range(len(self.y_class_list)):
             ind_key     = "task{:d}_ind".format(i+1)
             data_key    = "task{:d}_data".format(i+1)
@@ -430,9 +464,9 @@ class ClassRegrSparseDataset_v3(Dataset):
             out[ind_key], out[data_key]= get_row(self.y_class_list[i], idx)
             out[weights_key] = self.tasks_weights_list[i]
            
-            # print(f"\t  load task[{i}] file  . . . {ind_key}    {data_key}")
-            # print(f"\t  out[{ind_key}] : {out[ind_key].shape}   {out[ind_key]}")
-            # print(f"\t  out[{data_key}]: {out[data_key].shape}  {out[data_key]}")
+            print_dbg(f"\t  load task[{i}] file  . . . {ind_key}    {data_key}", verbose = verbose)
+            print_dbg(f"\t  out[{ind_key}] : {out[ind_key].shape}   {out[ind_key]}", verbose = verbose)
+            print_dbg(f"\t  out[{data_key}]: {out[data_key].shape}  {out[data_key]}", verbose = verbose)
 
 
         # if self.regr_output_size > 0:
@@ -441,7 +475,7 @@ class ClassRegrSparseDataset_v3(Dataset):
                 # out["ycen_ind"], out["ycen_data"] = get_row(self.y_censor, idx)
         return out
 
-    def collate(self, batch):
+    def collate(self, batch, verbose = False):
         """
         batch : list of N objects  (N = batch size) 
                 each object is the output of __getitem__
@@ -458,30 +492,27 @@ class ClassRegrSparseDataset_v3(Dataset):
         out["x_ind"]  = to_idx_tensor(lists["x_ind"])
         out["x_data"] = torch.from_numpy(np.concatenate(lists["x_data"]))
         out["row_id"] = lists['row_id']
-        # print(f"output keys: {lists.keys()}")
-        # print(f"out[row_id]: {out['row_id']}")
-        # print(f" len of lists[x_ind] {len(lists['x_ind'])}   sum:{sum}")
-        # print(f" len of out[x_ind]   {out['x_ind'].shape}")
-        # print(f" len of out[x_data]  {out['x_data'].shape} ")
+        print_dbg(f" output keys: {lists.keys()}", verbose = verbose)
+        print_dbg(f" out[row_id]: {out['row_id']}", verbose = verbose)
+        print_dbg(f" len of lists[x_ind] {len(lists['x_ind'])}   sum:{sum}", verbose = verbose)
+        print_dbg(f" len of out[x_ind]   {out['x_ind'].shape}", verbose = verbose)
+        print_dbg(f" len of out[x_data]  {out['x_data'].shape} ", verbose = verbose)
         
 
         for i in range(len(self.y_class_list)):
             ind_key = "task{:d}_ind".format(i+1)
             data_key = "task{:d}_data".format(i+1)
             weights_key = "task{:d}_weights".format(i+1)
-        #     if i == 0:
-        #         out[ind_key] = []
-        #         out[data_key] = []
          
             out[ind_key]  = to_idx_tensor(lists[ind_key]) 
             out[data_key] = torch.from_numpy(np.concatenate(lists[data_key]))
             out[weights_key] = self.tasks_weights_list[i]
 
-            # print(f"\n\t load task[{i+1}] file ")
-            # print(f"\t out[{ind_key}]    shape  {out[ind_key].shape}")
-            # print(f"\t out[{data_key}]   shape  {out[data_key].shape} ")
-            # print(f"\t out[{weight_key}].training_weight      {out[weight_key].training_weight} ")
-            # print(f"\t out[{weight_key}].aggregation_weight   {out[weight_key].aggregation_weight} ")
+            print_dbg(f"\n\t load task[{i+1}] file ", verbose = verbose)
+            print_dbg(f"\t out[{ind_key}]    shape  {out[ind_key].shape}", verbose = verbose)
+            print_dbg(f"\t out[{data_key}]   shape  {out[data_key].shape} ", verbose = verbose)
+            print_dbg(f"\t out[{weights_key}].training_weight      {out[weights_key].training_weight} ", verbose = verbose)
+            print_dbg(f"\t out[{weights_key}].aggregation_weight   {out[weights_key].aggregation_weight} ", verbose = verbose)
     
     #     if "yr_ind" in lists:
     #         out["yr_ind"]  = to_idx_tensor(lists["yr_ind"])

@@ -27,7 +27,8 @@ class Deeplab_ResNet_Backbone_Dev(nn.Module):
 
 
 
-        # layers passed are  [3, 6, 4, 3]
+        # layers passed are  [3, 6, 4, 3] for resnet34
+        # layers passed are  [2, 2, 2, 2] for resnet18
         filt_sizes = [64, 128, 256, 512]
         strides    = [1, 2, 1, 1]
         dilations  = [1, 1, 2, 4]
@@ -35,7 +36,7 @@ class Deeplab_ResNet_Backbone_Dev(nn.Module):
         for idx, (filt_size, num_blocks, stride, dilation) in enumerate(zip(filt_sizes, layers, strides, dilations)):
             print_heading(f" Deeplab_ResNet_Backbone_Dev : making layer {idx}  filter size: {filt_size}  num-blocks in layer:{num_blocks}  strides: {stride} dilation: {dilation}")
             
-            blocks, ds = self._make_layer(block, filt_size, num_blocks, stride=stride, dilation=dilation)
+            blocks, ds = self._make_layer(block_type = block, planes = filt_size, blocks = num_blocks, stride=stride, dilation=dilation)
             
             # print(f" blocks: {type(blocks)} \n {blocks}")
             # print(f" ds    : {type(ds)} \n {ds}")
@@ -93,7 +94,7 @@ class Deeplab_ResNet_Backbone_Dev(nn.Module):
         return x
 
 
-    def _make_layer(self, block, planes, blocks, stride=1, dilation=1):
+    def _make_layer(self, block_type, planes, blocks, stride=1, dilation=1):
         '''
             Build a residual layer
             block :  Resnet Block type (BasicBlock, BottleNeck, BasicBlock2, Bottleneck2)
@@ -101,18 +102,18 @@ class Deeplab_ResNet_Backbone_Dev(nn.Module):
             block.expansion is 1 
         '''
         downsample = None
-        if (stride != 1) or (self.inplanes != planes * block.expansion) or (dilation == 2) or (dilation == 4):
+        if (stride != 1) or (self.inplanes != planes * block_type.expansion) or (dilation == 2) or (dilation == 4):
             downsample = nn.Sequential(
-                nn.Conv2d(self.inplanes, planes * block.expansion,  kernel_size=1, stride=stride, bias=False),
-                nn.BatchNorm2d(planes * block.expansion, affine = affine_par))
+                nn.Conv2d(self.inplanes, planes * block_type.expansion,  kernel_size=1, stride=stride, bias=False),
+                nn.BatchNorm2d(planes * block_type.expansion, affine = affine_par))
             # for i in downsample._modules['1'].parameters():
             #     i.requires_grad = False
 
         layers = []
-        layers.append(block(self.inplanes, planes, stride, dilation=dilation))
-        self.inplanes = planes * block.expansion
+        layers.append(block_type(self.inplanes, planes, stride, dilation=dilation))
+        self.inplanes = planes * block_type.expansion
         for i in range(1, blocks):
-            layers.append(block(self.inplanes, planes, dilation=dilation))
+            layers.append(block_type(self.inplanes, planes, dilation=dilation))
 
         return layers, downsample
 

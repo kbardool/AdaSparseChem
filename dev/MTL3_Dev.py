@@ -4,7 +4,7 @@ from torch import nn
 import torch.nn.functional as F
 from dev.deeplab_resnet_dev import Deeplab_ResNet_Backbone_Dev
 from utils.util             import timestring, print_heading, print_dbg, print_underline, debug_on, debug_off
-from dev.sparsechem_models  import SparseChem_Backbone, SparseChem_Classification_Module
+from dev.sparsechem_adashare_dev  import SparseChem_Backbone, SparseChem_Classification_Module
 from scipy.special          import softmax
 # from models.deeplab_resnet import * 
 
@@ -262,14 +262,14 @@ class MTL3_Dev(nn.Module):
     ##----------------------------------------------------
     ##  forward routine
     ##----------------------------------------------------
-    def forward(self, img, temperature, is_policy, num_train_layers=None, hard_sampling=False, mode='train', verbose = None):
+    def forward(self, img, temperature, is_policy, num_train_layers=None, hard_sampling=False, policy_sampling_mode=None, verbose = None):
         '''
         input parameters:
 
-        mode:   specifies the policy sampling method 
-                'train' : Use gumbel_softmax on task_logits
-                'eval'  : when hard_sampling == False, Uses softmax on task logits 
-                          When hard_sampling == True , applies argmax(task logits) 
+        policy_sampling_mode:   specifies the policy sampling method 
+                    'train' : Use gumbel_softmax on task_logits
+                    'eval'  : when hard_sampling == False, Uses softmax on task logits 
+                              When hard_sampling == True , applies argmax(task logits) 
         
         '''
         if verbose is None:
@@ -277,7 +277,7 @@ class MTL3_Dev(nn.Module):
 
         if verbose:
             print_heading(f" {timestring()} -  MTL3_Dev.forward() START - verbose: {verbose}", verbose = verbose)
-            print_dbg(f" num_train_layers: {num_train_layers}    hard_sampling:{hard_sampling}  mode:{mode} "
+            print_dbg(f" num_train_layers: {num_train_layers}    hard_sampling:{hard_sampling}  policy sampling mode:{policy_sampling_mode} "
                 f" temperature:{temperature}  is_policy:{is_policy}  self.skip_layer:{self.skip_layer}  "
                 f"   num_layers:{self.num_layers}", verbose)
         
@@ -297,22 +297,23 @@ class MTL3_Dev(nn.Module):
         # print(f'\t Cuda Device is : {cuda_device}')
 
         logits = [None] * self.num_tasks
-        ##----------------------------------------------------
-        ## If we are in policy mode, take the appropriate action
-        ## on the policy net. 
-        ##----------------------------------------------------
+
+        ##-----------------------------------------------------------------------------
+        ## if is_policy == True - we are in policy mode, use the appropriate sampling 
+        ## methofd based on policy_sampling_mode. 
+        ##-----------------------------------------------------------------------------
         if is_policy:
-            if mode == 'train':
+            if policy_sampling_mode == 'train':
                 self.policys = self.train_sample_policy(temperature, hard_sampling, verbose = verbose)
-            elif mode == 'eval':
+            elif policy_sampling_mode == 'eval':
                 self.policys = self.test_sample_policy(hard_sampling, verbose = verbose)
-            elif mode == 'fix_policy':
+            elif policy_sampling_mode == 'fix_policy':
                 self.policys = self.test_sample_policy(hard_sampling, verbose = verbose)
                 # pass
                 for p in self.policys:
                     assert(p is not None)
             else:
-                raise NotImplementedError('mode %s is not implemented' % mode)
+                raise NotImplementedError(f"policy_sampling_mode [{policy_sampling_mode}] is not implemented" )
 
             ## place policys on appropriate device array to pass to backbone 
             for t_id in range(self.num_tasks):
@@ -331,6 +332,7 @@ class MTL3_Dev(nn.Module):
             else:
                 padding = torch.ones(skip_layer, 2)
             
+            ## padding[layers, 1] = P(layer,dont_select) = 0
             padding[:, 1] = 0
             padding_policys = []
             feats = []
@@ -348,7 +350,7 @@ class MTL3_Dev(nn.Module):
                           f"non-training layers : shape: {padding_policy.shape}   \n {padding_policy}", verbose = verbose)
                 padding_policys.append(padding_policy)
 
-                ## pass input and policy through the backbone
+                ## pass input and policy through the backbone network for the task
                 task_feats = self.backbone(img, padding_policy, task_id = f"task_{t_id+1}")
                 feats.append(task_feats)
         

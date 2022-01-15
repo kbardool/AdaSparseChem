@@ -3,7 +3,9 @@ import torch
 import math
 import numpy as np
 from torch import nn
-from utils.util import print_heading, timestring, print_dbg, debug_off_m
+import torch.nn.functional as F
+
+from utils.util import print_heading, timestring, print_dbg, debug_off_m, debug_on, debug_off
 
 non_linearities = {
     "relu": nn.ReLU,
@@ -11,39 +13,9 @@ non_linearities = {
 }
 
 
-def sparse_split2(tensor, split_size, dim=0):
-    """
-    Splits tensor into two parts.
-    Args:
-        split_size   index where to split
-        dim          dimension which to split
-    """
-    assert tensor.layout == torch.sparse_coo
-    indices = tensor._indices()
-    values  = tensor._values()
-
-    shape  = tensor.shape
-    shape0 = shape[:dim] + (split_size,) + shape[dim+1:]
-    shape1 = shape[:dim] + (shape[dim] - split_size,) + shape[dim+1:]
-
-    mask0 = indices[dim] < split_size
-    X0 = torch.sparse_coo_tensor(
-            indices = indices[:, mask0],
-            values  = values[mask0],
-            size    = shape0)
-
-    indices1       = indices[:, ~mask0]
-    indices1[dim] -= split_size
-    X1 = torch.sparse_coo_tensor(
-            indices = indices1,
-            values  = values[~mask0],
-            size    = shape1)
-    return X0, X1
-
-
-##
+##--------------------------------------------------------------------------------
 ## SparseLinear Layer
-##
+##--------------------------------------------------------------------------------
 class SparseLinear(torch.nn.Module):
     """
     Linear layer with sparse input tensor, and dense output.
@@ -75,10 +47,51 @@ class SparseLinear(torch.nn.Module):
         )
 
 
+##
+## SparseChemBlock
+##
+class SparseChemBlock(nn.Module):
+    expansion = 1
 
-##----------------------------------------------------
+    def __init__(self, input_sz, output_sz, non_linearity, dropout, bias = True):
+        super(SparseChemBlock, self).__init__()
+        self.linear = nn.Linear(input_sz, output_sz, bias=bias )
+        self.non_linear = non_linearity
+        self.dropout = nn.Dropout(dropout) 
+        # self.bn2 = nn.BatchNorm2d(planes, affine = affine_par)
+
+    def forward(self, x):
+        out = self.linear(x)
+        out = self.non_linear(out)
+        # y = self.bn2(out)
+        out = self.dropout(out)
+
+        return out
+
+
+##
+## SparseLinear Classification Module
+##
+class SparseChem_Classification_Module(nn.Module):
+    def __init__(self, inplanes, num_classes, rate=12):
+        super(SparseChem_Classification_Module, self).__init__()
+        self.linear  = nn.Linear(inplanes, num_classes)
+        # Currently final layer of Sparse Chem doesn't have Relu and dropout. 
+        # We can decide if we want them later
+        # self.relu    = nn.ReLU(inplace=True)
+        # self.dropout = nn.Dropout()
+
+    def forward(self, x):
+        x = self.linear(x)
+        # x = self.relu(x)
+        # x = self.dropout(x)
+        return x
+
+
+
+## 
 ##  SparseChem_Backbone: 
-##----------------------------------------------------
+## 
 class SparseChem_Backbone(torch.nn.Module):
 
     def __init__(self, conf, block, layers, verbose=False):
@@ -86,7 +99,7 @@ class SparseChem_Backbone(torch.nn.Module):
         self.verbose = verbose
         self.version = 1.0
 
-        print_heading(f" {self.name}  Ver: {self.version} Init() Start ", verbose = self.verbose)
+        print_heading(f" {self.name}  Ver: {self.version} Init() Start ", verbose = verbose)
         if hasattr(conf, "class_output_size"):
             self.class_output_size = conf['class_output_size']
             self.regr_output_size  = conf['regr_output_size']
@@ -100,7 +113,7 @@ class SparseChem_Backbone(torch.nn.Module):
         # self.net = nn.Sequential()
         self.layer_config = layers
 
-        print_dbg(f" layer config : {self.layer_config} \n", verbose = self.verbose)
+        print_dbg(f" layer config : {self.layer_config} \n", verbose = verbose)
         ##----------------------------------------------------
         ## Input Net        
         ##----------------------------------------------------
@@ -121,7 +134,7 @@ class SparseChem_Backbone(torch.nn.Module):
         # self.Input_nonlinear =  nn.ReLU(inplace=True)
 
         print_dbg(f" Input Layer  - Input: {conf['input_size']}  output: {conf['hidden_sizes'][0]}"
-                  f"  non-linearity:{non_linearities[conf['first_non_linearity']]}", verbose = self.verbose)
+                  f"  non-linearity:{non_linearities[conf['first_non_linearity']]}", verbose = verbose)
 
         self.Input_linear = SparseLinear(conf['input_size'], conf['hidden_sizes'][0])
  
@@ -132,7 +145,7 @@ class SparseChem_Backbone(torch.nn.Module):
         self.blocks = []
 
         for i in range(1, len(conf['hidden_sizes'])):
-            print_dbg(f" Hidden layer {i} - Input: {conf['hidden_sizes'][i-1]}   output:{conf['hidden_sizes'][i]}", verbose = self.verbose)
+            print_dbg(f" Hidden layer {i} - Input: {conf['hidden_sizes'][i-1]}   output:{conf['hidden_sizes'][i]}", verbose = verbose)
             blk = self._make_layer(block = block,
                                    input_sz   = conf['hidden_sizes'][i-1], 
                                    output_sz  = conf['hidden_sizes'][i], 
@@ -146,7 +159,7 @@ class SparseChem_Backbone(torch.nn.Module):
         ## Final Hidden layer  
         ##----------------------------------------------------
         i+= 1
-        print_dbg(f" Hidden layer {i} : Input{conf['hidden_sizes'][i-1]}   output:{conf['tail_hidden_size']}", verbose = self.verbose)
+        print_dbg(f" Hidden layer {i} : Input{conf['hidden_sizes'][i-1]}   output:{conf['tail_hidden_size']}", verbose = verbose)
         blk = self._make_layer(block = block,
                                input_sz   = conf['hidden_sizes'][i-1], 
                                output_sz  = conf['tail_hidden_size'], 
@@ -188,25 +201,25 @@ class SparseChem_Backbone(torch.nn.Module):
         # for i, blk in enumerate(self.blocks,1):
             # print_heading(f" Initialize block # {i}  type:{type(blk)} ", verbose =verbose)            
             # blk.apply(self.init_weights)
-        print_heading(f" {self.name} Init() End ", verbose = self.verbose)
+        print_heading(f" {self.name} Init() End ", verbose = verbose)
         return 
 
-    def init_weights(self, m):
-        print_dbg(f"   SparseChem Backbone - init_weights - module {m} ", verbose = self.verbose)
+    def init_weights(self, m, verbose = False):
+        print_dbg(f"   SparseChem Backbone - init_weights - module {m} ", verbose = verbose)
 
         if type(m) == SparseLinear:
-            print_dbg(f"    >>> apply xavier_uniform to SparseLinear module {m} \n", verbose = self.verbose)
+            print_dbg(f"    >>> apply xavier_uniform to SparseLinear module {m} \n", verbose = verbose)
             torch.nn.init.xavier_uniform_(m.weight, gain=torch.nn.init.calculate_gain("relu"))
             m.bias.data.fill_(0.1)
         
         if type(m) == nn.Linear:
-            print_dbg(f"    >>> apply xavier_uniform to linear module {m} \n", verbose = self.verbose)
+            print_dbg(f"    >>> apply xavier_uniform to linear module {m} \n", verbose = verbose)
             torch.nn.init.xavier_uniform_(m.weight, gain=torch.nn.init.calculate_gain("relu"))
             if m.bias is not None:
                 m.bias.data.fill_(0.1)
 
 
-    def _make_layer(self, block, input_sz, output_sz, non_linearity, dropout, bias = True):
+    def _make_layer(self, block, input_sz, output_sz, non_linearity, dropout, bias = True, verbose = False):
         '''
             Build a layer consisting of SparseChemBlock(s)
             Currently each layer only contains one block
@@ -218,21 +231,21 @@ class SparseChem_Backbone(torch.nn.Module):
             dropout:     droput rate
             bias 
         '''
-        print_dbg(f"\t _make_layer() using block: {block}", verbose = self.verbose)
+        print_dbg(f"\t _make_layer() using block: {block}", verbose = verbose)
         layers = []
         layers.append(block(input_sz, output_sz, non_linearity, dropout, bias))
 
         return layers
 
-    #@debug_off_m
-    def forward(self, X, policy=None, last_hidden=False, task_id = ''):
+    @debug_off
+    def forward(self, x, policy=None, last_hidden=False, task_id = '', verbose = False):
         if self.verbose:
-            print_heading(f" {timestring()} - SparseChem backbone forward start  for task {task_id} ", verbose = self.verbose)
-            print_dbg(f"\t  Input : X shape: {X.shape}   last_hidden:{last_hidden}", verbose = self.verbose)
-            print_dbg(f"  policy used for forward pass: \n {policy}", verbose = self.verbose)
+            print_heading(f" {timestring()} - SparseChem backbone forward start  for task {task_id} ", verbose = verbose)
+            print_dbg(f"\t  Input : X shape: {x.shape}   last_hidden:{last_hidden}", verbose = verbose)
+            print_dbg(f"  policy used for forward pass: \n {policy}", verbose = verbose)
         
-        out = self.Input_linear(X)
-        print_dbg(f"\t Output of Input Linear: {out.shape}", verbose = self.verbose)
+        x = self.Input_linear(x)
+        print_dbg(f"\t Output of Input Linear Layer: {x.shape}", verbose = verbose)
  
 
         if policy is None:
@@ -240,9 +253,11 @@ class SparseChem_Backbone(torch.nn.Module):
             for segment, num_blocks in enumerate(self.layer_config):
                 for b in range(num_blocks):
                     # apply the residual skip out of _make_layers_
-                    # print(f" {self.blocks[segment][b]}")
-                    out  =  self.blocks[segment][b](out)
-                    print_dbg(f"\t Segment{segment} num_blocks: {num_blocks}   block {b} -  output: {out.shape}", verbose = self.verbose)
+                    residual = x
+                    x = F.relu(residual + self.blocks[segment][b](x))
+                    print_dbg(f"\t Segment{segment} num_blocks: {num_blocks}   block {b} -  output: {x.shape}", verbose = verbose)
+
+                    # x  =  self.blocks[segment][b](x)
 
         # do the block dropping (based on policy)
         else:
@@ -250,7 +265,20 @@ class SparseChem_Backbone(torch.nn.Module):
 
             for segment, num_blocks in enumerate(self.layer_config):
                 for b in range(num_blocks):
-                    out = self.blocks[segment][b](out) * policy[t, 0]
+                    print_dbg(f" segment: {segment}  num_block: {num_blocks}  t: {t}  b: {b} ", verbose = verbose)
+                    print_dbg(f" policy[{t},0]: {policy[t,0]:5f}   policy[{t},1]: {policy[t,1]:5f} ", verbose = verbose)
+                    
+                    # residual = self.ds[segment](x) if b == 0 and self.ds[segment] is not None else x
+                    # fx = F.relu(residual + self.blocks[segment][b](x))                    
+                    residual = x
+                    block_x = self.blocks[segment][b](x)
+                    fx = F.relu(residual + block_x)
+                    
+                    x  = (fx * policy[t, 0] )+ (residual * policy[t, 1])
+                    
+                    print_dbg(f" residual: {residual.shape}  block_out: {block_x.shape}  ", verbose = verbose)
+                    print_dbg(f" fx: {fx.shape}   ", verbose = verbose)
+                    print_dbg(f" new x: {x.shape}   ", verbose = verbose)
 
                     # if policy.ndimension() == 1:
                         # x = fx * policy[t] + residual * (1-policy[t])
@@ -271,8 +299,8 @@ class SparseChem_Backbone(torch.nn.Module):
         # if self.class_output_size is not None:
             ## splitting to class and regression
             # return out[:, :self.class_output_size], out[:, self.class_output_size:]
-        print_heading(f" {timestring()} - SparseChem backbone forward end", verbose = self.verbose)   
-        return out
+        print_heading(f" {timestring()} - SparseChem backbone forward end", verbose = verbose)   
+        return x
 
 
 
@@ -283,95 +311,3 @@ class SparseChem_Backbone(torch.nn.Module):
     @property
     def name(self):
         return 'SparseChem_Backbone'
-
-class SparseChemBlock(nn.Module):
-    expansion = 1
-
-    def __init__(self, input_sz, output_sz, non_linearity, dropout, bias = True):
-        super(SparseChemBlock, self).__init__()
-        self.linear = nn.Linear(input_sz, output_sz, bias=bias )
-        self.non_linear = non_linearity
-        self.dropout = nn.Dropout(dropout) 
-        # self.bn2 = nn.BatchNorm2d(planes, affine = affine_par)
-
-    def forward(self, x):
-        out = self.linear(x)
-        out = self.non_linear(out)
-        # y = self.bn2(out)
-        out = self.dropout(out)
-
-        return out
-
-
-class SparseChem_Classification_Module(nn.Module):
-    def __init__(self, inplanes, num_classes, rate=12):
-        super(SparseChem_Classification_Module, self).__init__()
-        self.linear  = nn.Linear(inplanes, num_classes)
-        # Currently final layer of Sparse Chem doesn't have Relu and dropout. 
-        # We can decide if we want them later
-        # self.relu    = nn.ReLU(inplace=True)
-        # self.dropout = nn.Dropout()
-
-    def forward(self, x):
-        x = self.linear(x)
-        # x = self.relu(x)
-        # x = self.dropout(x)
-        return x
-
-
-
-##----------------------------------------------------
-##  Losses 
-##----------------------------------------------------
-
-def censored_mse_loss(input, target, censor, censored_enabled=True):
-    """
-    Computes for each value the censored MSE loss.
-    Args:
-        input     tensor of predicted values
-        target    tensor of true values
-        censor    tensor of censor masks: -1 lower, 0 no and +1 upper censoring.
-    """
-    y_diff = target - input
-    if censor is not None and censored_enabled:
-        y_diff = torch.where(censor==0, y_diff, torch.relu(censor * y_diff))
-    return y_diff * y_diff
-
-def censored_mae_loss(input, target, censor):
-    """
-    Computes for each value the censored MAE loss.
-    Args:
-        input    tensor of predicted values
-        target   tensor of true values
-        censor   tensor of censor masks: -1 lower, 0 no and +1 upper censoring.
-    """
-    y_diff = target - input
-    if censor is not None:
-        y_diff = torch.where(censor==0, y_diff, torch.relu(censor * y_diff))
-    return torch.abs(y_diff)
-
-def censored_mse_loss_numpy(input, target, censor):
-    """
-    Computes for each value the censored MSE loss in *Numpy*.
-    Args:
-        input     tensor of predicted values
-        target    tensor of true values
-        censor    tensor of censor masks: -1 lower, 0 no and +1 upper censoring.
-    """
-    y_diff = target - input
-    if censor is not None:
-        y_diff = np.where(censor==0, y_diff, np.clip(censor * y_diff, a_min=0, a_max=None))
-    return y_diff * y_diff
-
-def censored_mae_loss_numpy(input, target, censor):
-    """
-    Computes for each value the censored MSE loss in *Numpy*.
-    Args:
-        input     tensor of predicted values
-        target    tensor of true values
-        censor    tensor of censor masks: -1 lower, 0 no and +1 upper censoring.
-    """
-    y_diff = target - input
-    if censor is not None:
-        y_diff = np.where(censor==0, y_diff, np.clip(censor * y_diff, a_min=0, a_max=None))
-    return np.abs(y_diff)
