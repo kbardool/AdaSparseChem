@@ -17,6 +17,7 @@ input_size      : 32000
 hidden_sizes    : [25, 25, 25, 25, 25, 25]
 tail_hidden_size: 25
 
+
 first_non_linearity: "relu"
 
 middle_non_linearity: "relu"
@@ -36,8 +37,11 @@ diff_sparsity_weights:   True
 is_sharing           :   True
 
 skip_layer           :     0
+
 is_curriculum        :   True
-curriculum_speed     :     20
+# curriculum_speed     :     20
+curriculum_speed     :     3
+
 fix_BN               :  False
 retrain_from_pl      :  False
 
@@ -46,10 +50,10 @@ retrain_from_pl      :  False
 ## Data & Folder parameters
 ##------------------------------------------------------
 paths:
-  experiment_dir :     ../experiments/SparseChem
-  log_dir        :     ../experiments/SparseChem
-  result_dir     :     ../experiments/SparseChem
-  checkpoint_dir :     ../experiments/SparseChem
+  experiment_dir :     ../experiments/AdaSparseChem
+  log_dir        :     ../experiments/AdaSparseChem
+  result_dir     :     ../experiments/AdaSparseChem
+  checkpoint_dir :     ../experiments/AdaSparseChem
 
 dataload:
   dataset        : Chembl_23_mini
@@ -78,36 +82,45 @@ train:
   batch_size     :     128
   
   # Learning Rates
-  task_lr        :   0.0001
-  backbone_lr    :   0.0001
+  task_lr        :    0.01
+  backbone_lr    :    0.01
   
   #
-  decay_lr_rate  :     0.1
-  decay_lr_freq  :    8000
+  decay_lr_rate  :     0.5
+  decay_lr_freq  :    2000
   
   #
-  total_iters    :   15000
-  warm_up_iters  :   15000
+  total_iters    :   25000
+  # warm_up_iters  :   25000
+  warm_up_iters  :   200
   
   # Policy LR
-  policy_lr      :  0.0001
+  # policy_lr      :  0.0001
+  policy_lr      :  0.001
   
   # Lambda sparsity (cross entropy) 
-  reg_w          :    0.05
-  Lambda_sparsity:    0.05
+  # reg_w          :    0.05
+  # Lambda_sparsity:    0.05
+  Lambda_sparsity:    0.5
 
   # Lambda sharing (hamming) - original 0.05
   reg_w_hamming  :     0.1
-  Lambda_sharing :     0.1
+  # Lambda_sharing :     0.1
+  # Lambda_sharing :     0.5
+  Lambda_sharing :     0.05
 
   #
   print_freq     :      -1
   val_freq       :     500
 
-  #
+  # Gumbel Softmax Temperature Parameters
+  # decay_temp_freq: number of policy training epochs that have to occur 
+  #                  before the temp is decayed. 
   init_temp      :       5
   decay_temp     :   0.965
-  decay_temp_freq:     100
+  # decay_temp_freq:     2    
+  decay_temp_freq:     10   
+
   #
   resume         :   False
   retrain_resume :   False

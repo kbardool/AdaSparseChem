@@ -415,7 +415,7 @@ columns_loss = [
 
 columns_end = [
     Column(None,             size=1, dec=-1, title="|"),
-    Column("train_time",     size=6, dec= 1, title="tr_time"),
+    Column("train_time",     size=7, dec= 1, title="tr_time"),
     Column(None,             size=1, dec=-1, title="|")
 ]
 

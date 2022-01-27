@@ -133,6 +133,7 @@ class BaseEnv():
                     loss[key][subkey] = v
         return loss
 
+
     def write_run_info(self):
         split_rto = self.opt['dataload']    ['x_split_ratios']
         md = f"""
@@ -173,9 +174,7 @@ class BaseEnv():
         self.writer.add_text('_General Info_', md, 0)
 
  
-
-
-    def print_loss(self, current_iter, start_time, loss=None, title='Iteration', verbose = False):
+    def print_loss_orig(self, current_iter, start_time, loss=None, title='Iteration', verbose = False):
         if loss is None:
             loss = self.get_loss_dict()
 
@@ -198,10 +197,35 @@ class BaseEnv():
                 print_current_errors(os.path.join(self.log_dir, 'loss.txt'), current_iter,key, loss[key], time.time() - start_time)
 
 
+    def print_loss(self, current_iter, start_time, loss=None, title='Iteration', verbose = False):
+        # if loss is None:
+            # loss = self.get_loss_dict()
+
+        if verbose:
+            loss_display = f"{title}  {current_iter} -  Total Loss: {self.losses['total']['total']:.4f}     Task Loss: {self.losses['losses']['total']:.4f}  " 
+            if 'sparsity' in self.losses:
+                loss_display += f"Policy Losses:  Sparsity: {self.losses['sparsity']['total']:.4f}      Sharing: {self.losses['sharing']['total']:.5e} "
+
+            print_dbg(loss_display, verbose = verbose)
+                      
+        # for key in loss.keys():
+        for key in ['parms', 'losses', 'losses_mean', 'total', 'sharing', 'sparsity']:
+            if key not in self.losses:
+                continue
+            # print(key + ':')
+            if isinstance(self.losses[key], dict):
+                for subkey in self.losses[key].keys():
+                    self.writer.add_scalar('trn_%s/%s'%(key, subkey), self.losses[key][subkey], current_iter)
+                    print_current_errors(os.path.join(self.log_dir, 'loss.txt'), current_iter, key, self.losses[key], time.time() - start_time)
+            elif (isinstance(self.losses[key], float)):
+                self.writer.add_scalar('trn_%s'%(key), self.losses[key], current_iter)
+                print_current_errors(os.path.join(self.log_dir, 'loss.txt'), current_iter,key, self.losses[key], time.time() - start_time)
+
+
     def print_metrics(self, current_iter, start_time, metrics=None, title='Iteration', verbose = False):
         """ write metrics to tensorboard and optionally to sysout """
         if metrics is None:
-            metrics = self.get_loss_dict()
+            metrics = self.val_metrics
         
         ## Write validation losses
         # if 'loss' in metrics:
@@ -265,7 +289,7 @@ class BaseEnv():
         save_filename = '%s_model.pth.tar' % str(label)
         save_path = os.path.join(self.checkpoint_dir, save_filename)
         torch.save(current_state, save_path)
-        print_heading(f" Saved checkpoint to {save_path}", verbose = verbose)
+        print_heading(f" Saved checkpoint to {save_path} iteration: {current_iter}", verbose = verbose)
 
 
     def load_snapshot(self, snapshot):

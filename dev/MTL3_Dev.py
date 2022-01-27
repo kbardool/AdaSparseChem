@@ -145,7 +145,8 @@ class MTL3_Dev(nn.Module):
         """
         if hard_sampling == True
                 Task Logits --> Argmax
-        if hard_sampling != True
+
+        if hard_sampling == False
                 Task Logits --> Softmax --> random.choice((1,0), P = softmax)
         """
         if verbose is None:
@@ -153,70 +154,53 @@ class MTL3_Dev(nn.Module):
 
         print_dbg(f" MTL3_Dev test_sample_policy() START -  hard_sampling: {hard_sampling}", verbose = verbose)
         policys = []
-        
-        if hard_sampling:
 
-            cuda_device = self.task1_logits.get_device()
+        for t_id in range(self.num_tasks):
+            task_logits_attribute = f"task{t_id+1}_logits"
+            task_logits  = getattr(self, task_logits_attribute)
+            cuda_device  = task_logits.get_device()
+            logits       = task_logits.detach().cpu().numpy()
 
-            logits1 = self.task1_logits.detach().cpu().numpy()
-            policy1 = np.argmax(logits1, axis=1)
-            policy1 = np.stack((1 - policy1, policy1), dim=1)
-
-            if cuda_device != -1:
-                self.policy1 = torch.from_numpy(np.array(policy1)).to('cuda:%d' % cuda_device)
+            if hard_sampling:
+                task_policy  = np.argmax(logits, axis=-1)
+                task_policy  = np.stack((1 - task_policy, task_policy), axis=-1)
             else:
-                self.policy1 = torch.from_numpy(np.array(policy1))
-
-            cuda_device = self.task2_logits.get_device()
-            logits2 = self.task2_logits.detach().cpu().numpy()
-            policy2 = np.argmax(logits2, axis=1)
-            policy2 = np.stack((1 - policy2, policy2), dim=1)
-
-            if cuda_device != -1:
-                self.policy2 = torch.from_numpy(np.array(policy2)).to('cuda:%d' % cuda_device)
-            else:
-                self.policy2 = torch.from_numpy(np.array(policy2))
-
-        else:
-
-            for t_id in range(self.num_tasks):
-                # task_logits_attribute = "task{:d}_logits".format(t_id+1)
-                task_logits_attribute = f"task{t_id+1}_logits"
-                task_logits  = getattr(self, task_logits_attribute)
-                
-                cuda_device  = task_logits.get_device()
-                logits       = task_logits.detach().cpu().numpy()
-                distribution = softmax(logits, axis=-1)
-                
-                if self.verbose:
-                    print_underline(f" task{t_id+1} logits: ", verbose = True )
-                    print_dbg(f" {task_logits.detach().cpu().numpy()}", verbose =  True )
-                    print_underline(f" softmax distribution :", verbose = True )
-                    print_dbg(f" {distribution}", verbose = True )
-                
-                ## Sample between (1,0) based on the probablites returned by 
-                ## distribution. Initially the lower layers have probability of [1, 0]
-                ## meaning the layer will always be selected. As the policy training 
-                ## progresses, a different trained distribution starts to take shape
-                
+                ## Sample between (1,0) based on the probablites returned by softmax    
+                ## Initially the lower layers have probability of [1, 0] - meaning the
+                ## layer will always be selected. As the policy training progresses
+                ## a different trained distribution starts to take shape
                 task_policy = []
+                distribution = softmax(logits, axis=-1)
                 
                 for tmp_d in distribution:
                     sampled = np.random.choice((1, 0), p=tmp_d)
                     layer_policy = [sampled, 1 - sampled]
                     task_policy.append(layer_policy)
-                    print_dbg(f" sampled policy from  distribution with P:{tmp_d} - sampled: {sampled} --> layer policy: {layer_policy}", verbose = verbose )
+                    # print_dbg(f" sampled policy from  distribution with P:{tmp_d[0]:.4f} {tmp_d[1]:.4f} "
+                    #            "- sampled: {sampled} --> layer policy: {layer_policy}", verbose = verbose )
+            ## endif
 
-                print_dbg(f"task {t_id+1} sampled policy : {task_policy}", verbose = verbose )
-
-                if cuda_device != -1:
-                    task_policy = torch.from_numpy(np.array(task_policy)).to('cuda:%d' % cuda_device)
-                else:
-                    task_policy = torch.from_numpy(np.array(task_policy))
-                
-                # setattr(self, 'policy%d' % t_id, policy)
+            if cuda_device != -1:
+                task_policy = torch.from_numpy(np.array(task_policy)).to('cuda:%d' % cuda_device)
+            else:
+                task_policy = torch.from_numpy(np.array(task_policy))
             
-                policys.append(task_policy)
+            policys.append(task_policy)
+
+            if verbose:
+                print_underline(f"task{t_id+1} logits", verbose = verbose )
+                print_dbg(f" {logits}", verbose =  verbose )
+                if  hard_sampling:
+                    print_underline(f"task{t_id+1} argmax /hard_sampled policy", verbose = verbose )
+                    print_dbg(f" {task_policy}", verbose =  verbose )
+                    print()
+                else:
+                    print_underline(f" task{t_id+1} softmax:", verbose = verbose )
+                    print_dbg(f" {distribution}", verbose = verbose )
+                    print_underline(f"task {t_id+1} sampled policy :", verbose = verbose)
+                    print_dbg(f" {task_policy}", verbose = verbose )
+                    print()         
+            
 
         print_dbg(f" MTL3_Dev test_sample_policy() END -  hard_sampling: {hard_sampling}", verbose= verbose)
         return policys

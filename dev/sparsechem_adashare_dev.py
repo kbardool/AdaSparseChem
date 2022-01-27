@@ -268,18 +268,22 @@ class SparseChem_Backbone(torch.nn.Module):
                     print_dbg(f" segment: {segment}  num_block: {num_blocks}  t: {t}  b: {b} ", verbose = verbose)
                     print_dbg(f" policy[{t},0]: {policy[t,0]:5f}   policy[{t},1]: {policy[t,1]:5f} ", verbose = verbose)
                     
-                    # residual = self.ds[segment](x) if b == 0 and self.ds[segment] is not None else x
-                    # fx = F.relu(residual + self.blocks[segment][b](x))                    
                     residual = x
                     block_x = self.blocks[segment][b](x)
                     fx = F.relu(residual + block_x)
                     
+                    # Policy[t,0] : layer IS selected  
+                    # Policy[t,1] : layer IS NOT selected.
+        
                     x  = (fx * policy[t, 0] )+ (residual * policy[t, 1])
                     
                     print_dbg(f" residual: {residual.shape}  block_out: {block_x.shape}  ", verbose = verbose)
                     print_dbg(f" fx: {fx.shape}   ", verbose = verbose)
                     print_dbg(f" new x: {x.shape}   ", verbose = verbose)
 
+                    # residual = self.ds[segment](x) if b == 0 and self.ds[segment] is not None else x
+                    # fx = F.relu(residual + self.blocks[segment][b](x))                    
+                    #
                     # if policy.ndimension() == 1:
                         # x = fx * policy[t] + residual * (1-policy[t])
                     # elif policy.ndimension() == 2:
