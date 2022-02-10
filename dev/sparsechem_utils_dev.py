@@ -386,70 +386,93 @@ def print_table(formats, data):
     for key, fmt in formats.items():
         print(fmt.format(data[key]), end="")
 
-Column = namedtuple("Column", "key size dec title")
+Column = namedtuple("Column", "key  size dec fmt title")
 columns_start = [
-    Column("epoch",         size=6, dec= 0, title="Epoch"),
-    Column(None,            size=1, dec=-1, title="|"),
+    Column("epoch",          size=6, dec= 0,  fmt = 'f', title="Epoch"),
+    Column(None,             size=1, dec=-1,  fmt = 's', title="|"),
 ]
 
-columns_task = [
-    Column("logloss",       size=8, dec= 5, title="logloss"),
-    Column("bceloss",       size=8, dec= 5, title="bceloss"),
-    Column("roc_auc_score", size=8, dec= 5, title="aucroc"),
-    Column("auc_pr",        size=8, dec= 5, title="aucpr"),
+columns_training_loss = [
+    Column("losses",         size=10, dec= 4,  fmt = 'f', title="trn loss"),
+    Column("sparsity",       size=13, dec= 4,  fmt = 'e', title="trn spar"),
+    Column("sharing",        size=13, dec= 4,  fmt = 'e', title="trn shar"),
+    Column("total",          size=13, dec= 4,  fmt = 'f', title="trn total"),
+    Column(None,              size=1, dec=-1,  fmt = 's', title=" |"),
+]
+
+columns_agg_metrics = [
+    Column("logloss",       size=10, dec= 5,  fmt = 'f', title="logloss"),
+    Column("bceloss",       size=10, dec= 5,  fmt = 'f', title="bceloss"),
+    Column("roc_auc_score", size=10, dec= 5,  fmt = 'f', title="aucroc"),
+    Column("auc_pr",        size=10, dec= 5,  fmt = 'f', title="aucpr"),
+    Column(None,             size=1, dec=-1,  fmt = 's', title=" |"),
+    # Column("f1_max",        size=10, dec= 5, title="f1_max"),
     # Column("auc_pr_cal",  size=9, dec= 5, title="aucpr_cal"),
-    Column("f1_max",        size=8, dec= 5, title="f1_max"),
     # Column(None,            size=1, dec=-1, title="|"),
     # Column("rmse",          size=9, dec= 5, title="rmse"),
     # Column("rsquared",      size=9, dec= 5, title="rsquared"),
     # Column("corrcoef",      size=9, dec= 5, title="corrcoef"),
-    Column(None,            size=1, dec=-1, title="|"),
 ]
 
-columns_loss = [
-    Column("task1",          size=8, dec= 4, title="t1 loss"),
-    Column("task2",          size=8, dec= 4, title="t2 loss"),
-    Column("task3",          size=8, dec= 4, title="t3 loss"),
-    Column("total",          size=8, dec= 4, title="ttl loss"),
+columns_validation_loss = [
+    # Column("task1",          size=8, dec= 4, title="t1 loss"),
+    # Column("task2",          size=8, dec= 4, title="t2 loss"),
+    # Column("task3",          size=8, dec= 4, title="t3 loss"),
+    Column("loss",           size=10, dec= 4, fmt = 'f', title="val loss"),
+    Column("sparsity",       size=13, dec= 4, fmt = 'e', title="val spar"),
+    Column("sharing",        size=13, dec= 4, fmt = 'e', title="val shar"),
+    Column("total",          size=13, dec= 4, fmt = 'f', title="val total"),
+    Column(None,              size=1, dec=-1, fmt = 's', title=" |"),
 ]
+
 
 columns_end = [
-    Column(None,             size=1, dec=-1, title="|"),
-    Column("train_time",     size=7, dec= 1, title="tr_time"),
-    Column(None,             size=1, dec=-1, title="|")
+    Column("train_time",     size=7, dec= 1, fmt = 'f', title="tr_time"),
+    Column(None,             size=1, dec=-1, fmt = 's', title=" |")
 ]
 
-def print_cell(value, size, dec, left, end=""):
+
+def print_cell(value, size, dec, left, fmt = 's', end=""):
     align = "<" if left else ">"
     if type(value) == str:
-        print(("{:" + align + str(size) + "}").format(value), end=end)
+        print(("{:" + align + str(size) +  "}").format(value), end=end)
     else:
-        print(("{:" + align + str(size) + "." + str(dec) + "f}").format(value), end=end)
+        print(("{:" + align + str(size) + "." + str(dec) + fmt+"}").format(value), end=end)
 
-def print_metrics_cr(epoch, train_time, results_tr, results_va, printed_lines, new_header = 20):
-    # data = pd.concat([results_va["classification_agg"], results_va["regression_agg"]])
+def print_metrics_cr(epoch, train_time, results_tr, results_va, printed_lines, new_header = 25):
     header = (printed_lines % new_header) == 0
-    data = results_va 
-    data["train_time"] = train_time
-    data["epoch"] = epoch
-
+    results_va["train_time"] = train_time
+    results_va["epoch"] = epoch
+ 
+    column_headers = columns_start + columns_training_loss + columns_agg_metrics +  \
+                     columns_validation_loss  + columns_end
     if header:
-        for i, col in enumerate(columns_start+columns_task+columns_loss+columns_end):
-            print_cell(col.title, col.size, dec=0, left=(i==0))
+        for i, col in enumerate(column_headers):
+            print_cell(col.title, max(col.size, len(col.title)), dec=0, fmt = col.fmt, left=(i==0))
         print()
     
     ## printing row with values
     for i, col in enumerate(columns_start):
-        print_cell(data.get(col.key, col.title), col.size, dec=col.dec, left=(i==0))
+        print_cell(results_va.get(col.key, col.title),  max(col.size, len(col.title)), dec=col.dec,  fmt = col.fmt, left=(i==0))
     
-    for i, col in enumerate(columns_task):
-        print_cell(data["aggregated"].get(col.key, col.title), col.size, dec=col.dec, left=False)
+    for i, col in enumerate(columns_training_loss):
+        if col.key in results_tr:
+            print_cell(results_tr[col.key].get('total', col.title),  max(col.size, len(col.title)), dec=col.dec,  fmt = col.fmt, left=False)
+        else:
+            print_cell(results_tr.get(col.key, col.title),  max(col.size, len(col.title)), dec=col.dec,  fmt = col.fmt, left=False)
 
-    for i, col in enumerate(columns_loss):
-        print_cell(data["loss"].get(col.key, col.title), col.size, dec=col.dec, left=False)
+
+    for i, col in enumerate(columns_agg_metrics):
+        print_cell(results_va["aggregated"].get(col.key, col.title),  max(col.size, len(col.title)), dec=col.dec,  fmt = col.fmt, left=False)
+
+    for i, col in enumerate(columns_validation_loss):
+        if col.key in results_va:
+            print_cell(results_va[col.key].get('total', col.title),  max(col.size, len(col.title)), dec=col.dec,  fmt = col.fmt, left=False)
+        else:
+            print_cell(results_va.get(col.key, col.title),  max(col.size, len(col.title)), dec=col.dec,  fmt = col.fmt, left=False)
     
     for i, col in enumerate(columns_end):
-        print_cell(data.get(col.key, col.title), col.size, dec=col.dec, left=(i==0))
+        print_cell(results_va.get(col.key, col.title),  max(col.size, len(col.title)), dec=col.dec,  fmt = col.fmt, left=False)
     
     # print()
 

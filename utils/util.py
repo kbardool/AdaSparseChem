@@ -340,10 +340,7 @@ def read_yaml():
         opt = yaml.load(f)
     opt['exp_instance'] = args.exp_instance
     opt['cpu'] = args.cpu
-    opt['paths']['exp_folder'] = f"{opt['exp_instance']}_bs{opt['train']['batch_size']:03d}" \
-                                  f"_lr{opt['train']['backbone_lr']}"   \
-                                  f"_dr{opt['train']['decay_lr_rate']:3.2f}" \
-                                  f"_df{opt['train']['decay_lr_freq']:04d}"      
+    opt['paths']['exp_folder'] = build_exp_folder_name(opt)
     return opt, args.gpus, args.exp_ids
 
 
@@ -362,13 +359,22 @@ def read_yaml_from_input(args = None, exp_instance = None):
     elif args.exp_instance is not None:
         opt['exp_instance'] = args.exp_instance
 
-    opt['paths']['exp_folder'] = f"{opt['exp_instance']}_bs{opt['train']['batch_size']:03d}" \
-                                  f"_lr{opt['train']['backbone_lr']}"   \
-                                  f"_dr{opt['train']['decay_lr_rate']:3.2f}" \
-                                  f"_df{opt['train']['decay_lr_freq']:04d}"      
+    opt['paths']['exp_folder'] = build_exp_folder_name(opt)
     return opt, args.gpus, args.exp_ids
 
-    
+def build_exp_folder_name(opt):
+    folder_name = f"{opt['hidden_sizes'][0]}x{len(opt['hidden_sizes'])}" \
+                  f"_{opt['exp_instance']}"\
+                  f"_plr{opt['train']['policy_lr']}" \
+                  f"_sp{opt['train']['lambda_sparsity']}" \
+                  f"_sh{opt['train']['lambda_sharing']}"   
+    #   f"_bs{opt['train']['batch_size']:03d}" \
+    #   f"_lr{opt['train']['backbone_lr']}"   \
+    #   f"_dr{opt['train']['decay_lr_rate']:3.2f}" \
+    #   f"_df{opt['train']['decay_lr_freq']:04d}"      
+    return folder_name 
+
+
 def should(current_freq, freq):
     return current_freq % freq == 0
 

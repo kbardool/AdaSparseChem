@@ -3,6 +3,7 @@ checkpoints/*
 nyu_v2_samples/**
 original_sparsechem_code/
 tboardx/
+Miscellaneous/
 .ipynb_checkpoints
 .DS_Store
 *.pyc

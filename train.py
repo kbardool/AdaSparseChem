@@ -224,7 +224,7 @@ def train():
                            opt['paths']['checkpoint_dir'], 
                            opt['exp_name'],
                            opt['tasks_num_class'], 
-                           opt['init_neg_logits'], 
+                           opt['train']['init_neg_logits'], 
                            gpu_ids[0],
                            opt['train']['init_temp'], 
                            opt['train']['decay_temp'], 

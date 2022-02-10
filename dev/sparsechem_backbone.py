@@ -272,7 +272,7 @@ class SparseChem_Backbone(torch.nn.Module):
                     block_x = self.blocks[segment][b](x)
                     fx = F.relu(residual + block_x)
                     
-                    # Policy[t,0] : layer IS selected  
+                    # Policy[t,0] : layer selected  
                     # Policy[t,1] : layer IS NOT selected.
         
                     x  = (fx * policy[t, 0] )+ (residual * policy[t, 1])

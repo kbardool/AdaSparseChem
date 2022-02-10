@@ -73,32 +73,6 @@ class BaseEnv():
 
         return
 
-    def print_configuration(self, verbose = False):
-        config = f" \n " \
-                 f"---------------------------------------- \n" \
-                 f" {self.name} - Network Configuration       \n" \
-                 f"---------------------------------------- \n" \
-                 f"\n"                     \
-                 f"----------------\n"     \
-                 f"networks       :\n"     \
-                 f"----------------\n"     \
-                 f" {self.networks}\n\n"   \
-                 f"----------------\n"     \
-                 f"optimizers     :\n"     \
-                 f"----------------\n"     \
-                 f" {self.optimizers}\n\n" \
-                 f"----------------\n"     \
-                 f"schedulers     :\n"     \
-                 f"----------------\n"     \
-                 f" {self.schedulers}\n\n"
-        for name, sch in self.schedulers.items():
-            for key,val in sch.__dict__.items(): 
-                config +=f"{key:30s}: {val} \n"
-                #  f"----------------\n"     \
-                #  f"losses         :\n"     \
-                #  f"----------------\n"     \
-                #  f" {self.losses}  \n\n"   \
-        return config
 
     # ##################### define networks / optimizers / losses ####################################
 
@@ -119,6 +93,59 @@ class BaseEnv():
 
     def extract_features(self):
         pass
+
+    def display_parameters(self):
+
+        task_specific_params = self.get_task_specific_parameters()
+        arch_parameters      = self.get_arch_parameters()
+        backbone_parameters  = self.get_backbone_parameters()
+        
+        print('-----------------------')
+        print(' task specific parms  :')
+        print('-----------------------')
+        for i,j  in enumerate(task_specific_params):
+            print(i, type(j), j.shape)
+        print('\n')
+        print('-----------------------')
+        print('\n arch_parameters    :')
+        print('-----------------------')
+        for i,j in enumerate(arch_parameters):
+            print(i, type(j), j.shape)
+        print('\n')
+        print('-----------------------')
+        print('\n backbone parameters:')
+        print('-----------------------')
+        for i,j in enumerate(backbone_parameters):
+            print(i, type(j), j.shape)
+        
+        return
+
+    def print_configuration(self, verbose = False):
+        config = f" \n " \
+                 f"---------------------------------------- \n" \
+                 f" {self.name} - Network Configuration       \n" \
+                 f"---------------------------------------- \n" \
+                 f"\n"                     \
+                 f"----------------\n"     \
+                 f"networks       :\n"     \
+                 f"----------------\n"     \
+                 f" {self.networks}\n\n"   \
+                 f"----------------\n"     \
+                 f"optimizers     :\n"     \
+                 f"----------------\n"     \
+                 f" {self.optimizers}\n\n" \
+                 f"----------------\n"     \
+                 f"schedulers     :\n"     \
+                 f"----------------\n"    
+
+        for name, sch in self.schedulers.items():
+            for key,val in sch.__dict__.items(): 
+                config +=f"{key:30s}: {val} \n"
+                #  f"----------------\n"     \
+                #  f"losses         :\n"     \
+                #  f"----------------\n"     \
+                #  f" {self.losses}  \n\n"   \
+        return config
 
     def get_loss_dict(self, verbose = False):
         print_dbg(f"get loss dict from self.losses", verbose)
@@ -204,7 +231,7 @@ class BaseEnv():
         if verbose:
             loss_display = f"{title}  {current_iter} -  Total Loss: {self.losses['total']['total']:.4f}     Task Loss: {self.losses['losses']['total']:.4f}  " 
             if 'sparsity' in self.losses:
-                loss_display += f"Policy Losses:  Sparsity: {self.losses['sparsity']['total']:.4f}      Sharing: {self.losses['sharing']['total']:.5e} "
+                loss_display += f"Policy Losses:  Sparsity: {self.losses['sparsity']['total']:.5e}      Sharing: {self.losses['sharing']['total']:.5e} "
 
             print_dbg(loss_display, verbose = verbose)
                       
@@ -237,7 +264,9 @@ class BaseEnv():
         #         self.writer.add_scalar(f"val_losses/{key}_loss_mean", item, current_iter)
 
         # for key in loss.keys():
-        for key in ['loss', 'loss_mean']:
+        for key in ['loss', 'loss_mean', 'sharing', 'sparsity']:
+            # if key not in metrics:
+                # continue
             # print(key + ':')
             if isinstance(metrics[key], dict):
                 for subkey, metric_value in metrics[key].items():
@@ -387,6 +416,9 @@ class BaseEnv():
 
 
     def cuda(self, gpu_ids):
+        """
+        Move network items to assigned GPU device (self.device)
+        """
         if len(gpu_ids) == 1:
             for k, v in self.networks.items():
                 v.to(self.device)
@@ -396,6 +428,9 @@ class BaseEnv():
                 self.networks[k].to(self.device)
 
     def cpu(self):
+        """
+        Move network items to  CPU device
+        """
         print(f'base_env.cpu()')
         for k, v in self.networks.items():
             print(f' Network item {k} moved to cpu')
