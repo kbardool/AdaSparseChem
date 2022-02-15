@@ -1,11 +1,9 @@
+_archive
+.ipynb_checkpoints
+.DS_Store
 data/*
 checkpoints/*
 nyu_v2_samples/**
-original_sparsechem_code/
-tboardx/
-Miscellaneous/
-.ipynb_checkpoints
-.DS_Store
 *.pyc
 *.xml
 *.iml
@@ -16,5 +14,4 @@ Miscellaneous/
 *.pkl
 *.pickle
 *.code-workspace
-exp*.sh
 nb_ScratchPad.ipynb

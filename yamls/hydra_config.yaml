@@ -1,0 +1,3 @@
+# @package _global_
+defaults: 
+  - chembl_2task
