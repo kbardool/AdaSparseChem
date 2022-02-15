@@ -1,0 +1,1 @@
+python src/dev/train_dev.py --config yamls/adashare/chembl_2task.yaml --cpu --batch_size 09999
