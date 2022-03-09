@@ -1,0 +1,101 @@
+project_name         : AdaSparseChem
+## Leave empty to have date_time used 
+exp_id               :
+exp_name             : 
+# exp_instance         : 
+exp_description      : brief description
+
+random_seed          : 
+seed_list            : [88, 45, 50, 100, 44, 48, 2048, 2222, 9999]
+
+backbone             : SparseChem
+tasks                : ["class", "class", "class"]
+tasks_num_class      : [5, 5, 5]
+lambdas              : [1, 1, 1]
+policy_model         : task-specific
+
+input_size_freq      : 
+input_size           : 32000
+hidden_sizes         : [50, 50, 50, 50, 50, 50]
+tail_hidden_size     : 50
+
+first_non_linearity  : "relu"
+middle_non_linearity : "relu"
+last_non_linearity   : "relu"
+
+ 
+middle_dropout       : 0.3
+last_dropout         : 0.3  
+
+# class_output_size    : 
+# regr_output_size     :
+
+policy               : True
+
+is_sparse            :   True
+is_sharing           :   True
+diff_sparsity_weights:   False
+
+skip_layer           : 0
+
+
+is_curriculum        : True
+curriculum_speed     : 3
+fix_BN               : False
+init_neg_logits      :
+
+
+
+retrain_from_pl      : False
+
+
+
+paths:
+  log_dir        :     ../experiments/AdaSparseChem
+  result_dir     :     ../experiments/AdaSparseChem
+  checkpoint_dir :     ../experiments/AdaSparseChem
+
+dataload:
+  dataset        : Chembl_23_mini
+  dataroot       : "/home/kbardool/kusanagi/MLDatasets/chembl_23mini_synthetic"
+  x              : "chembl_23mini_x.npy"
+
+  ## Data split ratios: [Warmup, Weight Trn, Policy Trn, Validation]
+  # x_split_ratios : [0.2, 0.35, 0.35, 0.1]
+  # x_split_ratios : [0.75, 0.001, 0.001, 0.248]
+  # x_split_ratios : [0.3, 0.3, 0.3, 0.05, 0.05]
+  x_split_ratios : [0.725, 0.225, 0.05]
+
+
+  folding        : "chembl_23mini_folds.npy"  
+  fold_inputs    : 32000
+  input_transform: 
+  y_tasks        : ["chembl_23mini_adashare_y1_bin_sparse.npy", "chembl_23mini_adashare_y2_bin_sparse.npy", "chembl_23mini_adashare_y3_bin_sparse.npy"]
+  y_censor       :
+  weights_class  :  
+  
+  crop_h         : 321
+  crop_w         : 321
+  
+  min_samples_class : 5
+  fold_va        : 0
+  fold_te        :   
+
+
+train:
+  policy_iter: best
+  # which_iter: warmup
+  init_method: equal
+  # hard_sampling: False
+
+##------------------------------------------------------
+## sparsechem related parameters
+##------------------------------------------------------
+SC:
+  # batch_ratio: 0.02
+  # internal_batch_max: 200
+  normalize_loss:
+
+
+test:
+  which_iter: best

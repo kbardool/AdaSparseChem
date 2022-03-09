@@ -1,10 +1,12 @@
 import os 
 import sys
+import json
 import numpy as np
 import torch
 import types
 import pandas as pd
 from numpy.core.numeric import full
+import tqdm
 import scipy.sparse
 import scipy.io
 import scipy.special
@@ -387,22 +389,32 @@ def print_table(formats, data):
         print(fmt.format(data[key]), end="")
 
 Column = namedtuple("Column", "key  size dec fmt title")
+
 columns_start = [
-    Column("epoch",          size=6, dec= 0,  fmt = 'f', title="Epoch"),
-    Column(None,             size=1, dec=-1,  fmt = 's', title="|"),
+    Column("epoch",          size=4, dec= 0,  fmt = 'f', title="Epoch"),
+    Column(None,             size=1, dec=-1,  fmt = 's', title=" |"),
+]
+
+columns_parms = [
+    Column("lr_0",           size=11, dec= 2,  fmt = 'e', title="BckBone LR"),
+    Column("lr_1",           size=11, dec= 2,  fmt = 'e', title="Heads LR"),
+    Column("policy_lr",      size=11, dec= 2,  fmt = 'e', title="Policy LR"),
+    Column("gumbel_temp",    size=11, dec= 3,  fmt = 'e', title="Gumbl Temp"),
+    Column(None,             size=1, dec=-1,  fmt = 's', title=" |"),
 ]
 
 columns_training_loss = [
     Column("losses",         size=10, dec= 4,  fmt = 'f', title="trn loss"),
     Column("sparsity",       size=13, dec= 4,  fmt = 'e', title="trn spar"),
     Column("sharing",        size=13, dec= 4,  fmt = 'e', title="trn shar"),
-    Column("total",          size=11, dec= 4,  fmt = 'f', title="trn total"),
+    Column("total",          size=10, dec= 4,  fmt = 'f', title="trn ttl"),
     Column(None,              size=1, dec=-1,  fmt = 's', title=" |"),
 ]
 
 columns_agg_metrics = [
-    Column("logloss",       size=10, dec= 5,  fmt = 'f', title="logloss"),
+    # Column("logloss",       size=10, dec= 5,  fmt = 'f', title="logloss"),
     Column("bceloss",       size=10, dec= 5,  fmt = 'f', title="bceloss"),
+    Column("avg_prec_score",       size=10, dec= 5,  fmt = 'f', title="avg prec"),
     Column("roc_auc_score", size=10, dec= 5,  fmt = 'f', title="aucroc"),
     Column("auc_pr",        size=10, dec= 5,  fmt = 'f', title="aucpr"),
     Column(None,             size=1, dec=-1,  fmt = 's', title=" |"),
@@ -415,13 +427,10 @@ columns_agg_metrics = [
 ]
 
 columns_validation_loss = [
-    # Column("task1",          size=8, dec= 4, title="t1 loss"),
-    # Column("task2",          size=8, dec= 4, title="t2 loss"),
-    # Column("task3",          size=8, dec= 4, title="t3 loss"),
-    Column("loss",           size=10, dec= 4, fmt = 'f', title="val loss"),
+    Column("losses",           size=10, dec= 4, fmt = 'f', title="val loss"),
     Column("sparsity",       size=13, dec= 4, fmt = 'e', title="val spar"),
     Column("sharing",        size=13, dec= 4, fmt = 'e', title="val shar"),
-    Column("total",          size=11, dec= 4, fmt = 'f', title="val total"),
+    Column("total",          size=11, dec= 4, fmt = 'f', title="val ttl"),
     Column(None,              size=1, dec=-1, fmt = 's', title=" |"),
 ]
 
@@ -447,16 +456,17 @@ def print_cell(value, size, dec, left, fmt = 's', end=""):
         out = ("{:" + align + str(size) + "." + str(dec) + fmt+"}").format(value)
     return out 
 
-def print_metrics_cr(epoch, train_time, results_tr, results_va, printed_lines, new_header = 25, out = None):
+def print_metrics_cr(epoch, train_time, results_tr, results_va, printed_lines, new_header = 25, out = None, to_tqdm = False):
     if not isinstance(out, list):
         out = [out]
 
     header = (printed_lines % new_header) == 0
+    parms = results_tr['parms']
     results_va["train_time"] = train_time
     results_va["epoch"] = epoch
  
-    column_headers = columns_start + columns_training_loss + columns_agg_metrics +  \
-                     columns_validation_loss  + columns_end
+    column_headers = columns_start + columns_parms + columns_training_loss + \
+                     columns_agg_metrics + columns_validation_loss  + columns_end
     if header:
         ln = ""
         for i, col in enumerate(column_headers):
@@ -468,29 +478,44 @@ def print_metrics_cr(epoch, train_time, results_tr, results_va, printed_lines, n
 
     ## printing row with values
     for i, col in enumerate(columns_start):
-        ln += print_cell(results_va.get(col.key, col.title),  max(col.size, len(col.title)), dec=col.dec,  fmt = col.fmt, left=(i==0))
+        ln += print_cell(results_va.get(col.key, col.title),  max(col.size, len(col.title)), dec=col.dec,  fmt = col.fmt, left=(i==1))
     
+    for i, col in enumerate(columns_parms):
+        if col.key in results_tr['parms']:
+            ln += print_cell(results_tr['parms'].get(col.key, col.title),  max(col.size, len(col.title)), dec=col.dec,  fmt = col.fmt, left=False)
+        else:
+            ln += print_cell(results_tr['parms'].get(col.key, col.title),  max(col.size, len(col.title)), dec=col.dec,  fmt = col.fmt, left=False)
+
+    ## Training Losses
     for i, col in enumerate(columns_training_loss):
         if col.key in results_tr:
             ln += print_cell(results_tr[col.key].get('total', col.title),  max(col.size, len(col.title)), dec=col.dec,  fmt = col.fmt, left=False)
         else:
             ln += print_cell(results_tr.get(col.key, col.title),  max(col.size, len(col.title)), dec=col.dec,  fmt = col.fmt, left=False)
 
-
+    ## Validation Aggregated Metrics
     for i, col in enumerate(columns_agg_metrics):
         ln += print_cell(results_va["aggregated"].get(col.key, col.title),  max(col.size, len(col.title)), dec=col.dec,  fmt = col.fmt, left=False)
 
+    ## Validation Losses
     for i, col in enumerate(columns_validation_loss):
         if col.key in results_va:
             ln += print_cell(results_va[col.key].get('total', col.title),  max(col.size, len(col.title)), dec=col.dec,  fmt = col.fmt, left=False)
         else:
             ln += print_cell(results_va.get(col.key, col.title),  max(col.size, len(col.title)), dec=col.dec,  fmt = col.fmt, left=False)
     
+    ## Ending Columns 
     for i, col in enumerate(columns_end):
         ln += print_cell(results_va.get(col.key, col.title),  max(col.size, len(col.title)), dec=col.dec,  fmt = col.fmt, left=False)
     
     for  file in out:
-         print(ln, file=file)
+        print(ln, file=file)
+    
+    # for  file in out:
+    #     if to_tqdm and file == sys.stdout:
+    #         tqdm.tqdm.write(ln)
+    #     else:
+    #         print(ln, file=file)
 
     
     
@@ -545,3 +570,68 @@ def censored_mae_loss_numpy(input, target, censor):
     if censor is not None:
         y_diff = np.where(censor==0, y_diff, np.clip(censor * y_diff, a_min=0, a_max=None))
     return np.abs(y_diff)
+
+
+def save_results(filename, conf, validation, training, stats=None):
+    """Saves conf and results into json file. Validation and training can be None."""
+    out = {}
+    # out["conf"] = conf.__dict__
+    out["conf"] = conf
+    if stats is not None:
+        out["stats"] = {}
+        for key in ["mean", "var"]:
+            #import ipdb; ipdb.set_trace()
+            out["stats"][key] = stats[key].tolist()
+            
+    if validation is not None:
+        out["validation"] = {}
+        for key in ["classification", "classification_agg"]:
+            out["validation"][key] = validation[key].to_json()
+
+    if training is not None:
+        out["training"] = {}
+        for key in ["classification", "classification_agg"]:
+            out["training"][key] = training[key].to_json()
+    with open(filename, "w") as f:
+        json.dump(out, f)
+
+
+def load_results(filename, two_heads=False):
+    """Loads conf and results from a file
+    Args:
+        filename    name of the json/npy file
+        two_heads   set up class_output_size if missing
+    """
+    if filename.endswith(".npy"):
+        return np.load(filename, allow_pickle=True).item()
+
+    with open(filename, "r") as f:
+        data = json.load(f)
+
+    for key in ["model_type"]:
+        if key not in data["conf"]:
+            data["conf"][key] = None
+    if two_heads and ("class_output_size" not in data["conf"]):
+        data["conf"]["class_output_size"] = data["conf"]["output_size"]
+        data["conf"]["regr_output_size"]  = 0
+
+    data["conf"] = types.SimpleNamespace(**data["conf"])
+
+
+    if "results" in data:
+        for key in data["results"]:
+            data["results"][key] = pd.read_json(data["results"][key])
+
+    if "results_agg" in data:
+        for key in data["results_agg"]:
+            data["results_agg"][key] = pd.read_json(data["results_agg"][key], typ="series")
+
+    for key in ["training", "validation"]:
+        if key not in data:
+            continue
+        for dfkey in ["classification", "regression"]:
+            data[key][dfkey] = pd.read_json(data[key][dfkey])
+        for skey in ["classification_agg", "regression_agg"]:
+            data[key][skey]  = pd.read_json(data[key][skey], typ="series")
+
+    return data

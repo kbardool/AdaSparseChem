@@ -7,24 +7,18 @@ import numpy as np
 from utils.sparsechem_utils import load_sparse, load_task_weights, class_fold_counts, fold_and_transform_inputs
 from utils.util import print_heading, timestring, print_dbg, print_underline, debug_off, debug_on
 
+def to_idx_tensor(idx_list):
+    """Turns list of lists into a  [2, num_lists] tensor of coordinates"""
+    ## idx_lists contains batch_size sub lists, each corresponding to one row.
+    ## following line takes [0,1,...,15] and repeats each element n times, where 
+    ## is the number of elements  in the corresponding idx_list member.  
+    xrow = np.repeat(np.arange(len(idx_list)), [len(i) for i in idx_list])
+    xcol = np.concatenate(idx_list)
 
-class InfiniteDataLoader(DataLoader):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Initialize an iterator over the dataset.
-        self.dataset_iterator = super().__iter__()
+    ## added np.array() to convert list of arrays to numpy array before converting to Tensor.
+    # print(f" to_idx_tensor: {type(idx_list)}   xrow: {type(xrow)}    xcol: {type(xcol)}")
 
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        try:
-            batch = next(self.dataset_iterator)
-        except StopIteration:
-            # Dataset exhausted, use a new fresh iterator.
-            self.dataset_iterator = super().__iter__()
-            batch = next(self.dataset_iterator)
-        return batch
+    return torch.LongTensor(np.array([xrow, xcol]))
 
 def sparse_collate(batch):
     x_ind  = [b["x_ind"]  for b in batch]
@@ -49,14 +43,11 @@ def sparse_collate(batch):
         "batch_size": len(batch),
     }
 
-
 def get_row(csr, row):
     """returns row from csr matrix: indices and values."""
     start = csr.indptr[row]
     end   = csr.indptr[row + 1]
     return csr.indices[start:end], csr.data[start:end]
-
-
 
 def patterns_match(x, y):
     if y.shape != x.shape:             return False
@@ -65,6 +56,24 @@ def patterns_match(x, y):
     if (y.indptr != x.indptr).any():   return False
     return True
 
+
+class InfiniteDataLoader(DataLoader):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Initialize an iterator over the dataset.
+        self.dataset_iterator = super().__iter__()
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        try:
+            batch = next(self.dataset_iterator)
+        except StopIteration:
+            # Dataset exhausted, use a new fresh iterator.
+            self.dataset_iterator = super().__iter__()
+            batch = next(self.dataset_iterator)
+        return batch
 
 
 class SparseDataset(torch.utils.data.Dataset):
@@ -120,8 +129,6 @@ class SparseDataset(torch.utils.data.Dataset):
                 batch["x_ind"].to(dev),
                 batch["x_data"].to(dev),
                 size=[batch["batch_size"], self.x.shape[1]])
-
-
 
 
 class ClassRegrSparseDataset(Dataset):
@@ -248,7 +255,6 @@ class ClassRegrSparseDataset(Dataset):
         return out
 
 
-
 class ClassRegrSparseDataset_v3(Dataset):
  
     def __init__(self, opt, x = None, y_files = None, folding =  None, y_censor=None, 
@@ -283,12 +289,12 @@ class ClassRegrSparseDataset_v3(Dataset):
             ranges        = (np.cumsum([0]+split_ratios)* total_input).astype(np.int32)
             index = np.arange(ranges[ratio_index], ranges[ratio_index+1])
             size = len(index)
-            print_dbg(f" totalInput     : {total_input} ", verbose = verbose)
-            print_dbg(f" ranges         : {ranges}      ", verbose = verbose) 
-            print_dbg(f" ratio_index    : {ratio_index}", verbose = verbose)
-            print_dbg(f" select rows    : {ranges[ratio_index]:6d} to {ranges[ratio_index+1]:6d}", verbose = verbose)
-            print_dbg(f" rows in dataset: {size} ", verbose = verbose)
-            print_dbg(f" indexes used   : {index}", verbose = verbose)
+            # print_dbg(f" totalInput     : {total_input} ", verbose = verbose)
+            # print_dbg(f" ranges         : {ranges}      ", verbose = verbose) 
+            # print_dbg(f" ratio_index    : {ratio_index}", verbose = verbose)
+            # print_dbg(f" select rows    : {ranges[ratio_index]:6d} to {ranges[ratio_index+1]:6d}", verbose = verbose)
+            # print_dbg(f" rows in dataset: {size} ", verbose = verbose)
+            # print_dbg(f" indexes used   : {index}", verbose = verbose)
  
 
         self.class_tasks = 0 
@@ -297,11 +303,11 @@ class ClassRegrSparseDataset_v3(Dataset):
         self.tasks_weights_list = []
         self.batch_id = 0 
         
-        if verbose:
-            print_dbg(f" Input          : {opt['dataload']['x']:32s} - type : {type(self.ecfp)} shape : {self.ecfp.shape}", verbose = verbose)
-            print_dbg(f" Folding        : {opt['dataload']['folding']:32s} - type : {type(self.folding)} shape : {self.folding.shape}", verbose = verbose)
-            print_dbg(f" Index len      : {'-':32s} {len(index) :6d}  - {(index)} ", verbose = verbose)
-            print_dbg(f" yc_weights     : {yc_weights}", verbose = verbose)
+        # if verbose:
+        #     print_dbg(f" Input          : {opt['dataload']['x']:32s} - type : {type(self.ecfp)} shape : {self.ecfp.shape}", verbose = verbose)
+        #     print_dbg(f" Folding        : {opt['dataload']['folding']:32s} - type : {type(self.folding)} shape : {self.folding.shape}", verbose = verbose)
+        #     print_dbg(f" Index len      : {'-':32s} {len(index) :6d}  - {(index)} ", verbose = verbose)
+        #     print_dbg(f" yc_weights     : {yc_weights}", verbose = verbose)
         
         ## Load label files for each task
         self.ecfp = fold_and_transform_inputs(self.ecfp, folding_size=opt['dataload']['fold_inputs'], 
@@ -359,20 +365,19 @@ class ClassRegrSparseDataset_v3(Dataset):
             ##-----------------------------------------------------------------------------------
             weights_temp = load_task_weights(yc_weights[task_id], y=y_temp, label=f"y_task{task_id+1}", verbose = verbose)
             if weights_temp.aggregation_weight is None:
-                '''
-                fold classes 
-                '''
-                ## using min_samples rule
+                ## Fold classes 
+                ##  using min_samples rule
                 fold_pos, fold_neg = class_fold_counts(y_temp, self.folding)
                 n = opt['dataload']['min_samples_class']
                 weights_temp.aggregation_weight = ((fold_pos >= n).all(0) & (fold_neg >= n)).all(0).astype(np.float64)
-                print_dbg(f"\t tasks_class.aggregation_weight WAS NOT passed ", verbose = verbose)
-                print_dbg(f"\t min_samples_class: {opt['dataload']['min_samples_class']}", verbose = verbose)
-                print_dbg(f"\t Class fold counts: \n  fold_pos:\n{fold_pos}  \n\n  fold_neg:\n{fold_neg}", verbose = verbose)
+                # print_dbg(f"\t tasks_class.aggregation_weight WAS NOT passed ", verbose = verbose)
+                # print_dbg(f"\t min_samples_class: {opt['dataload']['min_samples_class']}", verbose = verbose)
+                # print_dbg(f"\t Class fold counts: \n  fold_pos:\n{fold_pos}  \n\n  fold_neg:\n{fold_neg}", verbose = verbose)
             else:
-                print_dbg(f"\t  tasks_class.aggregation_weight passed ", verbose = verbose)
+                pass
+                # print_dbg(f"\t  tasks_class.aggregation_weight passed ", verbose = verbose)
                 
-            print_dbg(f"\t task_weights.aggregation_weight.shape: {weights_temp.aggregation_weight.shape} - {weights_temp.aggregation_weight}", verbose = verbose)
+            # print_dbg(f"\t task_weights.aggregation_weight.shape: {weights_temp.aggregation_weight.shape} - {weights_temp.aggregation_weight}", verbose = verbose)
 
             ##-----------------------------------------------------------------------------------
             ## Load censor file if present 
@@ -395,9 +400,6 @@ class ClassRegrSparseDataset_v3(Dataset):
             # self.y_class = y_class.tocsr(copy=False).astype(np.float32)
             # self.y_regr  = y_regr.tocsr(copy=False).astype(np.float32)
             # self.y_censor = y_censor.tocsr(copy=False).astype(np.float32)
-
-
-
 
             ##-----------------------------------------------------------------------------------
             ## Regression task aggregation weights 
@@ -425,18 +427,20 @@ class ClassRegrSparseDataset_v3(Dataset):
             self.tasks_weights_list.append(weights_temp)
             self.class_tasks += 1
             
-            if verbose:
-                print_dbg(f"\t y_task[{task_id+1}]  {stat:22s} - type : {type(y_temp)}    shape : {y_temp.shape}", verbose = verbose)
-                print_dbg(f"\t y_task[{task_id+1}]  {stat:22s} - type : {type(self.y_class_list[task_id])}    shape : {self.y_class_list[task_id].shape}"  , verbose = verbose)
-                print_dbg(f"\t Input dimension       : {self.ecfp.shape[1]}", verbose = verbose)
-                print_dbg(f"\t # samples             : {self.ecfp.shape[0]}", verbose = verbose)
-                print_dbg(f"\t # classification tasks: {self.class_tasks}", verbose = verbose)
-                print_dbg(f"\t # regression tasks    : {self.regr_tasks}", verbose = verbose)
-                # print_dbg(f"Using {(tasks_regr.aggregation_weight > 0).sum()} regression tasks for calculating metrics (RMSE, Rsquared, correlation).")
-                # print_dbg(f" Using {(tasks_class.aggregation_weight > 0).sum()} classification tasks for calculating aggregated metrics (AUCROC, F1_max, etc).")
+            # if verbose:
+            #     print_dbg(f"\t y_task[{task_id+1}]  {stat:22s} - type : {type(y_temp)}    shape : {y_temp.shape}", verbose = verbose)
+            #     print_dbg(f"\t y_task[{task_id+1}]  {stat:22s} - type : {type(self.y_class_list[task_id])}    shape : {self.y_class_list[task_id].shape}"  , verbose = verbose)
+            #     print_dbg(f"\t Input dimension       : {self.ecfp.shape[1]}", verbose = verbose)
+            #     print_dbg(f"\t # samples             : {self.ecfp.shape[0]}", verbose = verbose)
+            #     print_dbg(f"\t # classification tasks: {self.class_tasks}", verbose = verbose)
+            #     print_dbg(f"\t # regression tasks    : {self.regr_tasks}", verbose = verbose)
+            #     print_dbg(f"Using {(tasks_regr.aggregation_weight > 0).sum()} regression tasks for calculating metrics (RMSE, Rsquared, correlation).")
+            #     print_dbg(f" Using {(tasks_class.aggregation_weight > 0).sum()} classification tasks for calculating aggregated metrics (AUCROC, F1_max, etc).")
         
         print_heading(f"{self.name()} Create complete", verbose = verbose)
         return 
+
+
 
     def __getitem__(self, idx, verbose = False):
         """
@@ -444,36 +448,25 @@ class ClassRegrSparseDataset_v3(Dataset):
         out[x_ind] : indices to columns of X row containing data 
         out[x_data]: data corresponding to columns in out[x_ind]
 
-        out[task0_ind]:   indices to columns of Y0 (Labels of task 0)row containing data
-        out[task0_data]:  data corresponding to columns in out[task0_ind]
-        ...
-        ...  repeats from task0 to task(n-1) for n tasks 
-
+        X repeats from 1 to N for N tasks :
+            out[taskX_ind]:     indices to columns of Y0 (Labels of task X) row containing data
+            out[taskX_data]:    data corresponding to columns in out[taskX_ind]
+            out[taskX_weights]: weights for task 
+            ...
         """
         out = {}
-
         out["row_id"] = idx
         out["x_ind"], out["x_data"] = get_row(self.x, idx)
-        print_dbg(f" x indexes: {out['x_ind'].shape}   {out['x_ind'][:10]}", verbose = verbose)
-        print_dbg(f" x data   : {out['x_data'].shape}  {out['x_data'][:10]}", verbose = verbose)
 
         for i in range(len(self.y_class_list)):
-            ind_key     = "task{:d}_ind".format(i+1)
-            data_key    = "task{:d}_data".format(i+1)
-            weights_key = "task{:d}_weights".format(i+1)
-            out[ind_key], out[data_key]= get_row(self.y_class_list[i], idx)
-            out[weights_key] = self.tasks_weights_list[i]
-           
-            print_dbg(f"\t  load task[{i}] file  . . . {ind_key}    {data_key}", verbose = verbose)
-            print_dbg(f"\t  out[{ind_key}] : {out[ind_key].shape}   {out[ind_key]}", verbose = verbose)
-            print_dbg(f"\t  out[{data_key}]: {out[data_key].shape}  {out[data_key]}", verbose = verbose)
-
-
-        # if self.regr_output_size > 0:
-            # out["yr_ind"], out["yr_data"] = get_row(self.y_regr, idx)
-            # if self.y_censor.nnz > 0:
-                # out["ycen_ind"], out["ycen_data"] = get_row(self.y_censor, idx)
+            task_key    = "task{:d}".format(i+1)
+            out[task_key] = {}
+            out[task_key]['ind'], out[task_key]['data']= get_row(self.y_class_list[i], idx)
+            out[task_key]['trn_weights'] = self.tasks_weights_list[i].training_weight
+            out[task_key]['aggr_weights'] = self.tasks_weights_list[i].aggregation_weight
+            
         return out
+
 
     def collate(self, batch, verbose = False):
         """
@@ -482,53 +475,31 @@ class ClassRegrSparseDataset_v3(Dataset):
         """
         lists = {}
 
-        for key in batch[0].keys():
+        for key in ['x_ind', 'x_data', 'row_id']:
             lists[key] = [b[key] for b in batch]
 
         out = {}
-        
-        sum = np.sum([len(i) for i in lists["x_ind"]])
-        
         out["x_ind"]  = to_idx_tensor(lists["x_ind"])
         out["x_data"] = torch.from_numpy(np.concatenate(lists["x_data"]))
         out["row_id"] = lists['row_id']
-        print_dbg(f" output keys: {lists.keys()}", verbose = verbose)
-        print_dbg(f" out[row_id]: {out['row_id']}", verbose = verbose)
-        print_dbg(f" len of lists[x_ind] {len(lists['x_ind'])}   sum:{sum}", verbose = verbose)
-        print_dbg(f" len of out[x_ind]   {out['x_ind'].shape}", verbose = verbose)
-        print_dbg(f" len of out[x_data]  {out['x_data'].shape} ", verbose = verbose)
-        
 
         for i in range(len(self.y_class_list)):
-            ind_key = "task{:d}_ind".format(i+1)
-            data_key = "task{:d}_data".format(i+1)
-            weights_key = "task{:d}_weights".format(i+1)
-         
-            out[ind_key]  = to_idx_tensor(lists[ind_key]) 
-            out[data_key] = torch.from_numpy(np.concatenate(lists[data_key]))
-            out[weights_key] = self.tasks_weights_list[i]
-
-            print_dbg(f"\n\t load task[{i+1}] file ", verbose = verbose)
-            print_dbg(f"\t out[{ind_key}]    shape  {out[ind_key].shape}", verbose = verbose)
-            print_dbg(f"\t out[{data_key}]   shape  {out[data_key].shape} ", verbose = verbose)
-            print_dbg(f"\t out[{weights_key}].training_weight      {out[weights_key].training_weight} ", verbose = verbose)
-            print_dbg(f"\t out[{weights_key}].aggregation_weight   {out[weights_key].aggregation_weight} ", verbose = verbose)
+            task_key = f"task{i+1}"
+            task_ind_list = [b[task_key]['ind'] for b in batch]
+            task_data_list = [b[task_key]['data'] for b in batch]
+            out[task_key] = {}
+            out[task_key]['ind']  = to_idx_tensor(task_ind_list) 
+            out[task_key]['data'] = torch.from_numpy(np.concatenate(task_data_list))
+            out[task_key]['trn_weights'] = self.tasks_weights_list[i].training_weight
+            out[task_key]['aggr_weights'] = self.tasks_weights_list[i].aggregation_weight
     
-    #     if "yr_ind" in lists:
-    #         out["yr_ind"]  = to_idx_tensor(lists["yr_ind"])
-    #         out["yr_data"] = torch.from_numpy(np.concatenate(lists["yr_data"]))
-
-    #     if "ycen_ind" in lists:
-    #         out["ycen_ind"]  = to_idx_tensor(lists["ycen_ind"])
-    #         out["ycen_data"] = torch.from_numpy(np.concatenate(lists["ycen_data"]))
-    #     else:
-    #         out["ycen_ind"]  = None
-    #         out["ycen_data"] = None
-
         out["batch_size"] = len(batch)
         return out
+    
+    
 
-        
+    
+
     def __len__(self):
         return(self.x.shape[0])
    
@@ -550,18 +521,3 @@ class ClassRegrSparseDataset_v3(Dataset):
 
     def name(self):
         return 'Chembl_23_Dev'
-
-
-
-def to_idx_tensor(idx_list):
-    """Turns list of lists into a  [2, num_lists] tensor of coordinates"""
-    ## idx_lists contains batch_size sub lists, each corresponding to one row.
-    ## following line takes [0,1,...,15] and repeats each element n times, where 
-    ## is the number of elements  in the corresponding idx_list member.  
-    xrow = np.repeat(np.arange(len(idx_list)), [len(i) for i in idx_list])
-    xcol = np.concatenate(idx_list)
-
-    ## added np.array() to convert list of arrays to numpy array before converting to Tensor.
-    # print(f" to_idx_tensor: {type(idx_list)}   xrow: {type(xrow)}    xcol: {type(xcol)}")
-
-    return torch.LongTensor(np.array([xrow, xcol]))

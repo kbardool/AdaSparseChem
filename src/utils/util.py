@@ -2,8 +2,10 @@ import os
 import argparse
 import yaml
 import random
+import pickle
+import pprint
 from IPython import get_ipython
-
+import wandb.util as wbutils
 import torch
 from torchvision import utils as vu
 import torch.nn as nn
@@ -49,8 +51,10 @@ def vprint(s="", verbose = False):
 
 def print_separator(text, total_len=50):
     print('#' * total_len)
-    left_width = (total_len - len(text))//2
-    right_width = total_len - len(text) - left_width
+    text = f" {text} "
+    text_len = len(text)
+    left_width = (total_len - text_len )//2
+    right_width = total_len - text_len - left_width
     print("#" * left_width + text + "#" * right_width)
     print('#' * total_len)
 
@@ -106,6 +110,20 @@ def print_yaml2(opt, key = ""):
         lines = [f"{key:>20s} : {str(opt)}"]
     return lines
 
+def print_loss(losses, title='Iteration'):
+    """
+    print loss summary line 
+    """
+    loss_display = f"{title} -  Total Loss: {losses['total']['total']:.4f}     \nTask: {losses['losses']['total']:.4f}" 
+    if 'sparsity' in losses:
+        loss_display += f"   Sparsity: {losses['sparsity']['total']:.5e}    Sharing: {losses['sharing']['total']:.5e} "
+    # loss_display = f"{title}  {current_iter} \nLosses: Task: {self.losses['losses']['total']:.4f}   " 
+    # if 'sparsity' in self.losses:
+    #     loss_display += f"Spar: {self.losses['sparsity']['total']:.5e}   Shr: {self.losses['sharing']['total']:.5e}"
+    # loss_display += f"   Ttl: {self.losses['total']['total']:.4f}"
+
+    print(loss_display)
+
 
 def show_batch(batch):
     normed = batch * 0.5 + 0.5
@@ -148,13 +166,13 @@ def listopt(opt, f=None):
         print('-------------- End ----------------')
 
 
-def write_loss_txt(log_name, iteration, elapsed, losses):
+def write_metrics_txt(log_name, epoch, iteration, elapsed, losses):
     sorted_keys = sorted( [ 'losses', 'losses_mean','parms', 'sharing', 'sparsity', 'total'])
     
     for key in sorted_keys:
         if key not in losses:
             continue
-        message = 'update: %4d, timestamp: %s wall clock time: %7.3f  %12s :' % (iteration, timestring(), elapsed, key)
+        message = 'epoch: %4d   iter: %4d, timestamp: %s wall clock time: %7.3f  %12s :' % (epoch, iteration, timestring(), elapsed, key)
         if isinstance(losses[key], dict):
             for subkey, value  in losses[key].values():
                 message += ' %s: %s ' % (subkey, str(value))
@@ -166,7 +184,7 @@ def write_loss_txt(log_name, iteration, elapsed, losses):
 
 
 def write_loss_csv_heading(log_name,  losses):
-    message = ' iteration, timestamp,elapsed,' 
+    message = ' epoch, iteration, timestamp,elapsed,' 
     sorted_keys = sorted([ 'losses', 'losses_mean', 'parms', 'sharing', 'sparsity', 'total'])
     
     for key in sorted_keys:
@@ -183,8 +201,8 @@ def write_loss_csv_heading(log_name,  losses):
         log_file.write('%s \n' % message.rstrip(" ,"))
 
 
-def write_loss_csv(log_name, iteration, elapsed, losses):
-    message = ' %4d,%26s,%6.3f,' % (iteration, timestring(), elapsed)
+def write_metrics_csv(log_name, epoch, iteration, elapsed, losses):
+    message = '%4d,%4d,%26s,%6.3f,' % (epoch, iteration, timestring(), elapsed)
     sorted_keys = sorted([ 'losses', 'losses_mean', 'parms', 'sharing', 'sparsity', 'total'])
     
     for key in sorted_keys:
@@ -199,6 +217,24 @@ def write_loss_csv(log_name, iteration, elapsed, losses):
     
     with open(log_name, 'a') as log_file:
         log_file.write('%s \n' % message.rstrip(" ,"))
+
+
+def save_to_pickle(data, path, filename, verbose = False):
+    save_path = os.path.join(path, filename)
+    print_dbg(f" save_to_pickle(): save data to {save_path}", verbose = verbose)
+    with open(save_path, 'wb') as handle:
+        pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+def load_from_pickle( path, filename, verbose = False):
+
+    load_path = os.path.join(path, filename)
+
+    print_dbg(f" load_metrics(): load  data from {load_path}", verbose = verbose)
+    with open(load_path, 'rb') as handle:
+        data = pickle.load(handle)
+    return data
+
+
 
 
 def images_to_visual(tensor):
@@ -323,9 +359,13 @@ class Initializer:
 
         model.apply(weights_init)
 
+def display_config(opt, key = ""):
+    output = print_yaml2(opt)
+    for line in output:
+        print(line)
 
-def write_parms_report(opt, output = None, mode = 'w+'):
-    with open(os.path.join(opt['paths']['log_dir'], opt['paths']['exp_folder'], 'run_parms.txt'), mode= mode) as f:
+def write_config_report(opt, output = None, filename = 'run_params.txt', mode = 'w+'):
+    with open(os.path.join(opt['paths']['log_dir'], filename), mode= mode) as f:
         if output is None:
             output = print_yaml2(opt)
             for line in output:
@@ -333,13 +373,144 @@ def write_parms_report(opt, output = None, mode = 'w+'):
         else:
                 f.writelines(output+"\n")
 
-def create_path(opt):
-    # for k, v in opt['paths'].items():
-    folder_path = opt['paths']['log_dir']
 
-    full_folder_path = os.path.join(folder_path, opt['paths']['exp_folder'])
-    print(f" Create folder {full_folder_path}")
-    makedir(full_folder_path)
+##
+##  Command line and YAML configuration files
+##
+def get_command_line_args(input = None, display = True):
+    """ get and parse command line arguments """
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config"        , required=True, help="Path for the config file")
+    parser.add_argument("--exp_id"        , type=str,    help="experiment unqiue id, used by wandb - defaults to wandb.util.generate_id()")
+    parser.add_argument("--exp_name"      , type=str,   help="experiment name, used as folder prefix and wandb name, defaults to mmdd_hhmm")
+    parser.add_argument("--folder_sfx"    , type=str,   help="experiment folder suffix, defaults to None")
+    parser.add_argument("--exp_desc"      , type=str,   nargs='+', default=[] , help="experiment description")
+    parser.add_argument("--seed_idx"      , type=int,   default=0, help="Seed index - default is 0")
+    parser.add_argument("--batch_size"    , type=int,   help="Batchsize - default read from config file")
+    parser.add_argument("--backbone_lr"   , type=float, help="Backbone Learning Rate Override - default read from config file")
+    parser.add_argument("--task_lr"       , type=float, help="Task Heads Learning Rate Override - default read from config file")
+    parser.add_argument("--policy_lr"     , type=float, help="Policy Net Learning Rate Override - default read from config file")
+    parser.add_argument("--decay_lr_rate" , type=float, help="LR Decay Rate Override - default read from config file")
+    parser.add_argument("--decay_lr_freq" , type=float, help="LR Decay Frequency Override - default read from config file")
+    parser.add_argument("--lambda_sparsity", type=float, help="Sparsity Regularization - default read from config file")
+    parser.add_argument("--lambda_sharing" , type=float, help="Sharing Regularization - default read from config file")
+    parser.add_argument("--gpu_ids"       , type=int,   nargs='+', default=[0],  help="GPU Device Ids")
+    parser.add_argument("--resume"        , default=False, action="store_true",  help="Resume previous run")
+    parser.add_argument("--cpu"           , default=False, action="store_true",  help="CPU instead of GPU")
+    if input is None:
+        args = parser.parse_args()
+    else:
+        args = parser.parse_args(input)
+    args.exp_desc = ' '.join(str(e) for e in args.exp_desc)
+
+    if display:
+        print_underline(' command line parms : ', True)
+        for key, val in vars(args).items():
+            print(f" {key:.<25s}  {val}")
+        print('\n\n')
+    if args.resume:
+        assert args.exp_id is not None and args.exp_name is not None, " exp_id & exp_name must be provided when specifying --resume"
+    return args
+
+# def read_yaml():
+#     # get command line arguments
+#     args = get_command_line_args()
+    
+#     # torch.cuda.set_device(args.gpu)
+    
+#     with open(args.config) as f:
+#         opt = yaml.load(f)
+#     opt['exp_name'] = args.exp_name
+#     opt['cpu'] = args.cpu
+
+#     return opt, args.gpus, args.exp_ids
+ 
+
+def read_yaml(args = None, exp_name = None):
+    """ read yaml passing command line arguments """
+    if args is None:
+        args = get_command_line_args()
+
+    with open(args.config) as f:
+        opt = yaml.safe_load(f)
+
+    ## moved to base_env.py
+    # if args.gpu_ids is not None:
+    #     torch.cuda.set_device(args.gpu_ids[0])
+        
+    opt['cpu'] = args.cpu
+    opt['gpu_ids'] = args.gpu_ids
+    opt['folder_sfx'] = args.folder_sfx
+    opt['train']['resume'] = args.resume
+
+    if args.lambda_sparsity is not None:
+        opt['train']['lambda_sparsity'] = args.lambda_sparsity
+
+    if args.lambda_sharing  is not None:
+        opt['train']['lambda_sharing'] = args.lambda_sharing
+    
+    if args.policy_lr  is not None:
+        opt['train']['policy_lr'] = args.policy_lr
+
+    if args.exp_id is None:
+        opt["exp_id"] = wbutils.generate_id()
+    else: 
+        opt["exp_id"] = args.exp_id 
+
+    if exp_name is not None:
+        opt['exp_name'] = exp_name
+    elif args.exp_name is not None:
+        opt['exp_name'] = args.exp_name
+    else: 
+        opt['exp_name'] = datetime.now().strftime("%m%d_%H%M")
+    
+    if args.folder_sfx is not None:
+        opt['exp_name'] += f"_{args.folder_sfx}"
+    if args.exp_desc is not None:
+        opt['exp_description'] = args.exp_desc 
+
+    if args.seed_idx is not None:
+        opt["random_seed"] = opt["seed_list"][args.seed_idx]
+    else:    
+        opt["random_seed"] = opt["seed_list"][0]
+
+    opt['exp_folder'] = build_exp_folder_name(opt)
+
+    return opt
+
+
+def build_exp_folder_name(opt):
+    if opt['folder_sfx'] is None:
+        folder_name = f"{opt['hidden_sizes'][0]}x{len(opt['hidden_sizes'])}" \
+                      f"_{opt['exp_name']}"\
+                      f"_plr{opt['train']['policy_lr']}" \
+                      f"_sp{opt['train']['lambda_sparsity']}" \
+                      f"_sh{opt['train']['lambda_sharing']}"   
+    else:
+        folder_name = f"{opt['hidden_sizes'][0]}x{len(opt['hidden_sizes'])}" \
+                      f"_{opt['exp_name']}"     
+    #   f"_bs{opt['train']['batch_size']:03d}" \
+    #   f"_lr{opt['train']['backbone_lr']}"   \
+    #   f"_dr{opt['train']['decay_lr_rate']:3.2f}" \
+    #   f"_df{opt['train']['decay_lr_freq']:04d}"      
+    return folder_name 
+
+
+def create_path(opt):
+    # opt['exp_folder'] = build_exp_folder_name(opt)
+    # for k, v in opt['paths'].items():
+    # folder_path = opt['paths']['log_dir']
+    # print(f" Create folder {full_folder_path}")
+    print('\n')
+    for k, v in opt['paths'].items():
+        full_folder_path = os.path.join(v, opt['exp_folder'])
+        if not os.path.isdir(full_folder_path):
+            print(f" {k:20s} create folder:  {full_folder_path}")
+            makedir(full_folder_path)
+        else:
+            print(f" {k:20s} folder exists:  {full_folder_path}")
+        opt['paths'][k] = full_folder_path
+    print()
 
 
 def makedir(folder):
@@ -347,73 +518,6 @@ def makedir(folder):
         os.makedirs(folder)
 
 
-##
-##  Command line and YAML configuration files
-##
-def get_command_line_args(input = None):
-    """ get and parse command line arguments """
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--config"       , required=True, help="Path for the config file")
-    parser.add_argument("--exp_instance" , type=str,   help="experiment instance, used as folder prefix, defaults to mmdd_hhmm")
-    parser.add_argument("--exp_ids"      , type=int,   nargs='+', default=[0], help="Seed Override - default is 0")
-    parser.add_argument("--batch_size"   , type=int,   help="Backbone Learning Rate Override - default read from config file")
-    parser.add_argument("--backbone_lr"  , type=float, help="Backbone Learning Rate Override - default read from config file")
-    parser.add_argument("--task_lr"      , type=float, help="Task Heads Learning Rate Override - default read from config file")
-    parser.add_argument("--decay_lr_rate", type=float, help="LR Decay Rate Override - default read from config file")
-    parser.add_argument("--decay_lr_freq", type=float, help="LR Decay Frequency Override - default read from config file")
-    parser.add_argument("--gpus"         , type=int, nargs='+', default=[0], help="GPU Device Ids")
-    parser.add_argument("--cpu"          , default=False, action="store_true",  help="CPU instead of GPU")
-    if input is None:
-        args = parser.parse_args()
-    else:
-        args = parser.parse_args(input)
-    print(' command line parms : ' , vars(args))
-    return args
-
-
-def read_yaml():
-    # get command line arguments
-    args = get_command_line_args()
-    
-    # torch.cuda.set_device(args.gpu)
-    
-    with open(args.config) as f:
-        opt = yaml.load(f)
-    opt['exp_instance'] = args.exp_instance
-    opt['cpu'] = args.cpu
-    opt['paths']['exp_folder'] = build_exp_folder_name(opt)
-    return opt, args.gpus, args.exp_ids
-
-
-def read_yaml_from_input(args = None, exp_instance = None):
-    """ read yaml passing command line arguments """
-        
-    # torch.cuda.set_device(args.gpu)
-    with open(args.config) as f:
-        opt = yaml.safe_load(f)
-
-
-    opt['cpu'] = args.cpu
-    
-    if exp_instance is not None:
-        opt['exp_instance'] = exp_instance
-    elif args.exp_instance is not None:
-        opt['exp_instance'] = args.exp_instance
-
-    opt['paths']['exp_folder'] = build_exp_folder_name(opt)
-    return opt, args.gpus, args.exp_ids
-
-def build_exp_folder_name(opt):
-    folder_name = f"{opt['hidden_sizes'][0]}x{len(opt['hidden_sizes'])}" \
-                  f"_{opt['exp_instance']}"\
-                  f"_plr{opt['train']['policy_lr']}" \
-                  f"_sp{opt['train']['lambda_sparsity']}" \
-                  f"_sh{opt['train']['lambda_sharing']}"   
-    #   f"_bs{opt['train']['batch_size']:03d}" \
-    #   f"_lr{opt['train']['backbone_lr']}"   \
-    #   f"_dr{opt['train']['decay_lr_rate']:3.2f}" \
-    #   f"_df{opt['train']['decay_lr_freq']:04d}"      
-    return folder_name 
 
 
 def should(current_freq, freq):
@@ -464,14 +568,14 @@ def random_color():
 def parse_config():
     print_separator('READ YAML')
     opt, gpu_ids = read_yaml()
-    fix_random_seed(opt["seed"])
+    fix_random_seed(opt["random_seed"])
     create_path(opt)
     # print yaml on the screen
     lines = print_yaml(opt)
     for line in lines: print(line)
     print('-----------------------------------------------------')
     # print to file
-    with open(os.path.join(opt['paths']['log_dir'], opt['paths']['exp_folder'], 'opt.txt'), 'w+') as f:
+    with open(os.path.join(opt['paths']['log_dir'], 'opt.txt'), 'w+') as f:
         f.writelines(lines)
     return opt, gpu_ids
 
@@ -542,3 +646,193 @@ def is_notebook():
             return False  # Other type (?)
     except NameError:
         return False      # Probably standard Python interpreter
+
+
+
+def init_records(tasks, num_seg_cls):
+    records = {}
+    if 'seg' in tasks:
+        assert (num_seg_cls != -1)
+    records['seg'] = {'mIoUs'    : [], 
+                      'pixelAccs': [],  
+                      'errs'     : [], 
+                      'conf_mat' : np.zeros((num_seg_cls, num_seg_cls)),
+                      'labels'   : np.arange(num_seg_cls), 
+                      'gts': [], 
+                      'preds': []}
+    if 'sn' in tasks:
+        records['sn'] = {'cos_similaritys': []}
+    if 'depth' in tasks:
+        records['depth'] = {'abs_errs': [], 
+                            'rel_errs': [], 
+                            'sq_rel_errs': [], 
+                            'ratios'  : [], 
+                            'rms'     : [], 
+                            'rms_log' : []}
+    if 'keypoint' in tasks:
+        records['keypoint'] = {'errs': []}
+    if 'edge' in tasks:
+        records['edge'] = {'errs': []}
+    return records
+
+
+def populate_records(records, metrics, tasks):
+    from sklearn.metrics import confusion_matrix
+    if 'seg' in tasks:
+        new_mat = confusion_matrix(metrics['seg']['gt'], metrics['seg']['pred'], records['seg']['labels'])
+        assert (records['seg']['conf_mat'].shape == new_mat.shape)
+        records['seg']['conf_mat'] += new_mat
+        records['seg']['pixelAccs'].append(metrics['seg']['pixelAcc'])
+        records['seg']['errs'].append(metrics['seg']['err'])
+        records['seg']['gts'].append(metrics['seg']['gt'])
+        records['seg']['preds'].append(metrics['seg']['pred'])
+
+    if 'sn' in tasks:
+        records['sn']['cos_similaritys'].append(metrics['sn']['cos_similarity'])
+
+    if 'depth' in tasks:
+        records['depth']['abs_errs'].append(metrics['depth']['abs_err'])
+        records['depth']['rel_errs'].append(metrics['depth']['rel_err'])
+        records['depth']['sq_rel_errs'].append(metrics['depth']['sq_rel_err'])
+        records['depth']['ratios'].append(metrics['depth']['ratio'])
+        records['depth']['rms'].append(metrics['depth']['rms'])
+        records['depth']['rms_log'].append(metrics['depth']['rms_log'])
+
+    if 'keypoint' in tasks:
+        records['keypoint']['errs'].append(metrics['keypoint']['err'])
+
+    if 'edge' in tasks:
+        records['edge']['errs'].append(metrics['edge']['err'])
+
+    return records
+
+
+def populate_val_metrics(records, tasks, num_seg_cls, batch_size):
+    val_metrics = {}
+    
+    if 'seg' in tasks:
+        val_metrics['seg'] = {}
+        jaccard_perclass = []
+        for i in range(num_seg_cls):
+            if not records['seg']['conf_mat'][i, i] == 0:
+                jaccard_perclass.append(records['seg']['conf_mat'][i, i] / (np.sum(records['seg']['conf_mat'][i, :]) +
+                                                                            np.sum(records['seg']['conf_mat'][:, i]) -
+                                                                            records['seg']['conf_mat'][i, i]))
+
+        val_metrics['seg']['mIoU'] = np.sum(jaccard_perclass) / len(jaccard_perclass)
+
+        val_metrics['seg']['Pixel Acc'] = (np.array(records['seg']['pixelAccs']) * np.array(batch_size)).sum() / sum(
+            batch_size)
+
+        val_metrics['seg']['err'] = (np.array(records['seg']['errs']) * np.array(batch_size)).sum() / sum(batch_size)
+
+        
+    if 'sn' in tasks:
+        val_metrics['sn'] = {}
+        overall_cos = np.clip(np.concatenate(records['sn']['cos_similaritys']), -1, 1)
+
+        angles = np.arccos(overall_cos) / np.pi * 180.0
+        val_metrics['sn']['cosine_similarity'] = overall_cos.mean()
+        val_metrics['sn']['Angle Mean'] = np.mean(angles)
+        val_metrics['sn']['Angle Median'] = np.median(angles)
+        val_metrics['sn']['Angle 11.25'] = np.mean(np.less_equal(angles, 11.25)) * 100
+        val_metrics['sn']['Angle 22.5'] = np.mean(np.less_equal(angles, 22.5)) * 100
+        val_metrics['sn']['Angle 30'] = np.mean(np.less_equal(angles, 30.0)) * 100
+        val_metrics['sn']['Angle 45'] = np.mean(np.less_equal(angles, 45.0)) * 100
+        
+    if 'depth' in tasks:
+        val_metrics['depth'] = {}
+        records['depth']['abs_errs'] = np.stack(records['depth']['abs_errs'], axis=0)
+        records['depth']['rel_errs'] = np.stack(records['depth']['rel_errs'], axis=0)
+        records['depth']['ratios'] = np.concatenate(records['depth']['ratios'], axis=0)
+
+        val_metrics['depth']['abs_err'] = (records['depth']['abs_errs'] * np.array(batch_size)).sum() / sum(batch_size)
+        val_metrics['depth']['rel_err'] = (records['depth']['rel_errs'] * np.array(batch_size)).sum() / sum(batch_size)
+       
+        val_metrics['depth']['sigma_1.25'] = np.mean(np.less_equal(records['depth']['ratios'], 1.25)) * 100
+        val_metrics['depth']['sigma_1.25^2'] = np.mean(np.less_equal(records['depth']['ratios'], 1.25 ** 2)) * 100
+        val_metrics['depth']['sigma_1.25^3'] = np.mean(np.less_equal(records['depth']['ratios'], 1.25 ** 3)) * 100
+
+        
+    if 'keypoint' in tasks:
+        val_metrics['keypoint'] = {}
+        val_metrics['keypoint']['err'] = (np.array(records['keypoint']['errs']) * np.array(batch_size)).sum() / sum(batch_size)
+
+    if 'edge' in tasks:
+        val_metrics['edge'] = {}
+        val_metrics['edge']['err'] = (np.array(records['edge']['errs']) * np.array(batch_size)).sum() / sum(batch_size)
+ 
+    return val_metrics
+
+
+def get_reference_metrics(opt):
+    if opt['dataload']['dataset'] == 'NYU_v2':
+        if len(opt['tasks_num_class']) == 2:
+            refer_metrics = {'seg': {'mIoU': 0.413, 'Pixel Acc': 0.691},
+                             'sn': {'Angle Mean': 15, 'Angle Median': 11.5, 'Angle 11.25': 49.2, 'Angle 22.5': 76.7,
+                                    'Angle 30': 86.8}}
+        elif len(opt['tasks_num_class']) == 3:
+            refer_metrics = {'seg': {'mIoU': 0.275, 'Pixel Acc': 0.589},
+                             'sn': {'Angle Mean': 17.5, 'Angle Median': 14.2, 'Angle 11.25': 34.9, 'Angle 22.5': 73.3,
+                                    'Angle 30': 85.7},
+                             'depth': {'abs_err': 0.62, 'rel_err': 0.25, 'sigma_1.25': 57.9,
+                                       'sigma_1.25^2': 85.8, 'sigma_1.25^3': 95.7}}
+        else:
+            raise ValueError('num_class = %d is invalid' % len(opt['tasks_num_class']))
+
+    elif opt['dataload']['dataset'] == 'CityScapes':
+        num_seg_class = opt['tasks_num_class'][opt['tasks'].index('seg')] if 'seg' in opt['tasks'] else -1
+
+        if num_seg_class == 7 and opt['dataload']['small_res']:
+            refer_metrics = {'seg': {'mIoU': 0.519, 'Pixel Acc': 0.722},
+                         'depth': {'abs_err': 0.017, 'rel_err': 0.33, 'sigma_1.25': 70.3,
+                                   'sigma_1.25^2': 86.3, 'sigma_1.25^3': 93.3}}
+        elif num_seg_class == 7 and not opt['dataload']['small_res']:
+            refer_metrics = {'seg': {'mIoU': 0.644, 'Pixel Acc': 0.778},
+                         'depth': {'abs_err': 0.017, 'rel_err': 0.33, 'sigma_1.25': 70.3,
+                                   'sigma_1.25^2': 86.3, 'sigma_1.25^3': 93.3}}
+        
+        elif num_seg_class == 19 and not opt['dataload']['small_res']:
+            refer_metrics = {'seg': {'mIoU': 0.402, 'Pixel Acc': 0.747},
+                            'depth': {'abs_err': 0.017, 'rel_err': 0.33, 'sigma_1.25': 70.3,
+                                    'sigma_1.25^2': 86.3, 'sigma_1.25^3': 93.3}}
+        else:
+            raise ValueError('num_seg_class = %d and small res = %d are not supported' % (num_seg_class, opt['dataload']['small_res']))
+ 
+    elif opt['dataload']['dataset'] == 'Taskonomy':
+        refer_metrics = {'seg': {'err': 0.517},
+                         'sn': {'cosine_similarity': 0.716},
+                         'depth': {'abs_err': 0.021},
+                         'keypoint': {'err': 0.197},
+                         'edge': {'err': 0.212}}
+    
+    else:
+        raise NotImplementedError('Dataset %s is not implemented' % opt['dataload']['dataset'])
+    
+    return refer_metrics
+
+def check_for_best_metrics(best_value, current_iter, refer_metrics, val_metrics, opt):
+    new_value = 0
+    for k in refer_metrics.keys():
+        if k in val_metrics.keys():
+            for kk in val_metrics[k].keys():
+                if not kk in refer_metrics[k].keys():
+                    continue
+                if (k == 'sn' and kk in ['Angle Mean', 'Angle Median']) or (
+                        k == 'depth' and not kk.startswith('sigma')) or (kk == 'err'):
+                    value = refer_metrics[k][kk] / val_metrics[k][kk]
+                else:
+                    value = val_metrics[k][kk] / refer_metrics[k][kk]
+
+                value = value / len(list(set(val_metrics[k].keys()) & set(refer_metrics[k].keys())))
+                new_value += value
+
+    if new_value > best_value:
+        best_value = new_value
+        best_metrics = val_metrics
+        best_iter = current_iter
+        # environ.save_checkpoint('retrain%03d_policyIter%s_best' % (exp_id, opt['train']['policy_iter']), current_iter)
+        
+        print('new value: %.3f' % new_value)
+        print('best iter: %d, best value: %.3f' % (best_iter, best_value), best_metrics)    
+    return best_value, best_iter, best_metrics

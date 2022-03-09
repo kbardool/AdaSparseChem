@@ -7,9 +7,9 @@ import numpy as np
 
 from torch.utils.data import DataLoader
 
-from dataloaders.nyu_v2_dataloader import NYU_v2_Customize
-
-
+from dataloaders.nyu_v2_dataloader import NYU_v2
+from dataloaders.cityscapes_dataloader import CityScapes
+from dataloaders.taskonomy_dataloader import Taskonomy
 from envs.blockdrop_env import BlockDropEnv
 import torch
 from utils.util import print_separator, read_yaml, create_path, print_yaml
@@ -137,8 +137,22 @@ def test():
     # ********************************************************************
     # load the dataloader
     print_separator('CREATE DATALOADERS')
-    assert opt['dataload']['dataset'] == 'NYU_v2'
-    valset = NYU_v2_Customize(opt['dataload']['dataroot'], 'test')
+
+    opt_tmp = opt if opt['policy_model'] == 'instance-specific' else None
+    
+    if opt['dataload']['dataset'] == 'NYU_v2':
+        valset = NYU_v2(opt['dataload']['dataroot'], 'test', opt=opt_tmp)
+    
+    elif opt['dataload']['dataset'] == 'CityScapes':
+        num_seg_class = opt['tasks_num_class'][opt['tasks'].index('seg')] if 'seg' in opt['tasks'] else -1
+        valset = CityScapes(opt['dataload']['dataroot'], 'test', num_class=num_seg_class,
+                            small_res=opt['dataload']['small_res'], opt=opt_tmp)
+    
+    elif opt['dataload']['dataset'] == 'Taskonomy':
+        valset = Taskonomy(opt['dataload']['dataroot'], 'test')
+    
+    else:
+        raise NotImplementedError('Dataset %s is not implemented' % opt['dataload']['dataset'])
 
     print('size of validation set: ', len(valset))
 
@@ -152,7 +166,7 @@ def test():
     environ = BlockDropEnv(opt['paths']['log_dir'], 
                            opt['paths']['checkpoint_dir'], 
                            opt['exp_name'],
-                           opt['tasks_num_class'], 
+                           opt['tasks_num_class'],
                            device=gpu_ids[0], 
                            is_train=False, 
                            opt=opt)

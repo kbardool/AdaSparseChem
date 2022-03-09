@@ -55,10 +55,10 @@ def eval_fix_policy(environ, dataloader, tasks, num_seg_cls=-1, eval_iter=10):
             environ.set_inputs(batch)
 
             metrics = environ.val_fix_policy()
-            
+
             # environ.networks['mtl-net'].task1_logits
             # mIoUs.append(mIoU)
-            
+
             if 'seg' in tasks:
                 new_mat = confusion_matrix(metrics['seg']['gt'], metrics['seg']['pred'], records['seg']['labels'])
                 assert (records['seg']['conf_mat'].shape == new_mat.shape)
@@ -67,7 +67,7 @@ def eval_fix_policy(environ, dataloader, tasks, num_seg_cls=-1, eval_iter=10):
                 records['seg']['errs'].append(metrics['seg']['err'])
                 records['seg']['gts'].append(metrics['seg']['gt'])
                 records['seg']['preds'].append(metrics['seg']['pred'])
-            
+
             if 'sn' in tasks:
                 records['sn']['cos_similaritys'].append(metrics['sn']['cos_similarity'])
             
