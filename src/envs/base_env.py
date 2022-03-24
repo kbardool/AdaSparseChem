@@ -7,7 +7,7 @@ from torch import nn
 import torch.nn.functional as F
 from torch.utils.tensorboard import SummaryWriter
 # from torch.utitensorboardX import SummaryWriter
-from utils.util import write_metrics_txt, print_heading, print_dbg, print_underline, print_loss, write_metrics_csv
+from utils.util import  write_metrics_txt, print_heading, print_dbg, print_underline, print_loss, write_metrics_csv
 # from data_utils.image_decoder import inv_preprocess, decode_labels2
 
 
@@ -160,6 +160,76 @@ class BaseEnv():
                     loss[key][subkey] = v
         return loss
 
+    def disp_for_excel(self):
+        ln = f"""
+    folder: {self.opt['exp_folder']}
+    layers: {len(self.opt['hidden_sizes'])} {self.opt['hidden_sizes']} 
+    
+    middle dropout         : {self.opt['middle_dropout']}
+    last dropout           : {self.opt['last_dropout']}
+    diff_sparsity_weights  : {self.opt['diff_sparsity_weights']}
+    skip_layer             : {self.opt['skip_layer']}
+    is_curriculum          : {self.opt['is_curriculum']}
+    curriculum_speed       : {self.opt['curriculum_speed']}
+    
+    task_lr                : {self.opt['train']['task_lr']}
+    backbone_lr            : {self.opt['train']['backbone_lr']}
+    decay_lr_rate          : {self.opt['train']['decay_lr_rate']}
+    decay_lr_freq          : {self.opt['train']['decay_lr_freq']}
+    
+    policy_lr              : {self.opt['train']['policy_lr']}
+    policy_decay_lr_rate   : {self.opt['train']['policy_decay_lr_rate']}
+    policy_decay_lr_freq   : {self.opt['train']['policy_decay_lr_freq']}
+    lambda_sparsity        : {self.opt['train']['lambda_sparsity']}
+    lambda_sharing         : {self.opt['train']['lambda_sharing']}
+    lambda_tasks           : {self.opt['train']['lambda_tasks']}
+    
+    Gumbel init_temp       : {self.opt['train']['init_temp']}
+    Gumbel decay_temp      : {self.opt['train']['decay_temp']}
+    Gumbel decay_temp_freq : {self.opt['train']['decay_temp_freq']}
+    Logit init_method      : {self.opt['train']['init_method']}
+    Logit init_neg_logits  : {self.opt['train']['init_neg_logits']}
+    Logit hard_sampling    : {self.opt['train']['hard_sampling']}
+    Warm-up epochs         : {self.opt['train']['warmup_epochs']}
+    training epochs        : {self.opt['train']['training_epochs']}
+    Data split ratios      : {self.opt['dataload']['x_split_ratios']}
+"""
+        return ln
+
+    # def disp_for_excel(self):
+    #     ln= f"\n # folder: {self.opt['exp_folder']}"    \
+    #         f"\n # layers: {len(self.opt['hidden_sizes'])} {self.opt['hidden_sizes']} "  \
+    #         f"                               \n" \
+    #         f"\n middle dropout         : {self.opt['middle_dropout']}"  \
+    #         f"\n last dropout           : {self.opt['last_dropout']}"    \
+    #         f"\n diff_sparsity_weights  : {self.opt['diff_sparsity_weights']}" \
+    #         f"\n skip_layer             : {self.opt['skip_layer']}"            \
+    #         f"\n is_curriculum          : {self.opt['is_curriculum']}"         \
+    #         f"\n curriculum_speed       : {self.opt['curriculum_speed']}"      \
+    #         f"                              \n"    \
+    #         f"\n task_lr                : {self.opt['train']['task_lr']}"  \
+    #         f"\n backbone_lr            : {self.opt['train']['backbone_lr']}"\
+    #         f"\n decay_lr_rate          : {self.opt['train']['decay_lr_rate']}" \
+    #         f"\n decay_lr_freq          : {self.opt['train']['decay_lr_freq']}" \
+    #         f"                              \n"    \
+    #         f"\n policy_lr              : {self.opt['train']['policy_lr']}"       \
+    #         f"\n policy_decay_lr_rate   : {self.opt['train']['policy_decay_lr_rate']}" \
+    #         f"\n policy_decay_lr_freq   : {self.opt['train']['policy_decay_lr_freq']}" \
+    #         f"\n lambda_sparsity        : {self.opt['train']['lambda_sparsity']}" \
+    #         f"\n lambda_sharing         : {self.opt['train']['lambda_sharing']}"  \
+    #         f"\n lambda_tasks           : {self.opt['train']['lambda_tasks']}"  \
+    #         f"                              \n"    \
+    #         f"\n Gumbel init_temp       : {self.opt['train']['init_temp']}"     \
+    #         f"\n Gumbel decay_temp      : {self.opt['train']['decay_temp']}"    \
+    #         f"\n Gumbel decay_temp_freq : {self.opt['train']['decay_temp_freq']}" \
+    #         f"\n Logit init_method      : {self.opt['train']['init_method']}"     \
+    #         f"\n Logit init_neg_logits  : {self.opt['train']['init_neg_logits']}" \
+    #         f"\n Logit hard_sampling    : {self.opt['train']['hard_sampling']}"   \
+    #         f"\n Warm-up epochs         : {self.opt['train']['warmup_epochs']}"   \
+    #         f"\n training epochs        : {self.opt['train']['training_epochs']}" \
+    #         f"\n Data split ratios      : {self.opt['dataload']['x_split_ratios']}"
+    #     return ln
+
 
     def write_run_info(self):
         split_rto = self.opt['dataload']['x_split_ratios']
@@ -173,16 +243,17 @@ class BaseEnv():
 
 
 ** {self.opt['exp_description']} **
-
-
-    Batch Size          :   {self.opt['train']['batch_size']}             
-    Data split ratios   :   {self.opt['dataload']['x_split_ratios']}
-    Hidden layers       :   {len(self.opt['hidden_sizes'])} - {self.opt['hidden_sizes']} 
-    starting task_lr    :   {self.opt['train']['task_lr']} 
-    starting backbone_lr:   {self.opt['train']['backbone_lr']} 
-    starting policy_lr  :   {self.opt['train']['policy_lr']} 
-    LR Decay freq       :   {self.opt['train']['decay_lr_freq']} |
-    LR Decay rate       :   {self.opt['train']['decay_lr_rate']} |
+        """
+    # Batch Size          :   {self.opt['train']['batch_size']}             
+    # Data split ratios   :   {self.opt['dataload']['x_split_ratios']}
+    # Hidden layers       :   {len(self.opt['hidden_sizes'])} - {self.opt['hidden_sizes']} 
+    # starting task_lr    :   {self.opt['train']['task_lr']} 
+    # starting backbone_lr:   {self.opt['train']['backbone_lr']} 
+    # starting policy_lr  :   {self.opt['train']['policy_lr']} 
+    # LR Decay freq       :   {self.opt['train']['decay_lr_freq']} |
+    # LR Decay rate       :   {self.opt['train']['decay_lr_rate']} |
+        md += self.disp_for_excel()
+        md += f"""
 
 **Hyperparameters**
 
@@ -207,7 +278,7 @@ class BaseEnv():
 
 """
         self.writer.add_text('_General Info_', md, 0)
-
+        return md
 
     def display_trained_logits(self, epoch=0, out = None):
         if not isinstance(out, list):
@@ -260,6 +331,7 @@ class BaseEnv():
         ln += '\n'
         for file in out:
             print(ln, file = file)
+            
 
     def display_train_sample_policy(self, epoch=0, temp = None, hard_sampling = False, out = None):
         if not isinstance(out, list):
@@ -325,7 +397,7 @@ class BaseEnv():
             write_metrics_txt(self.log_file, epoch, iter, elapsed_time, self.losses)
 
         if to_tb:
-            for key in ['parms', 'losses', 'losses_mean', 'total', 'sharing', 'sparsity']:
+            for key in ['parms']:
                 if key not in self.losses:
                     continue
                 # print(key + ':')
@@ -335,6 +407,16 @@ class BaseEnv():
                 elif (isinstance(self.losses[key], float)):
                     self.writer.add_scalar('trn_%s'%(key), self.losses[key], iter)
 
+            for key in [ 'task', 'task_mean', 'total', 'sharing', 'sparsity']:
+                if key not in self.losses:
+                    continue
+                # print(key + ':')
+                if isinstance(self.losses[key], dict):
+                    for subkey in self.losses[key].keys():
+                        self.writer.add_scalar('trn_loss_%s/%s'%(key, subkey), self.losses[key][subkey], iter)
+                elif (isinstance(self.losses[key], float)):
+                    self.writer.add_scalar('trn_loss_%s'%(key), self.losses[key], iter)
+
 
     def print_val_metrics(self, epoch, iter, start_time, metrics=None, title='Iteration', verbose = False):
         """ write metrics to tensorboard and optionally to sysout """
@@ -342,17 +424,18 @@ class BaseEnv():
             metrics = self.val_metrics
 
         title = f"{title} ep:{epoch}    it:{iter}"
-        ## Following items will be written as val_[key]:[subkey] to Tensorboard
-        for key in ['losses', 'losses_mean', 'sharing', 'sparsity']:
+
+        ## Following items will be written as val_loss[key]:[subkey] to Tensorboard
+        for key in ['task', 'task_mean', 'sharing', 'sparsity' , 'total']:
             if key not in metrics:
                 continue
             # print(key + ':')
             if isinstance(metrics[key], dict):
                 for subkey, metric_value in metrics[key].items():
-                    self.writer.add_scalar('val_%s/%s'%(key, subkey), metric_value, iter)
+                    self.writer.add_scalar('val_loss_%s/%s'%(key, subkey), metric_value, iter)
                     # print_current_errors(os.path.join(self.log_dir, 'loss.txt'), current_iter,key, metrics[key], time.time() - start_time)
             elif (isinstance(metrics[key], float)):
-                self.writer.add_scalar('val_%s'%(key), metrics[key], iter)
+                self.writer.add_scalar('val_loss_%s'%(key), metrics[key], iter)
                 # print_current_errors(os.path.join(self.log_dir, 'loss.txt'), current_iter,key, metrics[key], time.time() - start_time)
 
         ## Write aggregated metrics for each group (i.e, group of tasks)

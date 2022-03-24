@@ -404,7 +404,7 @@ columns_parms = [
 ]
 
 columns_training_loss = [
-    Column("losses",         size=10, dec= 4,  fmt = 'f', title="trn loss"),
+    Column("task",           size=10, dec= 4,  fmt = 'f', title="trn loss"),
     Column("sparsity",       size=13, dec= 4,  fmt = 'e', title="trn spar"),
     Column("sharing",        size=13, dec= 4,  fmt = 'e', title="trn shar"),
     Column("total",          size=10, dec= 4,  fmt = 'f', title="trn ttl"),
@@ -427,7 +427,7 @@ columns_agg_metrics = [
 ]
 
 columns_validation_loss = [
-    Column("losses",           size=10, dec= 4, fmt = 'f', title="val loss"),
+    Column("task",           size=10, dec= 4, fmt = 'f', title="val loss"),
     Column("sparsity",       size=13, dec= 4, fmt = 'e', title="val spar"),
     Column("sharing",        size=13, dec= 4, fmt = 'e', title="val shar"),
     Column("total",          size=11, dec= 4, fmt = 'f', title="val ttl"),
@@ -510,12 +510,9 @@ def print_metrics_cr(epoch, train_time, results_tr, results_va, printed_lines, n
     
     for  file in out:
         print(ln, file=file)
+        file.flush()
     
-    # for  file in out:
-    #     if to_tqdm and file == sys.stdout:
-    #         tqdm.tqdm.write(ln)
-    #     else:
-    #         print(ln, file=file)
+ 
 
     
     

@@ -1,4 +1,5 @@
 import os
+import sys
 import argparse
 import yaml
 import random
@@ -63,23 +64,25 @@ def print_dbg(text, verbose = False):
         print(text)
 
 # @debug_off
-def print_heading(text,  verbose = False, force = False):
+def print_heading(text,  verbose = False, force = False, out=[sys.stdout]):
     len_ttl = max(len(text)+4, 50)
     len_ttl = min(len_ttl, 120)
-    if verbose or force:
-        print('-' * len_ttl)
-        print(f"{text}")
-        # left_width = (total_len - len(text))//2
-        # right_width = total_len - len(text) - left_width
-        # print("#" * left_width + text + "#" * right_width)
-        print('-' * len_ttl, '\n')
+    if verbose or force: 
+        for file in out:
+            print('-' * len_ttl, file = file)
+            print(f"{text}", file = file)
+            # left_width = (total_len - len(text))//2
+            # right_width = total_len - len(text) - left_width
+            # print("#" * left_width + text + "#" * right_width)
+            print('-' * len_ttl, '\n', file=file)
 
 
-def print_underline(text,  verbose = False):
+def print_underline(text,  verbose = False, out=[sys.stdout]):
     len_ttl = len(text)+2
     if verbose:
-        print(f"\n {text}")
-        print('-' * len_ttl)
+        for file in out:
+            print(f"\n {text}", file=file)
+            print('-' * len_ttl, file=file)
 
 
 def print_yaml(opt):
@@ -110,20 +113,22 @@ def print_yaml2(opt, key = ""):
         lines = [f"{key:>20s} : {str(opt)}"]
     return lines
 
-def print_loss(losses, title='Iteration'):
+def print_loss(losses, title='Iteration', out = [sys.stdout]):
     """
     print loss summary line 
     """
-    loss_display = f"{title} -  Total Loss: {losses['total']['total']:.4f}     \nTask: {losses['losses']['total']:.4f}" 
+    loss_display = f"{title} -  Total Loss: {losses['total']['total']:.4f}     \nTask: {losses['task']['total']:.4f}" 
     if 'sparsity' in losses:
         loss_display += f"   Sparsity: {losses['sparsity']['total']:.5e}    Sharing: {losses['sharing']['total']:.5e} "
     # loss_display = f"{title}  {current_iter} \nLosses: Task: {self.losses['losses']['total']:.4f}   " 
     # if 'sparsity' in self.losses:
     #     loss_display += f"Spar: {self.losses['sparsity']['total']:.5e}   Shr: {self.losses['sharing']['total']:.5e}"
     # loss_display += f"   Ttl: {self.losses['total']['total']:.4f}"
+    print_to(loss_display, out = out)
 
-    print(loss_display)
-
+def print_to(data, out = [sys.stdout]):
+    for file in out:
+        print(data, file = file)
 
 def show_batch(batch):
     normed = batch * 0.5 + 0.5
@@ -167,7 +172,7 @@ def listopt(opt, f=None):
 
 
 def write_metrics_txt(log_name, epoch, iteration, elapsed, losses):
-    sorted_keys = sorted( [ 'losses', 'losses_mean','parms', 'sharing', 'sparsity', 'total'])
+    sorted_keys = sorted( [ 'task', 'task_mean','parms', 'sharing', 'sparsity', 'total'])
     
     for key in sorted_keys:
         if key not in losses:
@@ -185,7 +190,7 @@ def write_metrics_txt(log_name, epoch, iteration, elapsed, losses):
 
 def write_loss_csv_heading(log_name,  losses):
     message = ' epoch, iteration, timestamp,elapsed,' 
-    sorted_keys = sorted([ 'losses', 'losses_mean', 'parms', 'sharing', 'sparsity', 'total'])
+    sorted_keys = sorted(['task', 'task_mean', 'parms', 'sharing', 'sparsity', 'total'])
     
     for key in sorted_keys:
         if key not in losses:
@@ -203,7 +208,7 @@ def write_loss_csv_heading(log_name,  losses):
 
 def write_metrics_csv(log_name, epoch, iteration, elapsed, losses):
     message = '%4d,%4d,%26s,%6.3f,' % (epoch, iteration, timestring(), elapsed)
-    sorted_keys = sorted([ 'losses', 'losses_mean', 'parms', 'sharing', 'sparsity', 'total'])
+    sorted_keys = sorted([ 'task', 'task_mean', 'parms', 'sharing', 'sparsity', 'total'])
     
     for key in sorted_keys:
         if key not in losses:
@@ -233,8 +238,6 @@ def load_from_pickle( path, filename, verbose = False):
     with open(load_path, 'rb') as handle:
         data = pickle.load(handle)
     return data
-
-
 
 
 def images_to_visual(tensor):
@@ -449,6 +452,12 @@ def read_yaml(args = None, exp_name = None):
     if args.lambda_sharing  is not None:
         opt['train']['lambda_sharing'] = args.lambda_sharing
     
+    if args.task_lr  is not None:
+        opt['train']['task_lr'] = args.task_lr
+    
+    if args.task_lr  is not None:
+        opt['train']['backbone_lr'] = args.backbone_lr
+
     if args.policy_lr  is not None:
         opt['train']['policy_lr'] = args.policy_lr
 
@@ -466,6 +475,7 @@ def read_yaml(args = None, exp_name = None):
     
     if args.folder_sfx is not None:
         opt['exp_name'] += f"_{args.folder_sfx}"
+
     if args.exp_desc is not None:
         opt['exp_description'] = args.exp_desc 
 
@@ -485,12 +495,12 @@ def build_exp_folder_name(opt):
                       f"_{opt['exp_name']}"\
                       f"_plr{opt['train']['policy_lr']}" \
                       f"_sp{opt['train']['lambda_sparsity']}" \
-                      f"_sh{opt['train']['lambda_sharing']}"   
+                      f"_sh{opt['train']['lambda_sharing']}"  \
+                      f"_lr{opt['train']['backbone_lr']}"   
     else:
         folder_name = f"{opt['hidden_sizes'][0]}x{len(opt['hidden_sizes'])}" \
                       f"_{opt['exp_name']}"     
     #   f"_bs{opt['train']['batch_size']:03d}" \
-    #   f"_lr{opt['train']['backbone_lr']}"   \
     #   f"_dr{opt['train']['decay_lr_rate']:3.2f}" \
     #   f"_df{opt['train']['decay_lr_freq']:04d}"      
     return folder_name 
@@ -836,3 +846,5 @@ def check_for_best_metrics(best_value, current_iter, refer_metrics, val_metrics,
         print('new value: %.3f' % new_value)
         print('best iter: %d, best value: %.3f' % (best_iter, best_value), best_metrics)    
     return best_value, best_iter, best_metrics
+
+

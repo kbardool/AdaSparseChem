@@ -250,6 +250,44 @@ class MTL3(nn.Module):
         return policys, logits
 
     ##----------------------------------------------------
+    ##  ResNet  
+    ##----------------------------------------------------
+    def residual_policy(self,   verbose = False):
+        """
+        Provide [1, 1] policy for each layer, i.e. - Do a residual layer
+        """
+        # print_dbg(f" MTL3 test_sample_policy() START -  hard sampling: {hard_sampling}", verbose = verbose)
+        logits  = []
+        policys = []
+
+        for t_id in range(self.num_tasks):
+            task_logits_attribute = f"task{t_id+1}_logits"
+            task_logits  = getattr(self, task_logits_attribute)
+            cuda_device  = task_logits.get_device()
+            task_logits  = task_logits.detach().cpu().numpy()
+
+            task_policy  = np.ones_like(task_logits) 
+
+            if cuda_device != -1:
+                task_policy = torch.from_numpy(np.array(task_policy)).to('cuda:%d' % cuda_device)
+            else:
+                task_policy = torch.from_numpy(np.array(task_policy))
+            
+            logits.append(task_logits)
+            policys.append(task_policy)
+
+            if verbose:
+                print_underline(f"task{t_id+1} logits", verbose = verbose )
+                print_dbg(f" {logits}", verbose =  verbose )
+                print_underline(f"task {t_id+1} sampled policy :", verbose = verbose)
+                print_dbg(f" {task_policy}", verbose = verbose )
+                print()         
+            
+
+        # print_dbg(f" MTL3 test_sample_policy() END -  hard sampling: {hard_sampling}", verbose= verbose)
+        return policys, logits
+
+    ##----------------------------------------------------
     ##  forward routine
     ##----------------------------------------------------
     def forward(self, input, 
@@ -299,10 +337,12 @@ class MTL3(nn.Module):
         ## methofd based on policy_sampling_mode. 
         ##-----------------------------------------------------------------------------
         if is_policy:
-            if policy_sampling_mode == 'train':
+            if policy_sampling_mode   == 'train':
                 self.policys, self.logits = self.train_sample_policy(temperature, hard_sampling, verbose = verbose)
             elif policy_sampling_mode == 'eval':
                 self.policys, self.logits = self.test_sample_policy(hard_sampling, verbose = verbose)
+            elif policy_sampling_mode == 'residual':
+                self.policys, self.logits = self.residual_policy(verbose = True)
             elif policy_sampling_mode == 'fix_policy':
                 for p in self.policys:
                     assert(p is not None)
@@ -346,7 +386,7 @@ class MTL3(nn.Module):
                 #           f"non-training layers : shape: {task_policy.shape}   \n {task_policy}", verbose = verbose)
                 active_policys.append(task_policy)
 
-                ## pass input and policy through the backbone network for the task
+                ## PASS INPUT through BACKBONE based on TASK_POLICY
                 task_feats = self.backbone(input, task_policy, task_id = f"task_{t_id+1}")
                 feats.append(task_feats)
         
