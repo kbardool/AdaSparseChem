@@ -14,9 +14,12 @@ from utils.util import ( makedir, print_separator, create_path, print_yaml, prin
                          print_underline, write_config_report, display_config, get_command_line_args, is_notebook) 
 
 
-def initialize(input_args, build_folders = True):
+def initialize(input_args = None, build_folders = True):
     ns = types.SimpleNamespace()
-    ns.args = get_command_line_args(input_args.split(), display = True)
+    
+    input_args = input_args.split() if input_args is not None else input_args
+
+    ns.args = get_command_line_args(input_args, display = True)
         
  
     # ********************************************************************
