@@ -459,8 +459,8 @@ def weight_policy_training(ns, opt, environ, dldrs, epochs = None, display_polic
                              line_count, out=[sys.stdout, environ.log_file])      
             line_count +=1
 
-            # environ.schedulers['alphas'].step(val_metrics['total']['total'])
-            environ.schedulers['alphas'].step()
+            environ.schedulers['alphas'].step(val_metrics['total']['total'])
+            # environ.schedulers['alphas'].step()
 
             wandb.log(environ.val_metrics)
 

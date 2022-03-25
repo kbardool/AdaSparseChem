@@ -212,9 +212,16 @@ class SparseChemEnv_Dev(BaseEnv):
 
         if  ('policy_decay_lr_freq' in self.opt['train'].keys())  and \
             ('policy_decay_lr_rate' in self.opt['train'].keys()) :
-            self.schedulers['alphas'] = scheduler.StepLR(self.optimizers['alphas'],
-                                                            step_size=self.opt['train']['policy_decay_lr_freq'],
-                                                                gamma=self.opt['train']['policy_decay_lr_rate'])
+            # self.schedulers['alphas'] = scheduler.StepLR(self.optimizers['alphas'],
+                                                            # step_size=self.opt['train']['policy_decay_lr_freq'],
+                                                                # gamma=self.opt['train']['policy_decay_lr_rate'])
+
+            self.schedulers['alphas'] = scheduler.ReduceLROnPlateau(self.optimizers['alphas'], 
+                                                                     mode = 'min',
+                                                                     factor=self.opt['train']['policy_decay_lr_rate'],
+                                                                     patience=self.opt['train']['policy_decay_lr_freq'],   
+                                                                     cooldown=5,
+                                                                     verbose = True)                                                                
 
         if ('decay_lr_freq' in self.opt['train'].keys()) and \
             ('decay_lr_rate' in self.opt['train'].keys()):
@@ -674,7 +681,8 @@ class SparseChemEnv_Dev(BaseEnv):
 
             # for i, lr in enumerate(self.schedulers['alphas'].get_last_lr()):
             #     self.losses['parms'][f'policy_lr_{i}'] = lr
-            loss_metrics['parms'][f'policy_lr'] = self.schedulers['alphas'].get_last_lr()[0]
+            # loss_metrics['parms'][f'policy_lr'] = self.schedulers['alphas'].get_last_lr()[0]
+            loss_metrics['parms'][f'policy_lr'] = self.optimizers['alphas'].param_groups[0]['lr']
 
             loss_metrics['parms'][f'lambda_sparsity'] = self.opt['train']['lambda_sparsity'] 
             loss_metrics['parms'][f'lambda_sharing'] = self.opt['train']['lambda_sharing'] 

@@ -26,8 +26,8 @@ input_size           : 32000
 # tail_hidden_size     : 50
 # hidden_sizes         : [75, 75, 75, 75, 75, 75]
 # tail_hidden_size     : 75
-hidden_sizes         : [100, 100, 100, 100, 100, 100]
-tail_hidden_size     : 100
+# hidden_sizes         : [100, 100, 100, 100, 100, 100]
+# tail_hidden_size     : 100
 # hidden_sizes         : [150, 150, 150, 150, 150, 150]
 # tail_hidden_size     : 150
 
