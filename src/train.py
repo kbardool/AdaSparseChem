@@ -97,7 +97,7 @@ print(environ.disp_for_excel())
 # ********************************************************************        
 
 print_separator('WARMUP TRAINING')
-ns.warmup_epochs = 10
+# ns.warmup_epochs = 10
 print(ns.warmup_epochs, ns.current_epoch)
 print_heading(f" Last Epoch: {ns.current_epoch}   # of warm-up epochs to do:  {ns.warmup_epochs}"
               f" - Run epochs {ns.current_epoch+1} to {ns.current_epoch + ns.warmup_epochs}", verbose = True)
@@ -134,7 +134,7 @@ if ns.flag_warmup:
     environ.fix_alpha()
     environ.free_weights(opt['fix_BN'])
 
-ns.training_epochs = 10
+# ns.training_epochs = 10
 print(f"ns.current_epoch           : {ns.current_epoch}") 
 print(f"ns.training_epochs         : {ns.training_epochs} \n") 
 print(f"ns.current_iters           : {ns.current_iter}")  

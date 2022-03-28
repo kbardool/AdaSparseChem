@@ -198,7 +198,7 @@ def training_prep(ns, opt, environ, dldrs, phase = 'update_w', epoch = 0, iter =
     ns.warmup_epochs      = opt['train']['warmup_epochs']
     ns.training_epochs    = opt['train']['training_epochs']
     ns.curriculum_speed   = opt['curriculum_speed'] 
-
+    ns.curriculum_epochs  =  0
     # ns.stop_epoch_warmup  = ns.current_epoch + ns.warmup_epochs    
     # ns.stop_epoch_training= ns.current_epoch + ns.training_epochs    
     return
@@ -311,8 +311,11 @@ def warmup_phase(ns,opt, environ, dldrs, epochs = None):
             line_count += 1
 
             environ.schedulers['weights'].step(val_metrics['total']['total'])
-            
+            environ.schedulers['alphas'].step(val_metrics['total']['total'])            
             wandb.log(environ.val_metrics)
+            
+            # Checkpoint on best results
+            check_for_improvement(ns,opt,environ)    
 
     wrapup_phase(ns, opt, environ)
     return 
@@ -329,8 +332,7 @@ def weight_policy_training(ns, opt, environ, dldrs, epochs = None, display_polic
 
     if opt['is_curriculum']:
         ns.curriculum_epochs = (environ.num_layers * opt['curriculum_speed'])
-    else:
-        ns.curriculum_epochs =  0
+ 
 
     print_heading(f" Last Epoch Completed : {ns.current_epoch}   # of epochs to run:  {ns.training_epochs}"
                   f" -->  epochs {ns.current_epoch+1} to {ns.stop_epoch_training}    \n"
@@ -463,8 +465,6 @@ def weight_policy_training(ns, opt, environ, dldrs, epochs = None, display_polic
             line_count +=1
 
             environ.schedulers['alphas'].step(val_metrics['total']['total'])
-            # environ.schedulers['alphas'].step()
-
             wandb.log(environ.val_metrics)
 
             # Checkpoint on best results

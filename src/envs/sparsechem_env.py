@@ -824,6 +824,7 @@ class SparseChemEnv_Dev(BaseEnv):
 
                         task_class_weights[task_key]     += self.batch_data[task_key]['yc_wghts_sum']
                         
+                        ## 
                         agg_data[task_key]['yc_trn_weights']  = self.batch_data[task_key]['yc_trn_weights']
                         agg_data[task_key]['yc_aggr_weights'] = self.batch_data[task_key]['yc_aggr_weights']
 
@@ -933,9 +934,6 @@ class SparseChemEnv_Dev(BaseEnv):
                 # print(f" task_loss_sum_mean[task_key]     {type(task_loss_sum_mean[task_key])}")
                 # print(f" task_sparsity_loss_sum[task_key] {type(task_sparsity_loss_sum[task_key])}")
 
-                # self.val_metrics["task"][task_key]      = task_loss_sum[task_key].cpu().item() / batch_idx
-                # self.val_metrics["task_mean"][task_key] = task_loss_sum_mean[task_key].cpu().item() / batch_idx 
-                # self.val_metrics["sparsity"][task_key]  = task_sparsity_loss_sum[task_key].cpu().item() / batch_idx
                 
                 self.val_data[task_key]['yc_ind']  = torch.cat(agg_data[task_key]['yc_ind'] , dim=1).numpy()
                 self.val_data[task_key]['yc_data'] = torch.cat(agg_data[task_key]['yc_data'], dim=0).numpy()

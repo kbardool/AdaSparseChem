@@ -390,6 +390,8 @@ def get_command_line_args(input = None, display = True):
     parser.add_argument("--exp_desc"         , type=str,   nargs='+', default=[] , help="experiment description")
     parser.add_argument("--hidden_sizes"     , type=int,   nargs='+', default=[] , help="hiddenlayers sizes")
     parser.add_argument("--tail_hidden_size" , type=int,   help="tail hidden layers sizes")
+    parser.add_argument("--warmup_epochs"    , type=int,   help="Warmup epochs")
+    parser.add_argument("--training_epochs"  , type=int,   help="Training epochs")
     parser.add_argument("--seed_idx"         , type=int,   default=0, help="Seed index - default is 0")
     parser.add_argument("--batch_size"       , type=int,   help="Batchsize - default read from config file")
     parser.add_argument("--backbone_lr"      , type=float, help="Backbone Learning Rate Override - default read from config file")
@@ -400,6 +402,7 @@ def get_command_line_args(input = None, display = True):
     parser.add_argument("--lambda_sparsity"  , type=float, help="Sparsity Regularization - default read from config file")
     parser.add_argument("--lambda_sharing"   , type=float, help="Sharing Regularization - default read from config file")
     parser.add_argument("--gpu_ids"          , type=int,   nargs='+', default=[0],  help="GPU Device Ids")
+    # parser.add_argument("--policy"           , action="store_true",  help="Train policies")
     parser.add_argument("--resume"           , default=False, action="store_true",  help="Resume previous run")
     parser.add_argument("--cpu"              , default=False, action="store_true",  help="CPU instead of GPU")
     if input is None:
@@ -448,6 +451,12 @@ def read_yaml(args = None, exp_name = None):
     opt['folder_sfx'] = args.folder_sfx
     opt['train']['resume'] = args.resume
 
+    if args.warmup_epochs is not None:
+        opt['train']['warmup_epochs'] = args.warmup_epochs
+        
+    if args.training_epochs is not None:
+        opt['train']['training_epochs'] = args.training_epochs
+        
     if args.lambda_sparsity is not None:
         opt['train']['lambda_sparsity'] = args.lambda_sparsity
 
@@ -477,14 +486,17 @@ def read_yaml(args = None, exp_name = None):
         opt["exp_id"] = args.exp_id 
 
     if exp_name is not None:
-        opt['exp_name'] = exp_name
+        opt['exp_name_pfx'] = exp_name
     elif args.exp_name is not None:
-        opt['exp_name'] = args.exp_name
+        opt['exp_name_pfx'] = args.exp_name
     else: 
-        opt['exp_name'] = datetime.now().strftime("%m%d_%H%M")
+        opt['exp_name_pfx'] = datetime.now().strftime("%m%d_%H%M")
+    
+    opt['exp_name']   = opt['exp_name_pfx'] 
     
     if args.folder_sfx is not None:
-        opt['exp_name'] += f"_{args.folder_sfx}"
+        opt['folder_sfx'] = args.folder_sfx
+        opt['exp_name']  += f"_{args.folder_sfx}"
 
     if args.exp_desc is not None:
         opt['exp_description'] = args.exp_desc 
@@ -500,16 +512,18 @@ def read_yaml(args = None, exp_name = None):
 
 
 def build_exp_folder_name(opt):
-    if opt['folder_sfx'] is None:
-        folder_name = f"{opt['hidden_sizes'][0]}x{len(opt['hidden_sizes'])}" \
-                      f"_{opt['exp_name']}"\
-                      f"_plr{opt['train']['policy_lr']}" \
-                      f"_sp{opt['train']['lambda_sparsity']}" \
-                      f"_sh{opt['train']['lambda_sharing']}"  \
-                      f"_lr{opt['train']['backbone_lr']}"   
-    else:
-        folder_name = f"{opt['hidden_sizes'][0]}x{len(opt['hidden_sizes'])}" \
-                      f"_{opt['exp_name']}"     
+    folder_name = f"{opt['hidden_sizes'][0]}x{len(opt['hidden_sizes'])}" \
+                    f"_{opt['exp_name_pfx']}"\
+                    f"_plr{opt['train']['policy_lr']}" \
+                    f"_sp{opt['train']['lambda_sparsity']}" \
+                    f"_sh{opt['train']['lambda_sharing']}"  \
+                    f"_lr{opt['train']['backbone_lr']}"   
+    
+    if opt['folder_sfx'] is not None:
+        folder_name += f"_{opt['folder_sfx']}"
+        
+    # f"{opt['hidden_sizes'][0]}x{len(opt['hidden_sizes'])}" \
+                    #   f"_{opt['exp_name']}"     
     #   f"_bs{opt['train']['batch_size']:03d}" \
     #   f"_dr{opt['train']['decay_lr_rate']:3.2f}" \
     #   f"_df{opt['train']['decay_lr_freq']:04d}"      
