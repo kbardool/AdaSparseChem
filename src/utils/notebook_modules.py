@@ -199,6 +199,7 @@ def training_prep(ns, opt, environ, dldrs, phase = 'update_w', epoch = 0, iter =
     ns.training_epochs    = opt['train']['training_epochs']
     ns.curriculum_speed   = opt['curriculum_speed'] 
     ns.curriculum_epochs  =  0
+    ns.check_for_improvment_wait  = 0
     # ns.stop_epoch_warmup  = ns.current_epoch + ns.warmup_epochs    
     # ns.stop_epoch_training= ns.current_epoch + ns.training_epochs    
     return
@@ -238,7 +239,7 @@ def retrain_prep(ns, opt, environ, dldrs, phase = 'update_w', epoch = 0, iter = 
     # environ.define_scheduler(policy_learning=False)   
     ns.current_epoch  = epoch
     ns.current_iter   = iter
- 
+    ns.check_for_improvment_wait  = 0
     ns.best_results   = {}
     ns.best_metrics   = None
     ns.best_value     = 0 
@@ -270,6 +271,7 @@ def warmup_phase(ns,opt, environ, dldrs, epochs = None):
     while ns.current_epoch < ns.stop_epoch_warmup:
         start_time = time.time()
         ns.current_epoch+=1
+        environ.train()    
         #-----------------------------------------
         # Train & Update the network weights
         #-----------------------------------------   
@@ -278,7 +280,6 @@ def warmup_phase(ns,opt, environ, dldrs, epochs = None):
             for _ in t_warmup:
                 ns.current_iter += 1            
 
-                environ.train()    
                 batch = next(dldrs.warmup_trn_loader)            
                 environ.set_inputs(batch, input_size)
 
@@ -290,33 +291,41 @@ def warmup_phase(ns,opt, environ, dldrs, epochs = None):
                 t_warmup.set_postfix({'curr_iter':ns.current_iter, 
                                     'Loss': f"{environ.losses['total']['total'].item():.4f}"})
 
-            trn_losses = environ.losses
-            environ.print_trn_metrics(ns.current_epoch, ns.current_iter, start_time, title = f"[Warmup Trn]")
-            wandb.log(environ.losses)
+        trn_losses = environ.losses
+        environ.print_trn_metrics(ns.current_epoch, ns.current_iter, start_time, title = f"[Warmup Trn]")
+        wandb.log(environ.losses)
 
-            ##--------------------------------------------------------------- 
-            ## validation
-            ##--------------------------------------------------------------- 
-            val_metrics = environ.evaluate(dldrs.val_loader,
-                                           is_policy       = False, 
-                                           num_train_layers= None,
-                                           eval_iters      = ns.eval_iters, 
-                                           progress        = True,
-                                           leave           = False,
-                                           verbose         = False)
+        ##--------------------------------------------------------------- 
+        ## validation
+        ##--------------------------------------------------------------- 
+        val_metrics = environ.evaluate(dldrs.val_loader,
+                                        is_policy       = False, 
+                                        num_train_layers= None,
+                                        eval_iters      = ns.eval_iters, 
+                                        progress        = True,
+                                        leave           = False,
+                                        verbose         = False)
 
-            environ.print_val_metrics(ns.current_epoch, ns.current_iter, start_time, title = f"[Warmup Val]")    
-            print_metrics_cr(ns.current_epoch,  time.time() - start_time, trn_losses, environ.val_metrics, line_count, 
-                            out=[sys.stdout, environ.log_file], to_tqdm = True) 
-            line_count += 1
+        environ.print_val_metrics(ns.current_epoch, ns.current_iter, start_time, title = f"[Warmup Val]")    
+        print_metrics_cr(ns.current_epoch,  time.time() - start_time, trn_losses, environ.val_metrics, line_count, 
+                        out=[sys.stdout, environ.log_file], to_tqdm = True) 
+        line_count += 1
 
-            environ.schedulers['weights'].step(val_metrics['total']['total'])
-            environ.schedulers['alphas'].step(val_metrics['total']['total'])            
-            wandb.log(environ.val_metrics)
-            
-            # Checkpoint on best results
-            check_for_improvement(ns,opt,environ)    
-
+        environ.schedulers['weights'].step(val_metrics['total']['total'])
+        environ.schedulers['alphas'].step(val_metrics['total']['total'])            
+        wandb.log(environ.val_metrics)
+        
+        # Checkpoint on best results
+        check_for_improvement(ns,opt,environ)    
+        
+        # if should(ns.current_epoch, 5):
+        #     environ.save_checkpoint('model_latest_weights_policy', ns.current_iter, ns.current_epoch)        
+        #     print_loss(environ.val_metrics, title = f"\n[e] Policy training epoch:{ns.current_epoch}  it:{ns.current_iter}",
+        #               out=[sys.stdout, environ.log_file])
+        #     environ.display_trained_policy(ns.current_epoch,out=[sys.stdout, environ.log_file])
+        #     environ.log_file.flush()
+        #     line_count = 0
+    
     wrapup_phase(ns, opt, environ)
     return 
 
@@ -592,7 +601,8 @@ def check_for_improvement(ns,opt,environ):
     #----------------------------------------------------------------------- 
     ## ns.curriculum_epochs = (environ.num_layers * opt['curriculum_speed']) 
 
-    if (ns.current_epoch - opt['train']['warmup_epochs']) >= ns.curriculum_epochs:    
+    # if (ns.current_epoch - opt['train']['warmup_epochs']) >= ns.curriculum_epochs:    
+    if (ns.current_epoch - ns.check_for_improvment_wait) >= ns.curriculum_epochs:    
 
         if environ.val_metrics['aggregated']['avg_prec_score'] > ns.best_value:
             print('Previous best_epoch: %5d   best iter: %5d,   best_value: %.5f' % (ns.best_epoch, ns.best_iter, ns.best_value))        
@@ -606,6 +616,7 @@ def check_for_improvement(ns,opt,environ):
             metrics_label = 'metrics_best_seed_%04d.pickle' % (opt['random_seed'])
             save_to_pickle(environ.val_metrics, environ.opt['paths']['checkpoint_dir'], metrics_label)    
     return
+
 
 def disp_dataloader_info(dldrs):
     """ display dataloader information"""
