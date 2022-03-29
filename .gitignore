@@ -19,3 +19,5 @@ nyu_v2_samples/**
 *.pickle
 *.code-workspace
 nb_ScratchPad.ipynb
+*.pbs
+pbs**

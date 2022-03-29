@@ -13,6 +13,7 @@ from utils.util import ( makedir, print_separator, create_path, print_yaml, prin
                          fix_random_seed, read_yaml, timestring, print_heading, print_dbg, save_to_pickle, load_from_pickle,
                          print_underline, write_config_report, display_config, get_command_line_args, is_notebook) 
 
+DISABLE_TQDM = True
 
 def initialize(input_args = None, build_folders = True):
     ns = types.SimpleNamespace()
@@ -20,22 +21,16 @@ def initialize(input_args = None, build_folders = True):
     input_args = input_args.split() if input_args is not None else input_args
 
     ns.args = get_command_line_args(input_args, display = True)
-        
- 
+         
     # ********************************************************************
     # ****************** create folders and print options ****************
     # ********************************************************************
     print_separator('READ YAML')
 
-    
     opt = read_yaml(ns.args)
 
     fix_random_seed(opt["random_seed"])
         
-    # opt['exp_instance'] = datetime.now().strftime("%m%d_%H%M")
-    # opt['exp_instance'] = '0218_1358'     
-    # opt['exp_description'] = f"Retrain phase for 0218_1358"
-    # folder_name=  f"{opt['exp_instance']}_bs{opt['train']['batch_size']:03d}_{opt['train']['decay_lr_rate']:3.2f}_{opt['train']['decay_lr_freq']}"
     if build_folders:
         create_path(opt)    
      
@@ -116,23 +111,16 @@ def init_environment(ns, opt, is_train = True, policy_learning = False, display_
 
 def init_wandb(namespace, opt, environment, resume = "allow" , log_freq  = 10):
 
+    # wandb_run_name = opt['exp_instance']
     # opt['exp_id'] = wandb.util.generate_id()
     print(opt['exp_id'], opt['exp_name'], opt['project_name']) # , opt['exp_instance'])
-
-    # run = wandb.init(project="AdaSparseChem", entity="kbardool", resume="allow", id = opt['exp_id'], name = opt['exp_instance'])
     namespace.wandb_run = wandb.init(project=opt['project_name'], entity="kbardool", resume=resume, id = opt['exp_id'], name = opt['exp_name'])
-    
     wandb.config = opt.copy()
 
     # wandb.watch(environ.networks['mtl-net'], log='all', log_freq=10)
     wandb.watch(environment.networks['mtl-net'], log='all', log_freq= log_freq)     ###  Weights and Biases Initialization 
 
     # assert wandb.run is None, "Run is still running"
-
-    # wandb_run_name = opt['exp_instance']
-    # wandb_run_id = wandb.util.generate_id()
-    # print(opt['exp_uid'], opt['exp_instance'])
-
     print(f" PROJECT NAME: {namespace.wandb_run.project}\n"
           f" RUN ID      : {namespace.wandb_run.id} \n"
           f" RUN NAME    : {namespace.wandb_run.name}")     
@@ -200,8 +188,7 @@ def training_prep(ns, opt, environ, dldrs, phase = 'update_w', epoch = 0, iter =
     ns.curriculum_speed   = opt['curriculum_speed'] 
     ns.curriculum_epochs  =  0
     ns.check_for_improvment_wait  = 0
-    # ns.stop_epoch_warmup  = ns.current_epoch + ns.warmup_epochs    
-    # ns.stop_epoch_training= ns.current_epoch + ns.training_epochs    
+
     return
 
 
@@ -276,7 +263,7 @@ def warmup_phase(ns,opt, environ, dldrs, epochs = None):
         # Train & Update the network weights
         #-----------------------------------------   
         with trange(+1, ns.stop_iter_w+1 , initial = 0 , total = ns.stop_iter_w, position=0, file=sys.stdout,
-                    leave= False, desc=f" Warmup Epoch {ns.current_epoch}/{ns.stop_epoch_warmup}") as t_warmup :
+                    leave= False, disable = DISABLE_TQDM, desc=f" Warmup Epoch {ns.current_epoch}/{ns.stop_epoch_warmup}") as t_warmup :
             for _ in t_warmup:
                 ns.current_iter += 1            
 
@@ -302,7 +289,7 @@ def warmup_phase(ns,opt, environ, dldrs, epochs = None):
                                         is_policy       = False, 
                                         num_train_layers= None,
                                         eval_iters      = ns.eval_iters, 
-                                        progress        = True,
+                                        disable_tqdm    = DISABLE_TQDM,
                                         leave           = False,
                                         verbose         = False)
 
@@ -318,14 +305,6 @@ def warmup_phase(ns,opt, environ, dldrs, epochs = None):
         # Checkpoint on best results
         check_for_improvement(ns,opt,environ)    
         
-        # if should(ns.current_epoch, 5):
-        #     environ.save_checkpoint('model_latest_weights_policy', ns.current_iter, ns.current_epoch)        
-        #     print_loss(environ.val_metrics, title = f"\n[e] Policy training epoch:{ns.current_epoch}  it:{ns.current_iter}",
-        #               out=[sys.stdout, environ.log_file])
-        #     environ.display_trained_policy(ns.current_epoch,out=[sys.stdout, environ.log_file])
-        #     environ.log_file.flush()
-        #     line_count = 0
-    
     wrapup_phase(ns, opt, environ)
     return 
 
@@ -379,7 +358,8 @@ def weight_policy_training(ns, opt, environ, dldrs, epochs = None, display_polic
             environ.train()
             
             with trange(+1, ns.stop_iter_w+1 , initial = 0, total = ns.stop_iter_w,  file=sys.stdout,
-                        position=0, ncols = 132, leave= False, desc=f"Ep: {ns.current_epoch} [weights]") as t_weights :
+                        position=0, ncols = 132, leave= False, disable = DISABLE_TQDM, 
+                        desc=f"Ep: {ns.current_epoch} [weights]") as t_weights :
                 
                 for _ in t_weights:    
                     ns.current_iter += 1
@@ -407,8 +387,10 @@ def weight_policy_training(ns, opt, environ, dldrs, epochs = None, display_polic
             # validation process (here current_iter_w and stop_iter_w are equal)
             #--------------------------------------------------------------------
             val_metrics = environ.evaluate(dldrs.val_loader,  is_policy=opt['policy'],
-                                        num_train_layers=ns.num_train_layers, hard_sampling=opt['train']['hard_sampling'],
-                                        eval_iters = ns.eval_iters, progress = True, leave = False, verbose = False)  
+                                           num_train_layers=ns.num_train_layers,
+                                           hard_sampling=opt['train']['hard_sampling'],
+                                           eval_iters      = ns.eval_iters, 
+                                           disable_tqdm = DISABLE_TQDM, leave = False, verbose = False)  
 
             environ.print_val_metrics(ns.current_epoch, ns.current_iter, start_time, title = f"[Weight Val]", verbose = False)
             print_metrics_cr(ns.current_epoch, time.time() - start_time, trn_losses, environ.val_metrics, line_count, out=[sys.stdout, environ.log_file]) 
@@ -436,7 +418,8 @@ def weight_policy_training(ns, opt, environ, dldrs, epochs = None, display_polic
             environ.train()
             
             with trange( +1, ns.stop_iter_a+1 , initial = 0, total = ns.stop_iter_a,   file=sys.stdout,
-                        position=0, dynamic_ncols = True, leave= False, desc=f"Ep:{ns.current_epoch} [policy] ") as t_policy :
+                        position=0, dynamic_ncols = True, leave= False,  disable = DISABLE_TQDM, 
+                        desc=f"Ep:{ns.current_epoch} [policy] ") as t_policy :
                 for _ in t_policy:    
                     ns.current_iter += 1
                     batch = next(dldrs.policy_trn_loader)
@@ -465,8 +448,10 @@ def weight_policy_training(ns, opt, environ, dldrs, epochs = None, display_polic
             # validation process (here current_iter_a and stop_iter_a are equal)
             #--------------------------------------------------------------------        
             val_metrics = environ.evaluate(dldrs.val_loader, is_policy=opt['policy'],
-                                        num_train_layers=ns.num_train_layers, hard_sampling=opt['train']['hard_sampling'],
-                                        eval_iters = ns.eval_iters, progress = True, leave = False, verbose = False)  
+                                           num_train_layers=ns.num_train_layers, 
+                                           hard_sampling=opt['train']['hard_sampling'],
+                                           eval_iters = ns.eval_iters, 
+                                           disable_tqdm = DISABLE_TQDM, leave = False, verbose = False)  
 
             environ.print_val_metrics(ns.current_epoch, ns.current_iter, start_time, title = f"[Policy Val]", verbose = False)
             print_metrics_cr(ns.current_epoch, time.time() - start_time, trn_losses, environ.val_metrics, 
@@ -538,7 +523,7 @@ def retrain_phase(ns, opt, environ, dldrs, epochs = None, display_policy = False
         start_time = time.time()
 
         with trange(+1, ns.stop_iter_w+1 , initial = 0, total = ns.stop_iter_w, position=0,  file=sys.stdout,
-                        ncols = 132, leave= False, desc=f"Epoch {ns.current_epoch} weight training") as t_weights :
+                        ncols = 132, leave= False, disable = DISABLE_TQDM, desc=f"Epoch {ns.current_epoch} weight training") as t_weights :
             for _ in t_weights:    
                 ns.current_iter += 1
                 environ.train()

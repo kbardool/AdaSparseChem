@@ -743,8 +743,8 @@ class SparseChemEnv_Dev(BaseEnv):
 
 
     def evaluate(self, dataloader,  is_policy= False, num_train_layers=None, hard_sampling=False,
-                policy_sampling_mode = 'eval',
-                device = None, progress=True, eval_iters=-1, leave = False, verbose = False):
+                policy_sampling_mode = 'eval', device = None, disable_tqdm=False, 
+                eval_iters=-1, leave = False, verbose = False):
 
         self.val_metrics = self.initialize_loss_metrics()
         
@@ -753,11 +753,6 @@ class SparseChemEnv_Dev(BaseEnv):
         task_loss_sum_mean = {}
         task_sparsity_loss_sum  = {}
         task_class_weights  = {}
-
-        # val_metrics_task_total        = 0.0
-        # val_metrics_task_mean_total   = 0.0
-        # val_metrics_sparsity_total    = 0.0
-        # val_metrics_sharing_total     = 0.0
 
         all_tasks_class_weights = 0.0
 
@@ -792,7 +787,7 @@ class SparseChemEnv_Dev(BaseEnv):
         with torch.no_grad():
 
             with trange(1,eval_iters+1, total=eval_iters, initial=0, leave=leave, file=sys.stdout,
-                         disable=(progress==False), position=0, desc = "validation") as t_validation:
+                         disable=disable_tqdm, position=0, desc = "validation") as t_validation:
                 
                 for batch_idx in t_validation:
             
