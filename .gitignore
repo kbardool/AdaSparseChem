@@ -21,3 +21,5 @@ nyu_v2_samples/**
 nb_ScratchPad.ipynb
 *.pbs
 pbs**
+*.ipynb
+Adashare_Training.ipynb
