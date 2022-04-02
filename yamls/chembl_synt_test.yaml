@@ -51,13 +51,13 @@ retrain_from_pl      : False
 
 
 paths:
-  log_dir        :     ../experiments/AdaSparseChem
-  result_dir     :     ../experiments/AdaSparseChem
-  checkpoint_dir :     ../experiments/AdaSparseChem
+  log_dir        :     ../../experiments/AdaSparseChem
+  result_dir     :     ../../experiments/AdaSparseChem
+  checkpoint_dir :     ../../experiments/AdaSparseChem
 
 dataload:
-  dataset        : Chembl_23_mini
-  dataroot       : "/home/kbardool/kusanagi/MLDatasets/chembl_23mini_synthetic"
+  dataset        : Chembl23_mini
+  dataroot       : "/home/kbardool/WSL-projs/MLDatasets/chembl_23mini_synthetic"
   x              : "chembl_23mini_x.npy"
 
   ## Data split ratios: [Warmup, Weight Trn, Policy Trn, Validation]

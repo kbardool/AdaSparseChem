@@ -3,7 +3,7 @@ import numpy as np
 from torch import nn
 import torch.nn.functional as F
 from utils.util             import timestring, print_heading, print_dbg, print_underline, debug_on, debug_off
-from src.models.sparsechem_backbone  import SparseChem_Backbone, SparseChem_Classification_Module
+from models                 import SparseChem_Backbone, SparseChem_Classification_Module
 from scipy.special          import softmax
 
 class MTL3(nn.Module):

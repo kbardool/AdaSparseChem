@@ -6,8 +6,8 @@ import time
 from torch.utils.data import DataLoader
 
 from dataloaders.nyu_v2_dataloader import NYU_v2
-from dataloaders.cityscapes_dataloader import CityScapes
-from dataloaders.taskonomy_dataloader import Taskonomy
+# from dataloaders.cityscapes_dataloader import CityScapes
+# from dataloaders.taskonomy_dataloader import Taskonomy
 from envs.blockdrop_env import BlockDropEnv
 import torch
 from utils.util import makedir, print_separator, read_yaml, create_path, print_yaml, should, fix_random_seed
@@ -178,24 +178,24 @@ def train():
         trainset2 = NYU_v2(opt['dataload']['dataroot'], 'train2', opt['dataload']['crop_h'], opt['dataload']['crop_w'])
         valset    = NYU_v2(opt['dataload']['dataroot'], 'test')
 
-    elif opt['dataload']['dataset'] == 'CityScapes':
-        num_seg_class = opt['tasks_num_class'][opt['tasks'].index('seg')] if 'seg' in opt['tasks'] else -1
-        # To warm up
-        trainset  = CityScapes(opt['dataload']['dataroot'], 'train' , opt['dataload']['crop_h'], opt['dataload']['crop_w'],
-                              num_class=num_seg_class, small_res=opt['dataload']['small_res'])
-        # To update the network parameters
-        trainset1 = CityScapes(opt['dataload']['dataroot'], 'train1', opt['dataload']['crop_h'], opt['dataload']['crop_w'],
-                               num_class=num_seg_class, small_res=opt['dataload']['small_res'])
-        # To update the policy weights
-        trainset2 = CityScapes(opt['dataload']['dataroot'], 'train2', opt['dataload']['crop_h'], opt['dataload']['crop_w'],
-                               num_class=num_seg_class, small_res=opt['dataload']['small_res'])
-        valset    = CityScapes(opt['dataload']['dataroot'], 'test'  , num_class=num_seg_class, small_res=opt['dataload']['small_res'])
+    # elif opt['dataload']['dataset'] == 'CityScapes':
+    #     num_seg_class = opt['tasks_num_class'][opt['tasks'].index('seg')] if 'seg' in opt['tasks'] else -1
+    #     # To warm up
+    #     trainset  = CityScapes(opt['dataload']['dataroot'], 'train' , opt['dataload']['crop_h'], opt['dataload']['crop_w'],
+    #                           num_class=num_seg_class, small_res=opt['dataload']['small_res'])
+    #     # To update the network parameters
+    #     trainset1 = CityScapes(opt['dataload']['dataroot'], 'train1', opt['dataload']['crop_h'], opt['dataload']['crop_w'],
+    #                            num_class=num_seg_class, small_res=opt['dataload']['small_res'])
+    #     # To update the policy weights
+    #     trainset2 = CityScapes(opt['dataload']['dataroot'], 'train2', opt['dataload']['crop_h'], opt['dataload']['crop_w'],
+    #                            num_class=num_seg_class, small_res=opt['dataload']['small_res'])
+    #     valset    = CityScapes(opt['dataload']['dataroot'], 'test'  , num_class=num_seg_class, small_res=opt['dataload']['small_res'])
     
-    elif opt['dataload']['dataset'] == 'Taskonomy':
-        trainset  = Taskonomy(opt['dataload']['dataroot'], 'train' , opt['dataload']['crop_h'], opt['dataload']['crop_w'])
-        trainset1 = Taskonomy(opt['dataload']['dataroot'], 'train1', opt['dataload']['crop_h'], opt['dataload']['crop_w'])
-        trainset2 = Taskonomy(opt['dataload']['dataroot'], 'train2', opt['dataload']['crop_h'], opt['dataload']['crop_w'])
-        valset    = Taskonomy(opt['dataload']['dataroot'], 'test_small')
+    # elif opt['dataload']['dataset'] == 'Taskonomy':
+    #     trainset  = Taskonomy(opt['dataload']['dataroot'], 'train' , opt['dataload']['crop_h'], opt['dataload']['crop_w'])
+    #     trainset1 = Taskonomy(opt['dataload']['dataroot'], 'train1', opt['dataload']['crop_h'], opt['dataload']['crop_w'])
+    #     trainset2 = Taskonomy(opt['dataload']['dataroot'], 'train2', opt['dataload']['crop_h'], opt['dataload']['crop_w'])
+    #     valset    = Taskonomy(opt['dataload']['dataroot'], 'test_small')
     
     else:
         raise NotImplementedError('Dataset %s is not implemented' % opt['dataload']['dataset'])

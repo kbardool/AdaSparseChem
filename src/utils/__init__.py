@@ -14,3 +14,12 @@
 # from .utils import training_arguments
 # from .utils import keep_row_data
 # from .version import __version__
+from .sparsechem_utils import censored_mse_loss, censored_mae_loss,  aggregate_results, compute_metrics,   \
+                              load_sparse, load_task_weights, class_fold_counts, fold_and_transform_inputs, \
+                                  print_metrics_cr
+
+from .util             import timestring, print_heading, print_dbg, print_underline, print_separator, print_loss,  \
+                              write_metrics_txt,  write_metrics_csv, write_loss_csv_heading, write_config_report,   \
+                              display_config, get_command_line_args, load_from_pickle, save_to_pickle, is_notebook, \
+                              debug_on, debug_off, fix_random_seed, read_yaml, makedir, create_path, print_yaml,    \
+                              print_yaml2, should, print_to

@@ -12,9 +12,9 @@ cpu:
 gpu_ids:
 
 backbone             : SparseChem
-tasks                : ["class", "class", "class"]
-tasks_num_class      : [5, 5, 5]
-lambdas              : [1, 1, 1]
+tasks                : ["class"]
+tasks_num_class      : [100]
+lambdas              : [1]
 policy_model         : task-specific
 verbose              : False
 backbone_orig        : ResNet18
@@ -147,13 +147,13 @@ train:
 ## Data & Folder parameters
 ##------------------------------------------------------
 paths:
-  log_dir        :     ../experiments/AdaSparseChem
-  result_dir     :     ../experiments/AdaSparseChem
-  checkpoint_dir :     ../experiments/AdaSparseChem
+  log_dir        :     ../../experiments/AdaSparseChem-mini
+  result_dir     :     ../../experiments/AdaSparseChem-mini
+  checkpoint_dir :     ../../experiments/AdaSparseChem-mini
 
 dataload:
-  dataset        : Chembl_23_mini
-  dataroot       : "/home/kbardool/kusanagi/MLDatasets/chembl_23mini"
+  dataset        : Chembl23_mini
+  dataroot       : "/home/kbardool/WSL-projs/MLDatasets/chembl23_mini"
   x              : "chembl_23mini_x.npy"
 
   ## Data split ratios: [Warmup, Weight Trn, Policy Trn, Validation]
@@ -163,7 +163,8 @@ dataload:
   x_split_ratios : [0.725, 0.225, 0.05]
 
 
-  y_tasks        : ["chembl_23mini_adashare_y1_bin_sparse.npy", "chembl_23mini_adashare_y2_bin_sparse.npy", "chembl_23mini_adashare_y3_bin_sparse.npy"]
+  y_tasks        : ["chembl_23mini_y.npy"]
+  # y_tasks        : ["chembl_23mini_adashare_y1_bin_sparse.npy", "chembl_23mini_adashare_y2_bin_sparse.npy", "chembl_23mini_adashare_y3_bin_sparse.npy"]
   y_censor       :
   folding        : "chembl_23mini_folds.npy"  
   fold_inputs    : 32000
@@ -173,9 +174,10 @@ dataload:
   crop_h         : 321
   crop_w         : 321
   
-  min_samples_class : 5
-  fold_va        : 0
-  fold_te        :  
+  # min_samples_class : 5
+  min_samples_class : 0
+  fold_va           : 0
+  fold_te           :  
 
 ##------------------------------------------------------
 ## sparsechem related parameters

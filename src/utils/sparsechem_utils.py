@@ -147,7 +147,7 @@ def calc_acc_kappa(recall, fpr, num_pos, num_neg):
 ##
 ## SparseChem Metric calculations 
 ##
-def all_metrics(y_true, y_score):   
+def all_metrics(y_true, y_score, task):   
     """
     Compute classification metrics.
     
@@ -155,8 +155,10 @@ def all_metrics(y_true, y_score):
         y_true     true labels (0 / 1)
         y_score    logit values
     """
+    # print(f" [task is {task}]")
     ## Setup pandas datafrme for metrics
     if len(y_true) <= 1 or (y_true[0] == y_true).all():
+        # print(f" len(y_true) : {len(y_true)} <= 1 or   (y_true[0] == y_true).all() = {(y_true[0] == y_true).all()}")
         df = pd.DataFrame({"roc_auc_score": [np.nan], "auc_pr": [np.nan], "avg_prec_score": [np.nan], "f1_max": [np.nan], "p_f1_max": [np.nan], "kappa": [np.nan], "kappa_max": [np.nan], "p_kappa_max": [np.nan], "bceloss": [np.nan]})
         return df
 
@@ -235,11 +237,13 @@ def all_metrics(y_true, y_score):
 ##
 ## SparseChem Metric calculations 
 ##
-def compute_metrics(cols, y_true, y_score, num_tasks):
+def compute_metrics(cols, y_true, y_score, num_tasks, verbose = False):
     """
     Compute metrics for the SparseChem classification for each individual task in a task group
     """
     if len(cols) < 1:
+
+        print(" len(cols) < 1")
         return pd.DataFrame({
             "roc_auc_score" : np.nan,
             "auc_pr"        : np.nan,
@@ -254,7 +258,8 @@ def compute_metrics(cols, y_true, y_score, num_tasks):
     df   = pd.DataFrame({"task": cols, "y_true": y_true, "y_score": y_score})
     
     metrics = df.groupby("task", sort=True).apply(lambda g: all_metrics( y_true  = g.y_true.values,
-                                                                         y_score = g.y_score.values))
+                                                                         y_score = g.y_score.values,
+                                                                         task    = g))
     
     metrics.reset_index(level=-1, drop=True, inplace=True)
     

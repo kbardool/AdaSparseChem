@@ -4,8 +4,8 @@ import torch
 from torch.utils.data import Dataset, DataLoader 
 import scipy.sparse
 import numpy as np
-from utils.sparsechem_utils import load_sparse, load_task_weights, class_fold_counts, fold_and_transform_inputs
-from utils.util import print_heading, timestring, print_dbg, print_underline, debug_off, debug_on
+from utils import load_sparse, load_task_weights, class_fold_counts, fold_and_transform_inputs
+from utils import print_heading, timestring, print_dbg, print_underline, debug_off, debug_on
 
 def to_idx_tensor(idx_list):
     """Turns list of lists into a  [2, num_lists] tensor of coordinates"""
@@ -364,20 +364,22 @@ class ClassRegrSparseDataset_v3(Dataset):
             ## Classification task aggregation weights 
             ##-----------------------------------------------------------------------------------
             weights_temp = load_task_weights(yc_weights[task_id], y=y_temp, label=f"y_task{task_id+1}", verbose = verbose)
+
             if weights_temp.aggregation_weight is None:
                 ## Fold classes 
                 ##  using min_samples rule
                 fold_pos, fold_neg = class_fold_counts(y_temp, self.folding)
                 n = opt['dataload']['min_samples_class']
                 weights_temp.aggregation_weight = ((fold_pos >= n).all(0) & (fold_neg >= n)).all(0).astype(np.float64)
-                # print_dbg(f"\t tasks_class.aggregation_weight WAS NOT passed ", verbose = verbose)
-                # print_dbg(f"\t min_samples_class: {opt['dataload']['min_samples_class']}", verbose = verbose)
-                # print_dbg(f"\t Class fold counts: \n  fold_pos:\n{fold_pos}  \n\n  fold_neg:\n{fold_neg}", verbose = verbose)
+                print_dbg(f"\t tasks_class.aggregation_weight WAS NOT passed ", verbose = verbose)
+                print_dbg(f"\t min_samples_class: {opt['dataload']['min_samples_class']}", verbose = verbose)
+                print_dbg(f"\t Class fold counts: \n  fold_pos:\n{fold_pos}  \n\n  fold_neg:\n{fold_neg}", verbose = verbose)
+                print_dbg(f"\t tasks_class.aggregation_weight set to {weights_temp.aggregation_weight} ", verbose = verbose)
             else:
-                pass
-                # print_dbg(f"\t  tasks_class.aggregation_weight passed ", verbose = verbose)
+                print_dbg(f"\t  tasks_class.aggregation_weight passed : {weights_temp.aggregation_weight}", verbose = verbose)
+                # pass
                 
-            # print_dbg(f"\t task_weights.aggregation_weight.shape: {weights_temp.aggregation_weight.shape} - {weights_temp.aggregation_weight}", verbose = verbose)
+            print_dbg(f"\t task_weights.aggregation_weight.shape: {weights_temp.aggregation_weight.shape} - {weights_temp.aggregation_weight}", verbose = verbose)
 
             ##-----------------------------------------------------------------------------------
             ## Load censor file if present 
@@ -520,4 +522,4 @@ class ClassRegrSparseDataset_v3(Dataset):
         return self.y_regr.shape[1]    
 
     def name(self):
-        return 'Chembl_23_Dev'
+        return 'Chembl_23'

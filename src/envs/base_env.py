@@ -7,7 +7,7 @@ from torch import nn
 import torch.nn.functional as F
 from torch.utils.tensorboard import SummaryWriter
 # from torch.utitensorboardX import SummaryWriter
-from utils.util import  write_metrics_txt, print_heading, print_dbg, print_underline, print_loss, write_metrics_csv
+from utils  import  write_metrics_txt, print_heading, print_dbg, print_underline, print_loss, write_metrics_csv
 # from data_utils.image_decoder import inv_preprocess, decode_labels2
 
 
@@ -287,12 +287,28 @@ class BaseEnv():
         logits = self.get_policy_logits()
         logits_argmaxs = 1-np.argmax(logits, axis = -1)
         ln = "\n"
-        ln += f" epch: {epoch:3d}   logits       s          logits      s         logits       s\n"
-        ln += f" -----  ----------------- -    ----------------  -    ----------------  - \n"
-        for idx, (l1,l2,l3,  p1,p2,p3) in enumerate(zip(logits[0], logits[1], logits[2], 
-                                                        logits_argmaxs[0], logits_argmaxs[1], logits_argmaxs[2]),1):
-            ln += f"{idx:4d}  {l1[0]:8.4f}  {l1[1]:8.4f}  {p1:1d}  {l2[0]:8.4f}  {l2[1]:8.4f}  {p2:1d}  {l3[0]:8.4f}  {l3[1]:8.4f}  {p3:1d}\n"
-        ln += '\n'
+        ln += f" ep: {epoch:4d}   "
+        # "logits      s         logits       s\n"
+        # "----------------  -    ----------------  - \n"
+
+        hdr2 = f" ----- "
+        for t_id, _ in enumerate(self.tasks):
+            ln   += "logits       s         " 
+            hdr2 += "----------------- -    "
+        ln = ln + '\n' + hdr2 + '\n'
+        for lyr in range(self.num_layers):
+            ln += f"{lyr:3d}"
+            for tsk in range(self.num_tasks):
+                # ln += f"  task {policy_softmaxs[tsk][lyr]} info"
+                ln += f"  {logits[tsk][lyr][0]:8.4f}  {logits[tsk][lyr][1]:8.4f}  {logits_argmaxs[tsk][lyr]:1d}"
+            ln += '\n'
+                     
+        
+        # for idx, (l1,l2,l3,  p1,p2,p3) in enumerate(zip(logits[0], logits[1], logits[2], 
+                                                        # logits_argmaxs[0], logits_argmaxs[1], logits_argmaxs[2]),1):
+            # ln += f"{idx:4d}  {l1[0]:8.4f}  {l1[1]:8.4f}  {p1:1d}  {l2[0]:8.4f}  {l2[1]:8.4f}  {p2:1d}  {l3[0]:8.4f}  {l3[1]:8.4f}  {p3:1d}\n"
+        # ln += '\n'
+
         for file in out:
             print(ln, file = file)
 
@@ -304,12 +320,25 @@ class BaseEnv():
         policy_softmaxs = self.get_policy_prob()
         policy_argmaxs = 1-np.argmax(policy_softmaxs, axis = -1)
         ln = "\n"
-        ln += f" epch: {epoch:3d}   softmax      s        softmax       s        softmax       s\n"
-        ln += f" -----  ----------------- -    ----------------- -    ----------------- - \n"
-        for idx, (l1,l2,l3,  p1,p2,p3) in enumerate(zip(policy_softmaxs[0], policy_softmaxs[1], policy_softmaxs[2], 
-                                                        policy_argmaxs[0], policy_argmaxs[1], policy_argmaxs[2]),1):
-            ln += f"{idx:4d}  {l1[0]:8.4f}  {l1[1]:8.4f}  {p1:1d}  {l2[0]:8.4f}  {l2[1]:8.4f}  {p2:1d}  {l3[0]:8.4f}  {l3[1]:8.4f}  {p3:1d}\n"
-        ln += '\n'
+        ln += f" ep: {epoch:4d}   "
+        # "softmax       s        softmax       s\n"
+        ## ----------------- -    ----------------- - \n"
+
+        hdr2 = f" ----- "
+        for t_id, _ in enumerate(self.tasks):
+            ln   +=  "softmax      s        "
+            hdr2 += "----------------- -    " 
+        ln = ln + '\n' + hdr2 + '\n'
+
+        for lyr in range(self.num_layers):
+            ln += f"{lyr:3d}"
+            for tsk in range(self.num_tasks):
+                # ln += f"  task {policy_softmaxs[tsk][lyr]} info"
+                ln += f"  {policy_softmaxs[tsk][lyr][0]:8.4f}  {policy_softmaxs[tsk][lyr][1]:8.4f}  {policy_argmaxs[tsk][lyr]:1d}"
+            # for idx, (l1,l2,l3,  p1,p2,p3) in enumerate(zip(policy_softmaxs[0], policy_softmaxs[1], policy_softmaxs[2], 
+                                                        # policy_argmaxs[0], policy_argmaxs[1], policy_argmaxs[2]),1):
+            # "  {l2[0]:8.4f}  {l2[1]:8.4f}  {p2:1d}  {l3[0]:8.4f}  {l3[1]:8.4f}  {p3:1d}\n"
+            ln += '\n'
         for file in out:
             print(ln, file = file)
 

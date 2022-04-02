@@ -8,8 +8,7 @@ from copy import deepcopy
 from torchvision import transforms
 
 
-class NYU_v2_Dev(torch.utils.data.Dataset):
-    
+class NYU_v2(torch.utils.data.Dataset):
     def __init__(self, dataroot, mode, crop_h=None, crop_w=None, opt=None):
         print(self.name())
         json_file = os.path.join(dataroot, 'nyu_v2_3task.json')
@@ -29,13 +28,6 @@ class NYU_v2_Dev(torch.utils.data.Dataset):
         # IMG MEAN is in BGR order
         self.IMG_MEAN = np.array((104.00698793, 116.66876762, 122.67891434), dtype=np.float32)
         self.IMG_MEAN = np.tile(self.IMG_MEAN[np.newaxis, np.newaxis, :], (self.crop_h, self.crop_w, 1))
-        print(f' New {self.name} instance ')
-        print(f' # of triples : {len(self.triples)}')
-        print(f" self.crop_w  : {self.crop_w}    self.crop_h: {self.crop_h}")
-        print(f" mode         : {self.mode}         ")
-
-
-
 
     def __len__(self):
         return len(self.triples)
@@ -51,23 +43,18 @@ class NYU_v2_Dev(torch.utils.data.Dataset):
         h, w, _ = img.shape
         h_new = int(h * scale)
         w_new = int(w * scale)
-        print()
-        print(f"   scale   : {scale:.5f}  img.shape: h:{h} w:{w}  newshape h: {h_new} w:{w_new} ") 
-        print(f"   prev img: {img.shape}  (seg): {label1.shape }   (normal): {label2.shape}  (depth): {label3.shape} ")
-
         img_new = cv2.resize(img, (w_new, h_new))
         label1 = np.expand_dims(cv2.resize(label1, (w_new, h_new), interpolation=cv2.INTER_NEAREST), axis=-1)
         label2 = cv2.resize(label2, (w_new, h_new), interpolation=cv2.INTER_NEAREST)
         label3 = np.expand_dims(cv2.resize(label3, (w_new, h_new), interpolation=cv2.INTER_NEAREST), axis=-1)
-        
-        print(f"   new  img: {img_new.shape}  (seg): {label1.shape}   (normal): {label2.shape}  (depth): {label3.shape} ")
+
         return img_new, label1, label2, label3
 
     @staticmethod
     def __mirror__(img, label1, label2, label3):
         flag = random.random()
         if flag > 0.5:
-            img    = img[:, ::-1]
+            img = img[:, ::-1]
             label1 = label1[:, ::-1]
             label2 = label2[:, ::-1]
             label3 = label3[:, ::-1]
@@ -75,29 +62,21 @@ class NYU_v2_Dev(torch.utils.data.Dataset):
 
     @staticmethod
     def __random_crop_and_pad_image_and_labels__(img, label1, label2, label3, crop_h, crop_w, ignore_label=255):
-        """
-        label1: segmentation
-        label2: normal
-        label3: depth
-        """
         # combining
         label = np.concatenate((label1, label2), axis=2).astype('float32')
         label -= ignore_label
         combined = np.concatenate((img, label, label3), axis=2)
         image_shape = img.shape
         label3_shape = label3.shape
-        print(f"   random crop and pad: label: {label.shape} combined: {combined.shape} image: {img.shape} label3:{label3.shape}")
-        print(f"   crop_h: {crop_h}   crop_w: {crop_w}")
+
         # padding to the crop size
         pad_shape = [max(image_shape[0], crop_h), max(image_shape[1], crop_w), combined.shape[-1]]
         combined_pad = np.zeros(pad_shape)
         offset_h, offset_w = (pad_shape[0] - image_shape[0])//2, (pad_shape[1] - image_shape[1])//2
         combined_pad[offset_h: offset_h+image_shape[0], offset_w: offset_w+image_shape[1]] = combined
-        print(f"   padshape: {pad_shape}   offset_h:{offset_h}   offset_w: {offset_w}  combined_pad: {combined_pad.shape}")
         
         # cropping
         crop_offset_h, crop_offset_w = pad_shape[0] - crop_h, pad_shape[1] - crop_w
-        print(f"   crop_offset_h:{crop_offset_h}   crop_offset_w: {crop_offset_w}")
         start_h, start_w = np.random.randint(0, crop_offset_h+1), np.random.randint(0, crop_offset_w+1)
         combined_crop = combined_pad[start_h: start_h+crop_h, start_w: start_w+crop_w]
         
@@ -105,14 +84,13 @@ class NYU_v2_Dev(torch.utils.data.Dataset):
         img_cdim = image_shape[-1]
         label1_cdim = label1.shape[-1]
         label3_cdim = label3_shape[-1]
-        img_crop    = deepcopy(combined_crop[:, :, :img_cdim])
+        img_crop = deepcopy(combined_crop[:, :, :img_cdim])
         label3_crop = deepcopy(combined_crop[:, :, -label3_cdim:])
-        label_crop  = combined_crop[:, :, img_cdim: -label3_cdim]
-        label_crop  = (label_crop + ignore_label).astype('uint8')
+        label_crop = combined_crop[:, :, img_cdim: -label3_cdim]
+        label_crop = (label_crop + ignore_label).astype('uint8')
         label1_crop = label_crop[:, :, :label1_cdim]
         label2_crop = label_crop[:, :, label1_cdim:]
 
-        print(f" final: img:{img_crop.shape}  label1: {label1_crop.shape}  label2: {label2_crop.shape}  label3: {label3_crop.shape}")
         return img_crop, label1_crop, label2_crop, label3_crop
 
     def __getitem__(self, item):
@@ -151,10 +129,10 @@ class NYU_v2_Dev(torch.utils.data.Dataset):
         return batch
 
     def name(self):
-        return 'NYU_v2_Dev'
+        return 'NYU_v2'
 
-"""
 class NYU_v2_Customize(NYU_v2):
+
     def __init__(self, dataroot, mode, crop_h=None, crop_w=None, opt=None):
         if not os.path.exists(os.path.join(dataroot, 'nyu_v2_3task.json')):
             json_file = {'test': []}
@@ -181,6 +159,8 @@ class NYU_v2_Customize(NYU_v2):
                         json_file['test'].append((img_path, seg_path, sn_path, depth_path))
             with open(os.path.join(dataroot, 'nyu_v2_3task.json'), 'w+') as f:
                 json.dump(json_file, f)
+
+                
         super(NYU_v2_Customize, self).__init__(dataroot, mode, crop_h, crop_w, opt)
 
     def name(self):
@@ -230,4 +210,3 @@ class NYU_v2_Single_IMG(NYU_v2):
 
     def name(self):
         return 'NYU_v2_Single_IMG'
-"""

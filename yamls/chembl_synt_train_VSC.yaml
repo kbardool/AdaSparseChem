@@ -147,12 +147,12 @@ train:
 ## Data & Folder parameters
 ##------------------------------------------------------
 paths:
-  log_dir        :     ../experiments/AdaSparseChem
-  result_dir     :     ../experiments/AdaSparseChem
-  checkpoint_dir :     ../experiments/AdaSparseChem
+  log_dir        :     ../../experiments/AdaSparseChem
+  result_dir     :     ../../experiments/AdaSparseChem
+  checkpoint_dir :     ../../experiments/AdaSparseChem
 
 dataload:
-  dataset        : Chembl_23_mini
+  dataset        : Chembl23_mini
   dataroot       : "../MLDatasets/chembl_23mini_synthetic"
   x              : "chembl_23mini_x.npy"
 

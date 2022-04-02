@@ -4,14 +4,12 @@ import types
 
 import torch
 import wandb 
-from tqdm     import trange 
-
-from envs.sparsechem_env import SparseChemEnv_Dev
-from dataloaders.chembl_dataloader import ClassRegrSparseDataset_v3,   InfiniteDataLoader
-from utils.sparsechem_utils import print_metrics_cr
-from utils.util import ( makedir, print_separator, create_path, print_yaml, print_yaml2, print_loss, should, print_to,
+from tqdm        import trange 
+from envs        import SparseChemEnv
+from dataloaders import ClassRegrSparseDataset_v3,   InfiniteDataLoader
+from utils       import ( makedir, print_separator, create_path, print_yaml, print_yaml2, print_loss, should, print_to,
                          fix_random_seed, read_yaml, timestring, print_heading, print_dbg, save_to_pickle, load_from_pickle,
-                         print_underline, write_config_report, display_config, get_command_line_args, is_notebook) 
+                         print_underline, write_config_report, display_config, get_command_line_args, is_notebook, print_metrics_cr) 
 
 # DISABLE_TQDM = True
 
@@ -53,32 +51,32 @@ def initialize(input_args = None, build_folders = True):
 
     return opt, ns
 
-def init_dataloaders(opt):
-    ns = types.SimpleNamespace()
+def init_dataloaders(opt, verbose = False):
+    dldrs = types.SimpleNamespace()
     # ********************************************************************
     # ******************** Prepare the dataloaders ***********************
     # ********************************************************************
     # load the dataloader
     print_separator('CREATE DATALOADERS')
 
-    ns.trainset0 = ClassRegrSparseDataset_v3(opt, split_ratios = opt['dataload']['x_split_ratios'], ratio_index = 0, verbose = False)
-    ns.trainset1 = ns.trainset0
-    ns.trainset2 = ns.trainset0
+    dldrs.trainset0 = ClassRegrSparseDataset_v3(opt, split_ratios = opt['dataload']['x_split_ratios'], ratio_index = 0, verbose = verbose)
+    dldrs.trainset1 = dldrs.trainset0
+    dldrs.trainset2 = dldrs.trainset0
     # trainset1 = ClassRegrSparseDataset_v3(opt, split_ratios = opt['dataload']['x_split_ratios'], ratio_index = 1)
     # trainset2 = ClassRegrSparseDataset_v3(opt, split_ratios = opt['dataload']['x_split_ratios'], ratio_index = 2)
-    ns.valset    = ClassRegrSparseDataset_v3(opt, split_ratios = opt['dataload']['x_split_ratios'], ratio_index = 1)
-    ns.testset   = ClassRegrSparseDataset_v3(opt, split_ratios = opt['dataload']['x_split_ratios'], ratio_index = 2)
+    dldrs.valset    = ClassRegrSparseDataset_v3(opt, split_ratios = opt['dataload']['x_split_ratios'], ratio_index = 1)
+    dldrs.testset   = ClassRegrSparseDataset_v3(opt, split_ratios = opt['dataload']['x_split_ratios'], ratio_index = 2)
 
-    ns.warmup_trn_loader = InfiniteDataLoader(ns.trainset0 , batch_size=opt['train']['batch_size'], num_workers = 2, pin_memory=True, collate_fn=ns.trainset0.collate, shuffle=True)
-    ns.weight_trn_loader = InfiniteDataLoader(ns.trainset1 , batch_size=opt['train']['batch_size'], num_workers = 2, pin_memory=True, collate_fn=ns.trainset1.collate, shuffle=True)
-    ns.policy_trn_loader = InfiniteDataLoader(ns.trainset2 , batch_size=opt['train']['batch_size'], num_workers = 2, pin_memory=True, collate_fn=ns.trainset2.collate, shuffle=True)
-    ns.val_loader        = InfiniteDataLoader(ns.valset    , batch_size=opt['train']['batch_size'], num_workers = 1, pin_memory=True, collate_fn=ns.valset.collate  , shuffle=True)
-    ns.test_loader       = InfiniteDataLoader(ns.testset   , batch_size=32                        , num_workers = 1, pin_memory=True, collate_fn=ns.testset.collate  , shuffle=True)
+    dldrs.warmup_trn_loader = InfiniteDataLoader(dldrs.trainset0 , batch_size=opt['train']['batch_size'], num_workers = 2, pin_memory=True, collate_fn=dldrs.trainset0.collate, shuffle=True)
+    dldrs.weight_trn_loader = InfiniteDataLoader(dldrs.trainset1 , batch_size=opt['train']['batch_size'], num_workers = 2, pin_memory=True, collate_fn=dldrs.trainset1.collate, shuffle=True)
+    dldrs.policy_trn_loader = InfiniteDataLoader(dldrs.trainset2 , batch_size=opt['train']['batch_size'], num_workers = 2, pin_memory=True, collate_fn=dldrs.trainset2.collate, shuffle=True)
+    dldrs.val_loader        = InfiniteDataLoader(dldrs.valset    , batch_size=opt['train']['batch_size'], num_workers = 1, pin_memory=True, collate_fn=dldrs.valset.collate  , shuffle=True)
+    dldrs.test_loader       = InfiniteDataLoader(dldrs.testset   , batch_size=32                        , num_workers = 1, pin_memory=True, collate_fn=dldrs.testset.collate  , shuffle=True)
 
-    opt['train']['weight_iter_alternate'] = opt['train'].get('weight_iter_alternate' , len(ns.weight_trn_loader))
-    opt['train']['alpha_iter_alternate']  = opt['train'].get('alpha_iter_alternate'  , len(ns.policy_trn_loader))    
+    opt['train']['weight_iter_alternate'] = opt['train'].get('weight_iter_alternate' , len(dldrs.weight_trn_loader))
+    opt['train']['alpha_iter_alternate']  = opt['train'].get('alpha_iter_alternate'  , len(dldrs.policy_trn_loader))    
 
-    return ns
+    return dldrs
 
 def init_environment(ns, opt, is_train = True, policy_learning = False, display_cfg = False, verbose = False):
     # ********************************************************************
@@ -86,18 +84,17 @@ def init_environment(ns, opt, is_train = True, policy_learning = False, display_
     # ********************************************************************
     # create the model and the pretrain model
     print_separator('CREATE THE ENVIRONMENT')
-    environ = SparseChemEnv_Dev(log_dir          = opt['paths']['log_dir'], 
-                                checkpoint_dir   = opt['paths']['checkpoint_dir'], 
-                                exp_name         = opt['exp_name'],
-                                tasks_num_class  = opt['tasks_num_class'], 
-                                init_neg_logits  = opt['train']['init_neg_logits'], 
-                                device           = opt['gpu_ids'][0],
-                                init_temperature = opt['train']['init_temp'], 
-                                temperature_decay= opt['train']['decay_temp'], 
-                                is_train         = is_train,
-                                opt              = opt, 
-                                verbose          = False)
-
+    environ = SparseChemEnv(log_dir          = opt['paths']['log_dir'], 
+                            checkpoint_dir   = opt['paths']['checkpoint_dir'], 
+                            exp_name         = opt['exp_name'],
+                            tasks_num_class  = opt['tasks_num_class'], 
+                            init_neg_logits  = opt['train']['init_neg_logits'], 
+                            device           = opt['gpu_ids'][0],
+                            init_temperature = opt['train']['init_temp'], 
+                            temperature_decay= opt['train']['decay_temp'], 
+                            is_train         = is_train,
+                            opt              = opt, 
+                            verbose          = False)
 
     cfg = environ.print_configuration()
     write_config_report(opt, cfg, filename = ns.config_filename, mode = 'a')

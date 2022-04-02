@@ -1,11 +1,12 @@
 # from IPython.core.display import display, HTML
 # display(HTML("<style>.container { width:98% !important; }</style>"))
-%load_ext autoreload
-%autoreload 2
+# %load_ext autoreload
+# %autoreload 2
 
 import os 
 import sys
 print(sys.path)
+sys.path.insert(0, './src')
 import time
 import argparse
 import yaml
@@ -25,13 +26,11 @@ from datetime import datetime
 from GPUtil import showUtilization as gpu_usage
 from tqdm.notebook import trange, tqdm
 
-sys.path.insert(0, './src')
-from envs.sparsechem_env_dev import SparseChemEnv_Dev
-from utils.sparsechem_utils import load_sparse, load_task_weights, class_fold_counts, fold_and_transform_inputs, print_metrics_cr
-from dataloaders.chembl_dataloader_dev import ClassRegrSparseDataset_v3, ClassRegrSparseDataset, InfiniteDataLoader
-from utils.util import ( makedir, print_separator, create_path, print_yaml, print_yaml2, print_loss, should, 
+from envs         import SparseChemEnv
+from dataloaders  import ClassRegrSparseDataset_v3, ClassRegrSparseDataset, InfiniteDataLoader
+from utils.util   import ( makedir, print_separator, create_path, print_yaml, print_yaml2, print_loss, should, 
                          fix_random_seed, read_yaml_from_input, timestring, print_heading, print_dbg, 
-                         print_underline, write_parms_report, get_command_line_args, is_notebook)
+                         print_underline, write_parms_report, get_command_line_args, is_notebook, print_metrics_cr)
 
 
 if is_notebook():
@@ -123,17 +122,17 @@ train2_loader = InfiniteDataLoader(trainset , batch_size=opt['train']['batch_siz
 ##---------------------------------------------------------------------
 ##  Create Model
 ##---------------------------------------------------------------------
-environ = SparseChemEnv_Dev(log_dir          = opt['exp_log_dir'], 
-                            checkpoint_dir   = opt['exp_checkpoint_dir'], 
-                            exp_name         = opt['exp_name'],
-                            tasks_num_class  = opt['tasks_num_class'], 
-                            init_neg_logits  = opt['train']['init_neg_logits'], 
-                            device           = gpu_ids[0],
-                            init_temperature = opt['train']['init_temp'], 
-                            temperature_decay= opt['train']['decay_temp'], 
-                            is_train         = True,
-                            opt              = opt, 
-                            verbose          = False)
+environ = SparseChemEnv(log_dir          = opt['exp_log_dir'], 
+                        checkpoint_dir   = opt['exp_checkpoint_dir'], 
+                        exp_name         = opt['exp_name'],
+                        tasks_num_class  = opt['tasks_num_class'], 
+                        init_neg_logits  = opt['train']['init_neg_logits'], 
+                        device           = gpu_ids[0],
+                        init_temperature = opt['train']['init_temp'], 
+                        temperature_decay= opt['train']['decay_temp'], 
+                        is_train         = True,
+                        opt              = opt, 
+                        verbose          = False)
 
 cfg = environ.print_configuration()
 write_parms_report(opt, cfg, mode = 'a')

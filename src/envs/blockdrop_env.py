@@ -6,10 +6,9 @@ import torch.optim as optim
 import torch.optim.lr_scheduler as scheduler
 import torch.nn.functional as F
 from torch import nn
-from ..models.base      import Bottleneck, BasicBlock
-from .MTL2_Dev             import MTL2_Dev
-from .MTL_Instance_Dev     import MTL_Instance_Dev
-from .base_env_dev         import BaseEnv
+from models.base           import Bottleneck, BasicBlock
+from models.deeplab_resnet import MTL2_Dev, MTL_Instance_Dev
+from base_env              import BaseEnv
 from utils.util            import timestring, print_heading
 import pprint
 pp = pprint.PrettyPrinter(indent=4)
