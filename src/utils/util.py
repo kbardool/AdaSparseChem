@@ -394,6 +394,8 @@ def get_command_line_args(input = None, display = True):
     parser.add_argument("--training_epochs"  , type=int,   help="Training epochs")
     parser.add_argument("--seed_idx"         , type=int,   default=0, help="Seed index - default is 0")
     parser.add_argument("--batch_size"       , type=int,   help="Batchsize - default read from config file")
+    parser.add_argument("--middle_dropout"   , type=float, help="Dropout ratio for hidden layers")
+    parser.add_argument("--last_dropout"     , type=float, help="Dropout ratio for final layers")
     parser.add_argument("--backbone_lr"      , type=float, help="Backbone Learning Rate Override - default read from config file")
     parser.add_argument("--task_lr"          , type=float, help="Task Heads Learning Rate Override - default read from config file")
     parser.add_argument("--policy_lr"        , type=float, help="Policy Net Learning Rate Override - default read from config file")
@@ -469,6 +471,12 @@ def read_yaml(args = None, exp_name = None):
     if args.hidden_sizes is not None:
         opt['hidden_sizes'] = args.hidden_sizes
 
+    if args.middle_dropout is not None:
+        opt['middle_dropout'] = args.middle_dropout
+
+    if args.last_dropout is not None:
+        opt['last_dropout'] = args.last_dropout
+
     if args.tail_hidden_size is not None:
         opt['tail_hidden_size'] = args.tail_hidden_size
     elif opt['tail_hidden_size'] is None:
@@ -517,14 +525,14 @@ def build_exp_folder_name(opt):
                     f"_plr{opt['train']['policy_lr']}" \
                     f"_sp{opt['train']['lambda_sparsity']}" \
                     f"_sh{opt['train']['lambda_sharing']}"  \
-                    f"_lr{opt['train']['backbone_lr']}"   
+                    f"_lr{opt['train']['backbone_lr']}"     \
+                    f"_do{opt['middle_dropout']}" 
     
     if opt['folder_sfx'] is not None:
         folder_name += f"_{opt['folder_sfx']}"
         
     # f"{opt['hidden_sizes'][0]}x{len(opt['hidden_sizes'])}" \
                     #   f"_{opt['exp_name']}"     
-    #   f"_bs{opt['train']['batch_size']:03d}" \
     #   f"_dr{opt['train']['decay_lr_rate']:3.2f}" \
     #   f"_df{opt['train']['decay_lr_freq']:04d}"      
     return folder_name 
