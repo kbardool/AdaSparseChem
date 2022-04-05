@@ -36,8 +36,9 @@ first_non_linearity  : "relu"
 middle_non_linearity : "relu"
 last_non_linearity   : "relu"
  
-middle_dropout       : 0.5
-last_dropout         : 0.5  
+first_dropout        : 0.0
+middle_dropout       : 0.0
+last_dropout         : 0.0  
 
 class_output_size    : 
 regr_output_size     :
@@ -121,9 +122,9 @@ train:
   # decay_temp_freq: number of policy training epochs that have to occur 
   #                  before the temp is decayed. 
   # logits initialization method
-  init_method    :   random
-  # init_temp      :       5
-  # decay_temp     :   0.965
+  init_method    :    random
+  # init_temp    :         5
+  # decay_temp   :     0.965
   # decay_temp_freq:       2    
   init_temp      :         4
   decay_temp     :     0.965
@@ -163,11 +164,11 @@ dataload:
   x_split_ratios : [0.725, 0.225, 0.05]
 
 
+  y_tasks        : ["chembl_23mini_adashare_y1_bin_sparse.npy", "chembl_23mini_adashare_y2_bin_sparse.npy", "chembl_23mini_adashare_y3_bin_sparse.npy"]
+  y_censor       :
   folding        : "chembl_23mini_folds.npy"  
   fold_inputs    : 32000
   input_transform: 
-  y_tasks        : ["chembl_23mini_adashare_y1_bin_sparse.npy", "chembl_23mini_adashare_y2_bin_sparse.npy", "chembl_23mini_adashare_y3_bin_sparse.npy"]
-  y_censor       :
   weights_class  :  
   
   crop_h         : 321

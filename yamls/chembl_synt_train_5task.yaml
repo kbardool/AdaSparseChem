@@ -12,9 +12,9 @@ cpu:
 gpu_ids:
 
 backbone             : SparseChem
-tasks                : ["class"]
-tasks_num_class      : [100]
-lambdas              : [1]
+tasks                : ["class", "class", "class", "class", "class"]
+tasks_num_class      : [3, 3, 3, 3, 3]
+lambdas              : [1, 1, 1, 1, 1]
 policy_model         : task-specific
 verbose              : False
 backbone_orig        : ResNet18
@@ -43,8 +43,8 @@ last_dropout         : 0.0
 class_output_size    : 
 regr_output_size     :
 
-# policy               : False
-policy               : True
+policy               : False
+# policy               : True
 
 is_sparse            : True
 is_sharing           : True
@@ -148,13 +148,13 @@ train:
 ## Data & Folder parameters
 ##------------------------------------------------------
 paths:
-  log_dir        :     ../../experiments/AdaSparseChem-mini
-  result_dir     :     ../../experiments/AdaSparseChem-mini
-  checkpoint_dir :     ../../experiments/AdaSparseChem-mini
+  log_dir        :     ../../experiments/AdaSparseChem
+  result_dir     :     ../../experiments/AdaSparseChem
+  checkpoint_dir :     ../../experiments/AdaSparseChem
 
 dataload:
   dataset        : Chembl23_mini
-  dataroot       : "/home/kbardool/WSL-projs/MLDatasets/chembl23_mini"
+  dataroot       : "/home/kbardool/WSL-projs/MLDatasets/chembl23_synthetic"
   x              : "chembl_23mini_x.npy"
 
   ## Data split ratios: [Warmup, Weight Trn, Policy Trn, Validation]
@@ -164,8 +164,9 @@ dataload:
   x_split_ratios : [0.725, 0.225, 0.05]
 
 
-  y_tasks        : ["chembl_23mini_y.npy"]
-  # y_tasks        : ["chembl_23mini_adashare_y1_bin_sparse.npy", "chembl_23mini_adashare_y2_bin_sparse.npy", "chembl_23mini_adashare_y3_bin_sparse.npy"]
+  y_tasks        : ["chembl_23mini_adashare_y_[0:3].npy", "chembl_23mini_adashare_y_[3:6].npy",
+                    "chembl_23mini_adashare_y_[6:9].npy", "chembl_23mini_adashare_y_[9:12].npy",
+                    "chembl_23mini_adashare_y_[12:15].npy" ]
   y_censor       :
   folding        : "chembl_23mini_folds.npy"  
   fold_inputs    : 32000
@@ -175,7 +176,7 @@ dataload:
   crop_h         : 321
   crop_w         : 321
   
-  min_samples_class : 0
+  min_samples_class : 5
   fold_va        : 0
   fold_te        :  
 

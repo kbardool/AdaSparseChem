@@ -394,8 +394,9 @@ def get_command_line_args(input = None, display = True):
     parser.add_argument("--training_epochs"  , type=int,   help="Training epochs")
     parser.add_argument("--seed_idx"         , type=int,   default=0, help="Seed index - default is 0")
     parser.add_argument("--batch_size"       , type=int,   help="Batchsize - default read from config file")
-    parser.add_argument("--middle_dropout"   , type=float, help="Dropout ratio for hidden layers")
-    parser.add_argument("--last_dropout"     , type=float, help="Dropout ratio for final layers")
+    parser.add_argument("--first_dropout"    , type=float, help="Dropout ratio for Sparse Input Layer")
+    parser.add_argument("--middle_dropout"   , type=float, help="Dropout ratio for middle (hidden) layers")
+    parser.add_argument("--last_dropout"     , type=float, help="Dropout ratio for final (task head) layers")
     parser.add_argument("--backbone_lr"      , type=float, help="Backbone Learning Rate Override - default read from config file")
     parser.add_argument("--task_lr"          , type=float, help="Task Heads Learning Rate Override - default read from config file")
     parser.add_argument("--policy_lr"        , type=float, help="Policy Net Learning Rate Override - default read from config file")
@@ -465,11 +466,11 @@ def read_yaml(args = None, exp_name = None):
     if args.lambda_sharing  is not None:
         opt['train']['lambda_sharing'] = args.lambda_sharing
     
-    if args.task_lr  is not None:
-        opt['train']['task_lr'] = args.task_lr
-
     if args.hidden_sizes is not None:
         opt['hidden_sizes'] = args.hidden_sizes
+
+    if args.first_dropout is not None:
+        opt['first_dropout'] = args.first_dropout
 
     if args.middle_dropout is not None:
         opt['middle_dropout'] = args.middle_dropout
@@ -483,8 +484,16 @@ def read_yaml(args = None, exp_name = None):
         opt['tail_hidden_size'] = opt['hidden_size'][-1]
 
     if args.task_lr  is not None:
+        opt['train']['task_lr'] = args.task_lr
+
+    if args.task_lr  is not None:
         opt['train']['backbone_lr'] = args.backbone_lr
 
+    if args.decay_lr_rate is not None:
+        opt['train']['decay_lr_rate'] = args.decay_lr_rate
+    if args.decay_lr_freq is not None:
+        opt['train']['decay_lr_freq'] = args.decay_lr_freq
+ 
     if args.policy_lr  is not None:
         opt['train']['policy_lr'] = args.policy_lr
 

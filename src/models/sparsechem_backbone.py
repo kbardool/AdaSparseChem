@@ -1,4 +1,5 @@
 # Copyright (c) 2020 KU Leuven
+from collections import OrderedDict
 import torch
 import math
 import numpy as np
@@ -16,7 +17,7 @@ non_linearities = {
 ##--------------------------------------------------------------------------------
 ## SparseLinear Layer
 ##--------------------------------------------------------------------------------
-class SparseLinear(torch.nn.Module):
+class SparseLinear(nn.Module):
     """
     Linear layer with sparse input tensor, and dense output.
         in_features    size of input
@@ -31,6 +32,8 @@ class SparseLinear(torch.nn.Module):
             self.bias = nn.Parameter(torch.zeros(out_features))
         else:
             self.register_parameter('bias', None)
+        
+
         print_dbg(f" SparseLinear - self.weight: {self.weight.type()}  {self.weight.shape}", verbose = verbose)
         print_dbg(f" SparseLinear - self.bias:   {self.bias.type()}    {self.bias.shape}", verbose = verbose)
 
@@ -38,7 +41,8 @@ class SparseLinear(torch.nn.Module):
 
         out = torch.mm(input, self.weight)
         if self.bias is not None:
-            return out + self.bias
+            out = out + self.bias
+
         return out
 
     def extra_repr(self):
@@ -107,12 +111,7 @@ class SparseChem_Backbone(torch.nn.Module):
             self.class_output_size = None
             self.regr_output_size  = None
 
-        # if conf.input_size_freq is None:
-        #     conf.input_size_freq = conf.input_size
-        # self.net = nn.Sequential()
-
         self.layer_config = layers
-
         # print_dbg(f" layer config : {self.layer_config} \n", verbose = verbose)
 
         ##----------------------------------------------------
@@ -120,23 +119,27 @@ class SparseChem_Backbone(torch.nn.Module):
         ##----------------------------------------------------
         # assert conf.input_size_freq <= conf.input_size, \
         #         f"Number of high important features ({conf.input_size_freq}) should not be higher input size ({conf.input_size})."
+
         # self.input_splits = [conf.input_size_freq, conf.input_size - conf.input_size_freq]
         # self.input_net_freq = nn.Sequential(SparseLinear(self.input_splits[0], conf.hidden_sizes[0]))
         # print(f" input_size_freq  : {conf.input_size_freq}")
         # print(f" self.input_splits: {self.input_splits}")
-        # self.input_layer = nn.Module()
-        # self.net.add_module("InputNet",SparseLinear(conf['input_size'], conf['hidden_sizes'][0]))
-        # self.net.add_module("InputNet_nonlinearity", non_linearities[conf['first_non_linearity']]() )
-        # self.input_layer.add_module("Input_linear",SparseLinear(conf['input_size'], conf['hidden_sizes'][0]))
-        # self.input_layer.add_module("Input_nonlinear", non_linearities[conf['first_non_linearity']]() )
-        # self.Input_nonlinear =  non_linearities[conf['first_non_linearity']]() 
-        # self.Input_nonlinear =  nn.ReLU(inplace=True)
 
+
+        # OrderedDict allows naming of layers
+        self.Input_Layer  = nn.Sequential(OrderedDict([
+                                          ('linear'    , SparseLinear(in_features   = conf['input_size'], 
+                                                                      out_features  = conf['hidden_sizes'][0]) ),
+                                          ('non_linear', non_linearities[conf['first_non_linearity']]()),
+                                          ('dropout'   , nn.Dropout(conf['first_dropout']))
+                                          ]))
+  
+        # self.Input_Layer = nn.Module()
+        # self.Input_Layer.add_module("InLinear"   , SparseLinear(conf['input_size'], conf['hidden_sizes'][0]))
+        # self.Input_Layer.add_module("InNonlinear", non_linearities[conf['first_non_linearity']]() )
+        # self.Input_Layer.add_module("InDropout"  , nn.Dropout(conf['first_dropout']) )
         print_dbg(f" Input Layer  - Input: {conf['input_size']}  output: {conf['hidden_sizes'][0]}"
-                  f"  non-linearity:{non_linearities[conf['first_non_linearity']]}", verbose = verbose)
-
-        self.Input_linear = SparseLinear(conf['input_size'], conf['hidden_sizes'][0])
- 
+                  f"  non-linearity:{non_linearities[conf['first_non_linearity']]}", verbose = True)
 
         ##----------------------------------------------------
         ## Middle Layers        
@@ -168,50 +171,43 @@ class SparseChem_Backbone(torch.nn.Module):
         
         self.blocks.append(nn.ModuleList(blk))
         self.residuals.append(res)
-        
-        # self.net.add_module(f"layer_{i}_linear"   , nn.Linear(conf['hidden_sizes'][i-1], conf['tail_hidden_size'], bias=True) )
-        # self.net.add_module(f"layer_{i}_nonlinear", non_linearity())
-        # self.net.add_module(f"layer_{i}_dropout"  , nn.Dropout(conf['last_dropout']))
+        self.blocks    = nn.ModuleList(self.blocks)
+        self.residuals = nn.ModuleList(self.residuals)
 
         ##----------------------------------------------------------------------
         ## Individual task heads are defined in SparseChem_Classification_Layer 
         ##----------------------------------------------------------------------
-        #   self.add_module(f"layer_{i}_linear",        nn.Linear(conf.hidden_sizes[-1], conf.output_size))
 
-        self.blocks = nn.ModuleList(self.blocks)
-        self.residuals = nn.ModuleList(self.residuals)
-
-        # if self.verbose :
-        #     print_heading(f" SparseChem backbone initialize weights ", verbose = True)
-        #     print_heading(f" Initialize Input_linear layer#  type:{type(self.Input_linear)} ", verbose =verbose)            
-
+        if verbose :
+            print_heading(f" SparseChem backbone initialize weights ", verbose = True)
+            print_heading(f" Initialize Input_linear layer#  type:{type(self.Input_linear)} ", verbose =True)            
         self.apply(self.init_weights)
 
-        # if self.verbose :
-        #     print_heading(f" SparseChem Backbone -- Final configuration(2) : \n" 
-        #                   f"                     self.blocks: {type(self.blocks)}  len:{len(self.blocks)}", verbose = True)
-        #     for i,blk in enumerate(self.blocks,1):
-        #         print_heading(f"block # {i}  type:{type(blk)} len:{len(blk)}", verbose = True)
-        #         print(f" {blk} \n")
-        #     print('\n')
-        #     print_heading(f"self.downsamples    : {type(self.ds)}   len:{len(self.ds)}")
-        #     for i in self.ds:
-        #         print(f" {type(i)}:  {i} \n")
-        #     print('\n\n')
-        #     print_heading(f" {self.name} Init() End ", verbose = verbose)
+        if verbose :
+            print_heading(f" SparseChem Backbone -- Final configuration(2) : \n" 
+                          f"                     self.blocks: {type(self.blocks)}  len:{len(self.blocks)}", verbose = True)
+            for i,blk in enumerate(self.blocks,1):
+                print_heading(f" block # {i}  type:{type(blk)} len:{len(blk)}", verbose = True)
+                print(f" {blk} \n")
+            print_heading(f"\n self.downsamples    : {type(self.ds)}   len:{len(self.ds)}")
+            for i in self.ds:
+                print(f" {type(i)}:  {i} \n")
+            print('\n\n')
+            print_heading(f" {self.name} Init() End ", verbose = verbose)
         return 
 
     def init_weights(self, m, verbose = False):
         print_dbg(f"   SparseChem Backbone - init_weights - module {m} ", verbose = verbose)
 
-        if type(m) == SparseLinear:
-            print_dbg(f"    >>> apply xavier_uniform to SparseLinear module {m} \n", verbose = verbose)
-            torch.nn.init.xavier_uniform_(m.weight, gain=torch.nn.init.calculate_gain("relu"))
-            m.bias.data.fill_(0.1)
+        # if type(m) == SparseLinear:
+        #     print_dbg(f"    >>> apply xavier_uniform to SparseLinear module {m} \n", verbose = verbose)
+        #     torch.nn.init.xavier_uniform_(m.weight, gain=torch.nn.init.calculate_gain("relu"))
+        #     m.bias.data.fill_(0.1)
         
         if type(m) == nn.Linear:
             print_dbg(f"    >>> apply xavier_uniform to linear module {m} \n", verbose = verbose)
-            torch.nn.init.xavier_uniform_(m.weight, gain=torch.nn.init.calculate_gain("relu"))
+            # torch.nn.init.xavier_uniform_(m.weight, gain=torch.nn.init.calculate_gain("relu"))
+            torch.nn.init.xavier_uniform_(m.weight, gain=torch.nn.init.calculate_gain("sigmoid"))
             if m.bias is not None:
                 m.bias.data.fill_(0.1)
 
@@ -247,7 +243,11 @@ class SparseChem_Backbone(torch.nn.Module):
         #     print_dbg(f"\t  Input : X shape: {x.shape}   last_hidden:{last_hidden}", verbose = verbose)
         #     print_dbg(f"  policy used for forward pass: \n {policy}", verbose = verbose)
         
-        x = self.Input_linear(x)
+
+        # x = self.Input_linear(x)
+        # x = self.Input_non_linearity(x)
+        # x = self.Input_dropout(x)
+        x = self.Input_Layer(x)
         # print_dbg(f"\t Output of Input Linear Layer: {x.shape}", verbose = verbose)
  
 
@@ -256,10 +256,11 @@ class SparseChem_Backbone(torch.nn.Module):
             for segment, num_blocks in enumerate(self.layer_config):
                 for b in range(num_blocks):
                     # apply the residual skip out of _make_layers_
-                    residual = self.residuals[segment](x) if b == 0 and self.residuals[segment] is not None else x
-                    x = F.relu(residual + self.blocks[segment][b](x))
+                    # residual = self.residuals[segment](x) if b == 0 and self.residuals[segment] is not None else x
+                    # x = F.relu(residual + self.blocks[segment][b](x))
+
                     # print_dbg(f"\t Segment{segment} num_blocks: {num_blocks}   block {b} -  output: {x.shape}", verbose = verbose)
-                    # x  =  self.blocks[segment][b](x)
+                    x  =  self.blocks[segment][b](x)
 
         # do the block dropping (based on policy)
         else:

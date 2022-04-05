@@ -36,8 +36,9 @@ first_non_linearity  : "relu"
 middle_non_linearity : "relu"
 last_non_linearity   : "relu"
  
-middle_dropout       : 0.5
-last_dropout         : 0.5  
+first_dropout        : 0.0 
+middle_dropout       : 0.0
+last_dropout         : 0.0  
 
 class_output_size    : 
 regr_output_size     :

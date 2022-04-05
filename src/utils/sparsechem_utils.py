@@ -155,7 +155,7 @@ def all_metrics(y_true, y_score, task):
         y_true     true labels (0 / 1)
         y_score    logit values
     """
-    # print(f" [task is {task}]")
+    # print(f" [task is : \n {task}]")
     ## Setup pandas datafrme for metrics
     if len(y_true) <= 1 or (y_true[0] == y_true).all():
         # print(f" len(y_true) : {len(y_true)} <= 1 or   (y_true[0] == y_true).all() = {(y_true[0] == y_true).all()}")
@@ -243,7 +243,7 @@ def compute_metrics(cols, y_true, y_score, num_tasks, verbose = False):
     """
     if len(cols) < 1:
 
-        print(" len(cols) < 1")
+        print(" compute_metrics() : len(cols) < 1")
         return pd.DataFrame({
             "roc_auc_score" : np.nan,
             "auc_pr"        : np.nan,
@@ -256,13 +256,13 @@ def compute_metrics(cols, y_true, y_score, num_tasks, verbose = False):
             "bceloss"       : np.nan}, index=np.arange(num_tasks))
     
     df   = pd.DataFrame({"task": cols, "y_true": y_true, "y_score": y_score})
-    
+    # print(df)
     metrics = df.groupby("task", sort=True).apply(lambda g: all_metrics( y_true  = g.y_true.values,
                                                                          y_score = g.y_score.values,
-                                                                         task    = g))
-    
+                                                                         task    = g.task))
+    # print(metrics)
     metrics.reset_index(level=-1, drop=True, inplace=True)
-    
+    # print(metrics)
     return metrics.reindex(np.arange(num_tasks))
 
 

@@ -295,8 +295,8 @@ def warmup_phase(ns,opt, environ, dldrs, disable_tqdm = True, epochs = None):
                         out=[sys.stdout, environ.log_file], to_tqdm = True) 
         line_count += 1
 
-        environ.schedulers['weights'].step(val_metrics['total']['total'])
-        environ.schedulers['alphas'].step(val_metrics['total']['total'])            
+        environ.schedulers['weights'].step(trn_losses['total']['total'])
+        environ.schedulers['alphas'].step(trn_losses['total']['total'])            
         wandb.log(environ.val_metrics)
         
         # Checkpoint on best results
