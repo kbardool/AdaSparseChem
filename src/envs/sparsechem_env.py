@@ -61,6 +61,8 @@ class SparseChemEnv(BaseEnv):
         self.input_size         = opt['input_size']
         self.norm_loss          = opt['SC']['normalize_loss']
         self.task_lambdas       = opt['lambdas']
+        self.weight_optimizer   = opt['train']['weight_optimizer']
+        self.policy_optimizer   = opt['train']['policy_optimizer']
         
         super(SparseChemEnv, self).__init__(log_dir, checkpoint_dir, exp_name, tasks_num_class, device,
                                                 is_train, opt, verbose)
@@ -175,23 +177,29 @@ class SparseChemEnv(BaseEnv):
                                                     {'params': backbone_parameters , 'lr': self.opt['train']['backbone_lr']/ 100}],
                                                     momentum=0.9, weight_decay=0.0001)
         else:
-            # self.optimizers['weights'] = optim.SGD([{'params': task_specific_params, 'lr': self.opt['train']['task_lr'] },
-            #                                         {'params': backbone_parameters , 'lr': self.opt['train']['backbone_lr']}],
-            #                                         momentum=0.9, weight_decay=0.0001)
-            self.optimizers['weights'] = optim.Adam([{'params': task_specific_params, 'lr': self.opt['train']['task_lr']},
-                                                     {'params': backbone_parameters , 'lr': self.opt['train']['backbone_lr']}],
-                                                    betas=(0.5, 0.999), weight_decay=0.0001)
-        
+            if self.weight_optimizer == 'adam':
+                self.optimizers['weights'] = optim.Adam([{'params': task_specific_params, 'lr': self.opt['train']['task_lr']},
+                                                        {'params': backbone_parameters , 'lr': self.opt['train']['backbone_lr']}],
+                                                        betas=(0.5, 0.999), weight_decay=0.0001)
+            elif self.weight_optimizer == 'sgd':
+                self.optimizers['weights'] = optim.SGD([{'params': task_specific_params, 'lr': self.opt['train']['task_lr'] },
+                                                        {'params': backbone_parameters , 'lr': self.opt['train']['backbone_lr']}],
+                                                        momentum=0.9, weight_decay=0.0001)
+            else:
+                raise NotImplementedError('Optimizer %s is not implemented' % self.weight_optimizer)
+
         print_dbg(f" define the weights optimizer - learning mode: {'policy' if policy_learning else 'non-policy'}", verbose = verbose)
         print_dbg(f" optimizers for weights : \n {self.optimizers['weights']}", verbose = verbose)
 
         #---------------------------------------
         # optimizers for alpha (logits??)
         #---------------------------------------
-        if self.opt['train']['init_method'] == 'all_chosen':
+        # if self.opt['train']['init_method'] == 'all_chosen':
+        if self.opt['train']['policy_optimizer'] == 'adam':
             self.optimizers['alphas'] = optim.Adam(arch_parameters, lr=self.opt['train']['policy_lr'], weight_decay=5*1e-4)
         else:
-            self.optimizers['alphas'] = optim.Adam(arch_parameters, lr=self.opt['train']['policy_lr'], weight_decay=5*1e-4)
+            self.optimizers['alphas'] = optim.SGD(arch_parameters, lr=self.opt['train']['policy_lr'], 
+                                                 momentum=0.9, weight_decay=1.0e-4)
 
         print_dbg(f"\ndefine the logits optimizer (init_method: {self.opt['train']['init_method']})", verbose = verbose)
         print_dbg(f" optimizers for alphas : \n {self.optimizers['alphas']}", verbose = verbose)

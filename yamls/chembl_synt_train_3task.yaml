@@ -71,12 +71,13 @@ train:
   training_epochs:     250
   total_iters    :   25000
   warm_up_iters  :
-  
+
   # Learning Rates
   task_lr        :    0.001
   backbone_lr    :    0.001
 
-  
+  weight_optimizer: sgd
+  policy_optimizer: adam
   # Decay parameters for weights training
   decay_lr_rate  :     0.75
   decay_lr_freq  :       40
@@ -164,7 +165,9 @@ dataload:
   x_split_ratios : [0.725, 0.225, 0.05]
 
 
-  y_tasks        : ["chembl_23mini_adashare_y1_bin_sparse.npy", "chembl_23mini_adashare_y2_bin_sparse.npy", "chembl_23mini_adashare_y3_bin_sparse.npy"]
+  y_tasks        : ["chembl_23mini_adashare_y1_bin_sparse.npy", 
+                    "chembl_23mini_adashare_y2_bin_sparse.npy", 
+                    "chembl_23mini_adashare_y3_bin_sparse.npy"]
   y_censor       :
   folding        : "chembl_23mini_folds.npy"  
   fold_inputs    : 32000

@@ -127,12 +127,18 @@ class SparseChem_Backbone(torch.nn.Module):
 
 
         # OrderedDict allows naming of layers
+
         self.Input_Layer  = nn.Sequential(OrderedDict([
-                                          ('linear'    , SparseLinear(in_features   = conf['input_size'], 
-                                                                      out_features  = conf['hidden_sizes'][0]) ),
-                                          ('non_linear', non_linearities[conf['first_non_linearity']]()),
-                                          ('dropout'   , nn.Dropout(conf['first_dropout']))
+                                                         ('linear'    , SparseLinear(in_features   = conf['input_size'], 
+                                                                                     out_features  = conf['hidden_sizes'][0]) )                                        
                                           ]))
+
+        # self.Input_Layer  = nn.Sequential(OrderedDict([
+        #                                   ('linear'    , SparseLinear(in_features   = conf['input_size'], 
+        #                                                               out_features  = conf['hidden_sizes'][0]) ),
+        #                                   ('non_linear', non_linearities[conf['first_non_linearity']]()),
+        #                                   ('dropout'   , nn.Dropout(conf['first_dropout']))
+        #                                   ]))
   
         # self.Input_Layer = nn.Module()
         # self.Input_Layer.add_module("InLinear"   , SparseLinear(conf['input_size'], conf['hidden_sizes'][0]))
@@ -256,11 +262,11 @@ class SparseChem_Backbone(torch.nn.Module):
             for segment, num_blocks in enumerate(self.layer_config):
                 for b in range(num_blocks):
                     # apply the residual skip out of _make_layers_
-                    # residual = self.residuals[segment](x) if b == 0 and self.residuals[segment] is not None else x
-                    # x = F.relu(residual + self.blocks[segment][b](x))
+                    residual = self.residuals[segment](x) if b == 0 and self.residuals[segment] is not None else x
+                    x = F.relu(residual + self.blocks[segment][b](x))
 
                     # print_dbg(f"\t Segment{segment} num_blocks: {num_blocks}   block {b} -  output: {x.shape}", verbose = verbose)
-                    x  =  self.blocks[segment][b](x)
+                    # x  =  self.blocks[segment][b](x)
 
         # do the block dropping (based on policy)
         else:
