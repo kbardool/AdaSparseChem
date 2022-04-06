@@ -529,6 +529,7 @@ def read_yaml(args = None, exp_name = None):
 
 
 def build_exp_folder_name(opt):
+    num_heads = len(opt[][])
     folder_name = f"{opt['hidden_sizes'][0]}x{len(opt['hidden_sizes'])}" \
                     f"_{opt['exp_name_pfx']}"\
                     f"_plr{opt['train']['policy_lr']}" \
