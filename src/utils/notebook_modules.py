@@ -1,7 +1,8 @@
+import os 
 import sys
 import time 
 import types
-
+import numpy as np
 import torch
 import wandb 
 from tqdm        import trange 
@@ -9,7 +10,8 @@ from envs        import SparseChemEnv
 from dataloaders import ClassRegrSparseDataset_v3,   InfiniteDataLoader
 from utils       import ( makedir, print_separator, create_path, print_yaml, print_yaml2, print_loss, should, print_to,
                          fix_random_seed, read_yaml, timestring, print_heading, print_dbg, save_to_pickle, load_from_pickle,
-                         print_underline, write_config_report, display_config, get_command_line_args, is_notebook, print_metrics_cr) 
+                         print_underline, write_config_report, display_config, get_command_line_args, is_notebook, 
+                         load_sparse, print_metrics_cr) 
 
 # DISABLE_TQDM = True
 
@@ -78,6 +80,64 @@ def init_dataloaders(opt, verbose = False):
 
     return dldrs
 
+def init_dataloaders_by_fold_id(opt, verbose = True):
+
+    ecfp     = load_sparse(opt['dataload']['dataroot'], opt['dataload']['x'])
+    folding  = np.load(os.path.join(opt['dataload']['dataroot'], opt['dataload']['folding']))
+
+    print(ecfp.shape, folding.shape)
+
+    fold_va = 0
+    idx_tr  = np.where(folding != fold_va)[0]
+    idx_va  = np.where(folding == fold_va)[0]
+
+
+    print(idx_tr.shape, idx_va.shape)
+    print(idx_tr[-1], idx_va[-1])
+
+    dldrs = types.SimpleNamespace()
+    dldrs.trainset0 = ClassRegrSparseDataset_v3(opt, index = idx_tr, verbose = True)
+    dldrs.valset    = ClassRegrSparseDataset_v3(opt, index = idx_va, verbose = True)
+    dldrs.trainset1 = dldrs.trainset0
+    dldrs.trainset2 = dldrs.trainset0
+
+
+    dldrs.warmup_trn_loader = InfiniteDataLoader(dldrs.trainset0 , batch_size=opt['train']['batch_size'], num_workers = 2, pin_memory=True, collate_fn=dldrs.trainset0.collate, shuffle=True)
+    dldrs.weight_trn_loader = InfiniteDataLoader(dldrs.trainset1 , batch_size=opt['train']['batch_size'], num_workers = 2, pin_memory=True, collate_fn=dldrs.trainset1.collate, shuffle=True)
+    dldrs.policy_trn_loader = InfiniteDataLoader(dldrs.trainset2 , batch_size=opt['train']['batch_size'], num_workers = 2, pin_memory=True, collate_fn=dldrs.trainset2.collate, shuffle=True)
+    dldrs.val_loader        = InfiniteDataLoader(dldrs.valset    , batch_size=opt['train']['batch_size'], num_workers = 1, pin_memory=True, collate_fn=dldrs.valset.collate  , shuffle=True)
+    # dldrs.test_loader       = InfiniteDataLoader(dldrs.testset   , batch_size=32                        , num_workers = 1, pin_memory=True, collate_fn=dldrs.testset.collate  , shuffle=True)
+
+    opt['train']['weight_iter_alternate'] = opt['train'].get('weight_iter_alternate' , len(dldrs.weight_trn_loader))
+    opt['train']['alpha_iter_alternate']  = opt['train'].get('alpha_iter_alternate'  , len(dldrs.policy_trn_loader))        
+    
+    return 
+
+
+def disp_dataloader_info(dldrs):
+    """ display dataloader information"""
+    print(f"\n trainset.y_class                                   :  {[ i.shape  for i in dldrs.trainset0.y_class_list]}",
+          f"\n trainset1.y_class                                  :  {[ i.shape  for i in dldrs.trainset1.y_class_list]}",
+          f"\n trainset2.y_class                                  :  {[ i.shape  for i in dldrs.trainset2.y_class_list]}",
+          f"\n valset.y_class                                     :  {[ i.shape  for i in dldrs.valset.y_class_list  ]} ",
+        #   f"\n testset.y_class                                    :  {[ i.shape  for i in dldrs.testset.y_class_list  ]} ",
+          f"\n                                ",
+          f'\n size of training set 0 (warm up)                   :  {len(dldrs.trainset0)}',
+          f'\n size of training set 1 (network parms)             :  {len(dldrs.trainset1)}',
+          f'\n size of training set 2 (policy weights)            :  {len(dldrs.trainset2)}',
+          f'\n size of validation set                             :  {len(dldrs.valset)}',
+          f'\n                               Total                :  {len(dldrs.trainset0)+len(dldrs.trainset1)+len(dldrs.trainset2)+len(dldrs.valset)}',
+        #   f'\n size of test set                                   :  {len(dldrs.testset)}',
+        #   f'\n                               Total                :  {len(dldrs.trainset0)+len(dldrs.trainset1)+len(dldrs.trainset2)+len(dldrs.valset)+ len(dldrs.testset)}',
+          f"\n                                ",
+          f"\n lenght (# batches) in training 0 (warm up)         :  {len(dldrs.warmup_trn_loader)}",
+          f"\n lenght (# batches) in training 1 (network parms)   :  {len(dldrs.weight_trn_loader)}",
+          f"\n lenght (# batches) in training 2 (policy weights)  :  {len(dldrs.policy_trn_loader)}",
+          f"\n lenght (# batches) in validation dataset           :  {len(dldrs.val_loader)}",
+        #   f"\n lenght (# batches) in test dataset                 :  {len(dldrs.test_loader)}",
+          f"\n                                ")
+                
+
 def init_environment(ns, opt, is_train = True, policy_learning = False, display_cfg = False, verbose = False):
     # ********************************************************************
     # ********************Create the environment *************************
@@ -124,29 +184,53 @@ def init_wandb(namespace, opt, environment, resume = "allow" , log_freq  = 10):
     return 
 
 
+def check_for_resume_training(ns, opt, environ):
+    ## TODO: Remove hard coded RESUME_MODEL_CKPT and RESUME_METRICS_CKPT
+    ns.loaded_epoch, ns.loaded_iter, ns.val_metrics = None, None, None
+    if opt['train']['resume']:
+        RESUME_MODEL_CKPT = ""
+        RESUME_METRICS_CKPT = ""    
+        # opt['train']['which_iter'] = 'warmup_ep_40_seed_0088'
+        print(opt['train']['which_iter'])
+        print(opt['paths']['checkpoint_dir'])
+        print(RESUME_MODEL_CKPT)
+        print_separator('Resume training')
+        ns.loaded_iter, ns.loaded_epoch = environ.load_checkpoint(RESUME_MODEL_CKPT, path = opt['paths']['checkpoint_dir'], verbose = True)
+        print(ns.loaded_iter, ns.loaded_epoch)    
+    #     current_iter = environ.load_checkpoint(opt['train']['which_iter'])
+        environ.networks['mtl-net'].reset_logits()
+        ns.val_metrics = load_from_pickle(opt['paths']['checkpoint_dir'], RESUME_METRICS_CKPT)
+        # training_prep(ns, opt, environ, dldrs, epoch = loaded_epoch, iter = loaded_iter )
+        return True
+    else:
+        print_separator('Initiate Training ')
+        return False
 
 def training_prep(ns, opt, environ, dldrs, phase = 'update_w', epoch = 0, iter = 0, verbose = False):
 
     if torch.cuda.is_available():
-        print_dbg(f" cuda available {opt['gpu_ids']}", True)
+        print_dbg(f" training preparation: - check for CUDA - cuda available as device id: {opt['gpu_ids']}", True)
         environ.cuda(opt['gpu_ids'])
     else:
-        print_dbg(f" cuda not available", verbose = True)
+        print_dbg(f" training preparation: - check for CUDA - cuda not available", verbose = True)
         environ.cpu()
 
     if opt['train']['print_freq'] == -1:
-        print(f" set print_freq to length of train loader: {len(dldrs.warmup_trn_loader)}")
+        print(f" training preparation: - set print_freq to length of train loader: {len(dldrs.warmup_trn_loader)}")
         ns.print_freq = len(dldrs.warmup_trn_loader)
     else:
-        print(f" set print_freq to opt[train][print_freq]: {opt['train']['print_freq']}")
+        print(f" training preparation: -  set print_freq to opt[train][print_freq]: {opt['train']['print_freq']}")
         ns.print_freq = opt['train']['print_freq']     
 
     if opt['train']['val_iters'] == -1:
-        print(f" set eval_iters to length of val loader  : {len(dldrs.val_loader)}")
+        print(f" training preparation: - set eval_iters to length of val loader : {len(dldrs.val_loader)}")
         ns.eval_iters    = len(dldrs.val_loader)    
     else:
+        print(f" training preparation: - set eval_iters to opt[train][val_iters]: {opt['train']['val_iters']}")
         ns.eval_iters    = opt['train']['val_iters']
     
+    print(f" training preparation: - set number of batches per weight training epoch to: {opt['train']['weight_iter_alternate']}")
+    print(f" training preparation: - set number of batches per policy training epoch to: {opt['train']['alpha_iter_alternate']}")
     ns.stop_iter_w = opt['train']['weight_iter_alternate']
     ns.stop_iter_a = opt['train']['alpha_iter_alternate'] 
         
@@ -275,7 +359,7 @@ def warmup_phase(ns,opt, environ, dldrs, disable_tqdm = True, epochs = None):
                 t_warmup.set_postfix({'curr_iter':ns.current_iter, 
                                     'Loss': f"{environ.losses['total']['total'].item():.4f}"})
 
-        trn_losses = environ.losses
+        ns.trn_losses = environ.losses
         environ.print_trn_metrics(ns.current_epoch, ns.current_iter, start_time, title = f"[Warmup Trn]")
         wandb.log(environ.losses)
 
@@ -291,12 +375,12 @@ def warmup_phase(ns,opt, environ, dldrs, disable_tqdm = True, epochs = None):
                                         verbose         = False)
 
         environ.print_val_metrics(ns.current_epoch, ns.current_iter, start_time, title = f"[Warmup Val]")    
-        print_metrics_cr(ns.current_epoch,  time.time() - start_time, trn_losses, environ.val_metrics, line_count, 
+        print_metrics_cr(ns.current_epoch,  time.time() - start_time, ns.trn_losses, environ.val_metrics, line_count, 
                         out=[sys.stdout, environ.log_file], to_tqdm = True) 
         line_count += 1
 
-        environ.schedulers['weights'].step(trn_losses['total']['total'])
-        environ.schedulers['alphas'].step(trn_losses['total']['total'])            
+        environ.schedulers['weights'].step(ns.trn_losses['total']['total'])
+        environ.schedulers['alphas'].step(ns.trn_losses['total']['total'])            
         wandb.log(environ.val_metrics)
         
         # Checkpoint on best results
@@ -608,28 +692,7 @@ def check_for_improvement(ns,opt,environ):
     return
 
 
-def disp_dataloader_info(dldrs):
-    """ display dataloader information"""
-    print(f"\n trainset.y_class                                   :  {[ i.shape  for i in dldrs.trainset0.y_class_list]}",
-          f"\n trainset1.y_class                                  :  {[ i.shape  for i in dldrs.trainset1.y_class_list]}",
-          f"\n trainset2.y_class                                  :  {[ i.shape  for i in dldrs.trainset2.y_class_list]}",
-          f"\n valset.y_class                                     :  {[ i.shape  for i in dldrs.valset.y_class_list  ]} ",
-          f"\n testset.y_class                                    :  {[ i.shape  for i in dldrs.testset.y_class_list  ]} ",
-          f"\n                                ",
-          f'\n size of training set 0 (warm up)                   :  {len(dldrs.trainset0)}',
-          f'\n size of training set 1 (network parms)             :  {len(dldrs.trainset1)}',
-          f'\n size of training set 2 (policy weights)            :  {len(dldrs.trainset2)}',
-          f'\n size of validation set                             :  {len(dldrs.valset)}',
-          f'\n size of test set                                   :  {len(dldrs.testset)}',
-          f'\n                               Total                :  {len(dldrs.trainset0)+len(dldrs.trainset1)+len(dldrs.trainset2)+len(dldrs.valset)+ len(dldrs.testset)}',
-          f"\n                                ",
-          f"\n lenght (# batches) in training 0 (warm up)         :  {len(dldrs.warmup_trn_loader)}",
-          f"\n lenght (# batches) in training 1 (network parms)   :  {len(dldrs.weight_trn_loader)}",
-          f"\n lenght (# batches) in training 2 (policy weights)  :  {len(dldrs.policy_trn_loader)}",
-          f"\n lenght (# batches) in validation dataset           :  {len(dldrs.val_loader)}",
-          f"\n lenght (# batches) in test dataset                 :  {len(dldrs.test_loader)}",
-          f"\n                                ")
-                
+
 def disp_info_1(ns, opt, environ):
     print(
             f"\n Num_blocks                : {sum(environ.networks['mtl-net'].layers)}"    

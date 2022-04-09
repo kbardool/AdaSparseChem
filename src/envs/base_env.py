@@ -39,8 +39,10 @@ class BaseEnv():
         self.loss_csv_file = os.path.join(self.log_dir, 'loss_seed_%04d.csv'%self.opt['random_seed'])
         self.log_txt_file = os.path.join(self.log_dir, 'log_seed_%04d.txt'%self.opt['random_seed'])
         self.log_file = open(self.log_txt_file, 'a') 
-        self.layers = [1 for _ in self.opt['hidden_sizes']]
-        self.num_layers = sum(self.layers)
+        ## First entry in the hidden layers is the output of the Input layer
+        ## so we dont count it in the hidden layer count
+        self.layers = [1 for _ in self.opt['hidden_sizes']] 
+        self.num_layers = len(self.opt['hidden_sizes'])
         
         if torch.cuda.is_available():
             torch.cuda.set_device(device)

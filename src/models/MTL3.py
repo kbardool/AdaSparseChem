@@ -29,7 +29,6 @@ class MTL3(nn.Module):
         self.num_tasks = len(num_classes_tasks)
         self.verbose = verbose
 
-
         if self.verbose:
             print_heading(f" Create {self.name} init() Start ", verbose = True)
             print_dbg(f"\n\t block            :  {block}"
@@ -39,19 +38,21 @@ class MTL3(nn.Module):
                       f"\n\t init_neg_logits  :  {init_neg_logits}"
                       f"\n\t skip_layer       :  {skip_layer}", verbose = True)
         
-        ## Build Network Backbone
-        self.backbone = SparseChem_Backbone(conf, block, layers, verbose = verbose)
-        
-
-        ## Build Task specific heads.
-        for t_id, num_classes in enumerate(num_classes_tasks):
-            setattr(self, 'task%d_fc1_c0' % (t_id + 1), SparseChem_Classification_Module(conf['tail_hidden_size'], num_classes))
-
         self.layers = layers
         self.num_layers = sum(layers)
         self.skip_layer = skip_layer
         self.init_method = init_method
         self.init_neg_logits = init_neg_logits
+        
+        ## Build Network Backbone
+        self.backbone = SparseChem_Backbone(conf, block, layers, verbose = verbose)
+        
+        ## Build Task specific heads.
+        for t_id, num_classes in enumerate(num_classes_tasks):
+            ## TODO: Write SpraseChem_TaskHead which will allow a multi-layerd head
+            ## setattr(self, 'task%d_fc1_c0' % (t_id + 1), SparseChem_TaskHead(conf['hidden_sizes'][-1], conf['head_layer_sizes'], num_classes))
+            setattr(self, 'task%d_fc1_c0' % (t_id + 1), SparseChem_Classification_Module(conf['hidden_sizes'][-1], num_classes))
+
         
         ## initialize logits
 

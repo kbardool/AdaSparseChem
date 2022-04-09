@@ -73,10 +73,12 @@ train:
   # Decay parameters for weights training
   decay_lr_rate  :          0.85
   decay_lr_freq  :          2000
+  decay_lr_cooldown  :    0
   
   # Decay parameters for policy training
   policy_decay_lr_rate  :   0.85
   policy_decay_lr_freq  :   2200
+  policy_decay_lr_cooldown  :    0  
 
   # Policy Learning Rates
   # policy_lr      :       0.1    # 1.0e-01

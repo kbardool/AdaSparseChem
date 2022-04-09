@@ -61,31 +61,31 @@ print(f" PROJECT NAME: {ns.wandb_run.project}\n"
 # **************** define optimizer and schedulers *******************
 # ********************************************************************  
                               
-environ.define_optimizer(policy_learning=False)
-environ.define_scheduler(policy_learning=False)
+# environ.define_optimizer(policy_learning=False)
+# environ.define_scheduler(policy_learning=False)
 
 print(f" Current LR: {environ.optimizers['alphas'].param_groups[0]['lr'] }")
 print(f" Current LR: {environ.optimizers['weights'].param_groups[0]['lr']}")
 print(f" Current LR: {environ.optimizers['weights'].param_groups[1]['lr']}")
 
-if opt['train']['resume']:
-    RESUME_MODEL_CKPT = ""
-    RESUME_METRICS_CKPT = ""
-    print(opt['train']['which_iter'])
-    print(opt['paths']['checkpoint_dir'])
-    print(RESUME_MODEL_CKPT)
-    # opt['train']['resume'] = True
-    # opt['train']['which_iter'] = 'warmup_ep_40_seed_0088'
-    print_separator('Resume training')
-    loaded_iter, loaded_epoch = environ.load_checkpoint(RESUME_MODEL_CKPT, path = opt['paths']['checkpoint_dir'], verbose = True)
-    print(loaded_iter, loaded_epoch)    
-#     current_iter = environ.load_checkpoint(opt['train']['which_iter'])
-    environ.networks['mtl-net'].reset_logits()
-    val_metrics = load_from_pickle(opt['paths']['checkpoint_dir'], RESUME_METRICS_CKPT)
-    # training_prep(ns, opt, environ, dldrs, epoch = loaded_epoch, iter = loaded_iter )
+# if opt['train']['resume']:
+#     RESUME_MODEL_CKPT = ""
+#     RESUME_METRICS_CKPT = ""
+#     print(opt['train']['which_iter'])
+#     print(opt['paths']['checkpoint_dir'])
+#     print(RESUME_MODEL_CKPT)
+#     # opt['train']['resume'] = True
+#     # opt['train']['which_iter'] = 'warmup_ep_40_seed_0088'
+#     print_separator('Resume training')
+#     loaded_iter, loaded_epoch = environ.load_checkpoint(RESUME_MODEL_CKPT, path = opt['paths']['checkpoint_dir'], verbose = True)
+#     print(loaded_iter, loaded_epoch)    
+# #     current_iter = environ.load_checkpoint(opt['train']['which_iter'])
+#     environ.networks['mtl-net'].reset_logits()
+#     val_metrics = load_from_pickle(opt['paths']['checkpoint_dir'], RESUME_METRICS_CKPT)
+#     # training_prep(ns, opt, environ, dldrs, epoch = loaded_epoch, iter = loaded_iter )
 
-else:
-    print_separator('Initiate Training ')
+# else:
+print_separator('Initiate Training ')
 
 training_prep(ns, opt, environ, dldrs )
 disp_info_1(ns, opt, environ)
@@ -106,14 +106,14 @@ warmup_phase(ns,opt, environ, dldrs)
 
 # Post warmup training  
 
-print( f" Backbone Learning Rate      : {environ.opt['train']['backbone_lr']}\n"
-       f" Tasks    Learning Rate      : {environ.opt['train']['task_lr']}\n"
-       f" Policy   Learning Rate      : {environ.opt['train']['policy_lr']}\n")
-print( f" Sparsity regularization     : {environ.opt['train']['lambda_sparsity']}\n"
-       f" Sharing  regularization     : {environ.opt['train']['lambda_sharing']} \n\n"
-       f" Tasks    regularization     : {environ.opt['train']['lambda_tasks']}   \n"
-       f" Gumbel Temp                 : {environ.gumbel_temperature:.4f}         \n" #
-       f" Gumbel Temp decay           : {environ.opt['train']['decay_temp_freq']}") #
+# print( f" Backbone Learning Rate      : {environ.opt['train']['backbone_lr']}\n"
+#        f" Tasks    Learning Rate      : {environ.opt['train']['task_lr']}\n"
+#        f" Policy   Learning Rate      : {environ.opt['train']['policy_lr']}\n")
+# print( f" Sparsity regularization     : {environ.opt['train']['lambda_sparsity']}\n"
+#        f" Sharing  regularization     : {environ.opt['train']['lambda_sharing']} \n\n"
+#        f" Tasks    regularization     : {environ.opt['train']['lambda_tasks']}   \n"
+#        f" Gumbel Temp                 : {environ.gumbel_temperature:.4f}         \n" #
+#        f" Gumbel Temp decay           : {environ.opt['train']['decay_temp_freq']}") #
 print(' current lr: ', environ.optimizers['alphas'].param_groups[0]['lr'],)
 print(' current lr: ', environ.optimizers['weights'].param_groups[0]['lr'])
 print(' current lr: ', environ.optimizers['weights'].param_groups[1]['lr'])

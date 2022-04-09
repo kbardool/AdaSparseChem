@@ -91,10 +91,7 @@ class SparseChemEnv(BaseEnv):
         print_heading(f"* {self.name} environment successfully created", verbose = True)
 
 
-    def define_networks(self, verbose = None):
-        if verbose is None:
-            verbose = self.verbose
-  
+    def define_networks(self, verbose = False):
         print_heading(f" {self.name} Define Networks  ", verbose = verbose)
 
         if self.opt['backbone'] == 'SparseChem':
@@ -108,7 +105,8 @@ class SparseChemEnv(BaseEnv):
                                                     num_classes_tasks = self.tasks_num_class, 
                                                     init_method = self.opt['train']['init_method'],
                                                     init_neg_logits = self.init_neg_logits, 
-                                                    skip_layer = self.opt['skip_layer'], verbose = verbose)
+                                                    skip_layer = self.opt['skip_layer'], 
+                                                    verbose = False)
 
             elif self.opt['policy_model'] == 'instance-specific':
                 raise ValueError('Policy Model = %s is not supported' % self.opt['policy_model'])
@@ -180,13 +178,13 @@ class SparseChemEnv(BaseEnv):
             if self.weight_optimizer == 'adam':
                 self.optimizers['weights'] = optim.Adam([{'params': task_specific_params, 'lr': self.opt['train']['task_lr']},
                                                         {'params': backbone_parameters , 'lr': self.opt['train']['backbone_lr']}],
-                                                        betas=(0.5, 0.999), weight_decay=0.0001)
+                                                        betas=(0.9, 0.999), weight_decay=0.0001)
             elif self.weight_optimizer == 'sgd':
                 self.optimizers['weights'] = optim.SGD([{'params': task_specific_params, 'lr': self.opt['train']['task_lr'] },
                                                         {'params': backbone_parameters , 'lr': self.opt['train']['backbone_lr']}],
                                                         momentum=0.9, weight_decay=0.0001)
             else:
-                raise NotImplementedError('Optimizer %s is not implemented' % self.weight_optimizer)
+                raise NotImplementedError('Weight optimizer %s is not implemented' % self.weight_optimizer)
 
         print_dbg(f" define the weights optimizer - learning mode: {'policy' if policy_learning else 'non-policy'}", verbose = verbose)
         print_dbg(f" optimizers for weights : \n {self.optimizers['weights']}", verbose = verbose)
@@ -195,11 +193,13 @@ class SparseChemEnv(BaseEnv):
         # optimizers for alpha (logits??)
         #---------------------------------------
         # if self.opt['train']['init_method'] == 'all_chosen':
-        if self.opt['train']['policy_optimizer'] == 'adam':
+        if self.policy_optimizer == 'adam':
             self.optimizers['alphas'] = optim.Adam(arch_parameters, lr=self.opt['train']['policy_lr'], weight_decay=5*1e-4)
-        else:
+        elif self.policy_optimizer == 'sgd':
             self.optimizers['alphas'] = optim.SGD(arch_parameters, lr=self.opt['train']['policy_lr'], 
                                                  momentum=0.9, weight_decay=1.0e-4)
+        else:
+            raise NotImplementedError('Policy otimizer %s is not implemented' % self.weight_optimizer)
 
         print_dbg(f"\ndefine the logits optimizer (init_method: {self.opt['train']['init_method']})", verbose = verbose)
         print_dbg(f" optimizers for alphas : \n {self.optimizers['alphas']}", verbose = verbose)
@@ -227,7 +227,7 @@ class SparseChemEnv(BaseEnv):
                                                                      mode = 'min',
                                                                      factor=self.opt['train']['policy_decay_lr_rate'],
                                                                      patience=self.opt['train']['policy_decay_lr_freq'],   
-                                                                     cooldown=5,
+                                                                     cooldown=self.opt['train']['policy_decay_lr_cooldown'],
                                                                      verbose = True)                                                                
 
         if ('decay_lr_freq' in self.opt['train'].keys()) and \
@@ -240,7 +240,7 @@ class SparseChemEnv(BaseEnv):
                                                                      mode = 'min',
                                                                      factor=self.opt['train']['decay_lr_rate'],
                                                                      patience=self.opt['train']['decay_lr_freq'],   
-                                                                     cooldown=5,
+                                                                     cooldown=self.opt['train']['decay_lr_cooldown'],
                                                                      verbose = True)
 
         # print_dbg(self.schedulers['weights'], verbose = verbose)

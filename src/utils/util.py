@@ -389,7 +389,7 @@ def get_command_line_args(input = None, display = True):
     parser.add_argument("--folder_sfx"       , type=str,   help="experiment folder suffix, defaults to None")
     parser.add_argument("--exp_desc"         , type=str,   nargs='+', default=[] , help="experiment description")
     parser.add_argument("--hidden_sizes"     , type=int,   nargs='+', default=[] , help="hiddenlayers sizes")
-    parser.add_argument("--tail_hidden_size" , type=int,   help="tail hidden layers sizes")
+    parser.add_argument("--tail_hidden_size" , type=int,   nargs='+', default=[] , help="tail hidden layers sizes")
     parser.add_argument("--warmup_epochs"    , type=int,   help="Warmup epochs")
     parser.add_argument("--training_epochs"  , type=int,   help="Training epochs")
     parser.add_argument("--seed_idx"         , type=int,   default=0, help="Seed index - default is 0")
@@ -480,8 +480,9 @@ def read_yaml(args = None, exp_name = None):
 
     if args.tail_hidden_size is not None:
         opt['tail_hidden_size'] = args.tail_hidden_size
-    elif opt['tail_hidden_size'] is None:
-        opt['tail_hidden_size'] = opt['hidden_size'][-1]
+
+    # elif opt['tail_hidden_size'] is None:
+    #     opt['tail_hidden_size'] = opt['hidden_size'][-1]
 
     if args.task_lr  is not None:
         opt['train']['task_lr'] = args.task_lr
@@ -529,7 +530,7 @@ def read_yaml(args = None, exp_name = None):
 
 
 def build_exp_folder_name(opt):
-    num_heads = len(opt[][])
+    num_heads = len(opt['dataload']['y_tasks'])
     folder_name = f"{opt['hidden_sizes'][0]}x{len(opt['hidden_sizes'])}" \
                     f"_{opt['exp_name_pfx']}"\
                     f"_plr{opt['train']['policy_lr']}" \
