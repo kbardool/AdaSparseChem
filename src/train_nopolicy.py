@@ -17,10 +17,13 @@ from datetime import datetime
 import numpy  as np
 import torch  
 import wandb
+from pynvml import *
 import pandas as pd
-from utils.notebook_modules import initialize, init_dataloaders, init_environment, init_wandb, \
-                                   training_prep, disp_dataloader_info,disp_info_1, \
-                                   warmup_phase, weight_policy_training, disp_gpu_info
+from utils.notebook_modules import (initialize, init_dataloaders, init_environment, init_wandb, 
+                                   training_prep, disp_dataloader_info,disp_info_1, 
+                                   warmup_phase, weight_policy_training, disp_gpu_info,
+                                    init_dataloaders_by_fold_id)
+                                    
 
 from utils.util import (print_separator, print_heading, timestring, print_loss, load_from_pickle) 
 #  print_underline, load_from_pickle, print_dbg, get_command_line_args ) 
@@ -31,60 +34,63 @@ np.set_printoptions(edgeitems=3, infstr='inf', linewidth=150, nanstr='nan')
 torch.set_printoptions(precision=6, linewidth=132)
 pd.options.display.width = 132
 # disp_gpu_info() 
-# os.environ["WANDB_NOTEBOOK_NAME"] = "Adashare_Training.ipynb"
 
+# ********************************************************************
+# ******************** Display GPU information ***********************
+# ********************************************************************  
+disp_gpu_info()
+if torch.cuda.is_available():
+    print('cuda is available')
+    nvmlInit()
+
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+print(device)
+# torch.cuda package supports CUDA tensor types but works with GPU computations. Hence, if GPU is used, it is common to use CUDA. 
+torch.cuda.current_device()
+torch.cuda.device_count()
+torch.cuda.get_device_name(0)
+
+torch_gpu_id = torch.cuda.current_device()
+print(torch_gpu_id)
+if "CUDA_VISIBLE_DEVICES" in os.environ:
+  ids = list(map(int, os.environ.get("CUDA_VISIBLE_DEVICES", "").split(",")))
+  print(' ids : ', ids)
+  nvml_gpu_id = ids[torch_gpu_id] # remap
+else:
+  nvml_gpu_id = torch_gpu_id
+print('nvml_gpu_id: ', nvml_gpu_id)
+nvml_handle = nvmlDeviceGetHandleByIndex(nvml_gpu_id)
+print(nvml_handle)
+
+info = nvmlDeviceGetMemoryInfo(nvml_handle)
+print(info) 
+
+
+# ********************************************************************
+# ************************  Initialization ***************************
+# ********************************************************************  
 opt, ns = initialize(build_folders = True)
 
 # ********************************************************************
 # ************ Dataloaders and Envronment Initialization *************
 # ********************************************************************  
 
-dldrs = init_dataloaders(opt)
-
+# dldrs = init_dataloaders(opt)
+dldrs = init_dataloaders_by_fold_id(opt, verbose = False)
 disp_dataloader_info(dldrs)
-
-environ = init_environment(ns, opt, is_train = True, policy_learning = False, display_cfg = True)
-
-
-# ********************************************************************
-# ********************** WandB Initialization ************************
-# ********************************************************************  
-                              
-init_wandb(ns, opt, environment = environ)
-
-print(f" PROJECT NAME: {ns.wandb_run.project}\n"
-      f" RUN ID      : {ns.wandb_run.id} \n"
-      f" RUN NAME    : {ns.wandb_run.name}") 
 
 
 # ********************************************************************
 # **************** define optimizer and schedulers *******************
 # ********************************************************************  
+environ = init_environment(ns, opt, is_train = True, policy_learning = False, display_cfg = True)
                               
-# environ.define_optimizer(policy_learning=False)
-# environ.define_scheduler(policy_learning=False)
 
 print(f" Current LR: {environ.optimizers['alphas'].param_groups[0]['lr'] }")
 print(f" Current LR: {environ.optimizers['weights'].param_groups[0]['lr']}")
 print(f" Current LR: {environ.optimizers['weights'].param_groups[1]['lr']}")
 
-# if opt['train']['resume']:
-#     RESUME_MODEL_CKPT = ""
-#     RESUME_METRICS_CKPT = ""
-#     print(opt['train']['which_iter'])
-#     print(opt['paths']['checkpoint_dir'])
-#     print(RESUME_MODEL_CKPT)
-#     # opt['train']['resume'] = True
-#     # opt['train']['which_iter'] = 'warmup_ep_40_seed_0088'
-#     print_separator('Resume training')
-#     loaded_iter, loaded_epoch = environ.load_checkpoint(RESUME_MODEL_CKPT, path = opt['paths']['checkpoint_dir'], verbose = True)
-#     print(loaded_iter, loaded_epoch)    
-# #     current_iter = environ.load_checkpoint(opt['train']['which_iter'])
-#     environ.networks['mtl-net'].reset_logits()
-#     val_metrics = load_from_pickle(opt['paths']['checkpoint_dir'], RESUME_METRICS_CKPT)
-#     # training_prep(ns, opt, environ, dldrs, epoch = loaded_epoch, iter = loaded_iter )
-
-# else:
+# check_for_resume_training(ns, opt, environ)
 print_separator('Initiate Training ')
 
 training_prep(ns, opt, environ, dldrs )
@@ -96,8 +102,7 @@ print(environ.disp_for_excel())
 # ************************ warmup training  **************************
 # ********************************************************************        
 
-print_separator('WARMUP TRAINING')
-print(ns.warmup_epochs, ns.current_epoch)
+print_separator('TRAINING')
 print_heading(f" Last Epoch: {ns.current_epoch}   # of warm-up epochs to do:  {ns.warmup_epochs}"
               f" - Run epochs {ns.current_epoch+1} to {ns.current_epoch + ns.warmup_epochs}", verbose = True)
 
@@ -131,4 +136,5 @@ print_loss(environ.val_metrics, title = f"[e] Last ep:{ns.current_epoch}  it:{ns
 print(f"Best Epoch :       {ns.best_epoch}\n"
       f"Best Iteration :   {ns.best_iter} \n"
       f"Best Precision :   {ns.best_value}\n")
- 
+
+ns.wandb_run.finish()

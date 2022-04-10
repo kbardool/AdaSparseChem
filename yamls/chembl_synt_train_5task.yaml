@@ -1,4 +1,4 @@
-project_name         : AdaSparseChem
+project_name         : AdaSparseChem-Synthetic
 ## Leave empty to have date_time used 
 exp_id               :
 exp_name             : 
@@ -150,9 +150,9 @@ train:
 ## Data & Folder parameters
 ##------------------------------------------------------
 paths:
-  log_dir        :     ../../experiments/AdaSparseChem
-  result_dir     :     ../../experiments/AdaSparseChem
-  checkpoint_dir :     ../../experiments/AdaSparseChem
+  log_dir        :     ../../experiments/synt-AdaSparseChem
+  result_dir     :     ../../experiments/synt-AdaSparseChem
+  checkpoint_dir :     ../../experiments/synt-AdaSparseChem
 
 dataload:
   dataset        : Chembl23_mini

@@ -408,17 +408,23 @@ def get_command_line_args(input = None, display = True):
     # parser.add_argument("--policy"           , action="store_true",  help="Train policies")
     parser.add_argument("--resume"           , default=False, action="store_true",  help="Resume previous run")
     parser.add_argument("--cpu"              , default=False, action="store_true",  help="CPU instead of GPU")
+    
     if input is None:
         args = parser.parse_args()
     else:
         args = parser.parse_args(input)
+    
     args.exp_desc = ' '.join(str(e) for e in args.exp_desc)
-
+    
+    if args.exp_id is None:
+        args.exp_id = wbutils.generate_id()
+    
     if display:
         print_underline(' command line parms : ', True)
         for key, val in vars(args).items():
             print(f" {key:.<25s}  {val}")
         print('\n\n')
+    
     if args.resume:
         assert args.exp_id is not None and args.exp_name is not None, " exp_id & exp_name must be provided when specifying --resume"
     return args
@@ -449,11 +455,14 @@ def read_yaml(args = None, exp_name = None):
     # if args.gpu_ids is not None:
     #     torch.cuda.set_device(args.gpu_ids[0])
         
+    opt['config']= args.config
     opt['cpu'] = args.cpu
     opt['gpu_ids'] = args.gpu_ids
     opt['folder_sfx'] = args.folder_sfx
     opt['train']['resume'] = args.resume
-
+    opt["exp_id"] = args.exp_id 
+    
+    
     if args.warmup_epochs is not None:
         opt['train']['warmup_epochs'] = args.warmup_epochs
         
@@ -498,11 +507,6 @@ def read_yaml(args = None, exp_name = None):
     if args.policy_lr  is not None:
         opt['train']['policy_lr'] = args.policy_lr
 
-    if args.exp_id is None:
-        opt["exp_id"] = wbutils.generate_id()
-    else: 
-        opt["exp_id"] = args.exp_id 
-
     if exp_name is not None:
         opt['exp_name_pfx'] = exp_name
     elif args.exp_name is not None:
@@ -533,12 +537,12 @@ def build_exp_folder_name(opt):
     num_heads = len(opt['dataload']['y_tasks'])
     folder_name = f"{opt['hidden_sizes'][0]}x{len(opt['hidden_sizes'])}" \
                     f"_{opt['exp_name_pfx']}"\
-                    f"_plr{opt['train']['policy_lr']}" \
-                    f"_sp{opt['train']['lambda_sparsity']}" \
-                    f"_sh{opt['train']['lambda_sharing']}"  \
                     f"_lr{opt['train']['backbone_lr']}"     \
                     f"_do{opt['middle_dropout']}" 
     
+                    # f"_plr{opt['train']['policy_lr']}" \
+                    # f"_sp{opt['train']['lambda_sparsity']}" \
+                    # f"_sh{opt['train']['lambda_sharing']}"  \
     if opt['folder_sfx'] is not None:
         folder_name += f"_{opt['folder_sfx']}"
         

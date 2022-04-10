@@ -267,10 +267,10 @@ class SparseChem_Backbone(torch.nn.Module):
             # forward through the all blocks without dropping
             for layer, _ in enumerate(self.layer_config):
                 # apply the residual skip out of _make_layers_
-                # residual = x  if self.residuals[layer] is None else self.residuals[layer](x)
-                # x = F.relu(residual + self.blocks[layer][b](x))
+                residual = x  if self.residuals[layer] is None else self.residuals[layer](x)
+                x = F.relu(residual + self.blocks[layer](x))
                 # x = residual + self.blocks[layer](x)
-                x = self.blocks[layer](x)
+                # x = self.blocks[layer](x)
 
                 # print_dbg(f"\t Segment{segment} num_blocks: {num_blocks}   block {b} -  output: {x.shape}", verbose = verbose)
                 # x  =  self.blocks[segment][b](x)

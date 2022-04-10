@@ -22,14 +22,15 @@ def initialize(input_args = None, build_folders = True):
 
     ns.args = get_command_line_args(input_args, display = True)
          
-    # ********************************************************************
-    # ****************** create folders and print options ****************
-    # ********************************************************************
     print_separator('READ YAML')
 
     opt = read_yaml(ns.args)
-
     fix_random_seed(opt["random_seed"])
+
+    init_wandb(ns, opt)
+    print(f" PROJECT NAME: {ns.wandb_run.project}\n"
+          f" RUN ID      : {ns.wandb_run.id} \n"
+          f" RUN NAME    : {ns.wandb_run.name}") 
         
     if build_folders:
         create_path(opt)    
@@ -52,6 +53,27 @@ def initialize(input_args = None, build_folders = True):
     display_config(opt)
 
     return opt, ns
+
+
+def init_wandb(namespace, opt, environment = None, resume = "allow" ):
+
+    # opt['exp_id'] = wandb.util.generate_id()
+    print(opt['exp_id'], opt['exp_name'], opt['project_name']) # , opt['exp_instance'])
+    namespace.wandb_run = wandb.init(project=opt['project_name'], 
+                                     entity="kbardool", 
+                                     id = opt['exp_id'], 
+                                     name = opt['exp_name'],
+                                     resume=resume )
+    wandb.config = opt.copy()
+
+    # wandb.watch(environ.networks['mtl-net'], log='all', log_freq=10)
+
+
+    # assert wandb.run is None, "Run is still running"
+    print(f" PROJECT NAME: {namespace.wandb_run.project}\n"
+          f" RUN ID      : {namespace.wandb_run.id} \n"
+          f" RUN NAME    : {namespace.wandb_run.name}")     
+    return 
 
 def init_dataloaders(opt, verbose = False):
     dldrs = types.SimpleNamespace()
@@ -80,14 +102,15 @@ def init_dataloaders(opt, verbose = False):
 
     return dldrs
 
-def init_dataloaders_by_fold_id(opt, verbose = True):
+def init_dataloaders_by_fold_id(opt, verbose = False):
 
+    dldrs = types.SimpleNamespace()
     ecfp     = load_sparse(opt['dataload']['dataroot'], opt['dataload']['x'])
     folding  = np.load(os.path.join(opt['dataload']['dataroot'], opt['dataload']['folding']))
 
     print(ecfp.shape, folding.shape)
 
-    fold_va = 0
+    fold_va = opt['dataload']['fold_va']
     idx_tr  = np.where(folding != fold_va)[0]
     idx_va  = np.where(folding == fold_va)[0]
 
@@ -96,8 +119,8 @@ def init_dataloaders_by_fold_id(opt, verbose = True):
     print(idx_tr[-1], idx_va[-1])
 
     dldrs = types.SimpleNamespace()
-    dldrs.trainset0 = ClassRegrSparseDataset_v3(opt, index = idx_tr, verbose = True)
-    dldrs.valset    = ClassRegrSparseDataset_v3(opt, index = idx_va, verbose = True)
+    dldrs.trainset0 = ClassRegrSparseDataset_v3(opt, index = idx_tr, verbose = verbose)
+    dldrs.valset    = ClassRegrSparseDataset_v3(opt, index = idx_va, verbose = verbose)
     dldrs.trainset1 = dldrs.trainset0
     dldrs.trainset2 = dldrs.trainset0
 
@@ -105,13 +128,14 @@ def init_dataloaders_by_fold_id(opt, verbose = True):
     dldrs.warmup_trn_loader = InfiniteDataLoader(dldrs.trainset0 , batch_size=opt['train']['batch_size'], num_workers = 2, pin_memory=True, collate_fn=dldrs.trainset0.collate, shuffle=True)
     dldrs.weight_trn_loader = InfiniteDataLoader(dldrs.trainset1 , batch_size=opt['train']['batch_size'], num_workers = 2, pin_memory=True, collate_fn=dldrs.trainset1.collate, shuffle=True)
     dldrs.policy_trn_loader = InfiniteDataLoader(dldrs.trainset2 , batch_size=opt['train']['batch_size'], num_workers = 2, pin_memory=True, collate_fn=dldrs.trainset2.collate, shuffle=True)
-    dldrs.val_loader        = InfiniteDataLoader(dldrs.valset    , batch_size=opt['train']['batch_size'], num_workers = 1, pin_memory=True, collate_fn=dldrs.valset.collate  , shuffle=True)
+    dldrs.val_loader        = InfiniteDataLoader(dldrs.valset    , batch_size=opt['train']['batch_size'], num_workers = 1, pin_memory=True, collate_fn=dldrs.valset.collate   , shuffle=True)
+    
     # dldrs.test_loader       = InfiniteDataLoader(dldrs.testset   , batch_size=32                        , num_workers = 1, pin_memory=True, collate_fn=dldrs.testset.collate  , shuffle=True)
 
     opt['train']['weight_iter_alternate'] = opt['train'].get('weight_iter_alternate' , len(dldrs.weight_trn_loader))
     opt['train']['alpha_iter_alternate']  = opt['train'].get('alpha_iter_alternate'  , len(dldrs.policy_trn_loader))        
     
-    return 
+    return dldrs
 
 
 def disp_dataloader_info(dldrs):
@@ -155,7 +179,8 @@ def init_environment(ns, opt, is_train = True, policy_learning = False, display_
                             is_train         = is_train,
                             opt              = opt, 
                             verbose          = False)
-
+    wandb_watch(environ.networks['mtl-net'], log='all', log_freq= 10)     ###  Weights and Biases Initialization         
+    
     cfg = environ.print_configuration()
     write_config_report(opt, cfg, filename = ns.config_filename, mode = 'a')
 
@@ -164,24 +189,9 @@ def init_environment(ns, opt, is_train = True, policy_learning = False, display_
     
     return environ
 
-
-
-def init_wandb(namespace, opt, environment, resume = "allow" , log_freq  = 10):
-
-    # wandb_run_name = opt['exp_instance']
-    # opt['exp_id'] = wandb.util.generate_id()
-    print(opt['exp_id'], opt['exp_name'], opt['project_name']) # , opt['exp_instance'])
-    namespace.wandb_run = wandb.init(project=opt['project_name'], entity="kbardool", resume=resume, id = opt['exp_id'], name = opt['exp_name'])
-    wandb.config = opt.copy()
-
-    # wandb.watch(environ.networks['mtl-net'], log='all', log_freq=10)
-    wandb.watch(environment.networks['mtl-net'], log='all', log_freq= log_freq)     ###  Weights and Biases Initialization 
-
-    # assert wandb.run is None, "Run is still running"
-    print(f" PROJECT NAME: {namespace.wandb_run.project}\n"
-          f" RUN ID      : {namespace.wandb_run.id} \n"
-          f" RUN NAME    : {namespace.wandb_run.name}")     
-    return 
+def wandb_watch(item = None, log = 'all', log_freq = 10):
+    if item is not None:
+        wandb.watch(item, log='all', log_freq= log_freq)     ###  Weights and Biases Initialization         
 
 
 def check_for_resume_training(ns, opt, environ):
@@ -254,9 +264,7 @@ def training_prep(ns, opt, environ, dldrs, phase = 'update_w', epoch = 0, iter =
     ns.best_value     = 0 
     ns.best_iter      = 0
     ns.best_epoch     = 0
-
     ns.p_epoch        = 0
-    ns.w_epoch        = 0
 
     ns.num_train_layers = None     
     ns.leave            = False
@@ -267,7 +275,7 @@ def training_prep(ns, opt, environ, dldrs, phase = 'update_w', epoch = 0, iter =
     ns.warmup_epochs      = opt['train']['warmup_epochs']
     ns.training_epochs    = opt['train']['training_epochs']
     ns.curriculum_speed   = opt['curriculum_speed'] 
-    ns.curriculum_epochs  =  0
+    ns.curriculum_epochs  = 0
     ns.check_for_improvment_wait  = 0
 
     return

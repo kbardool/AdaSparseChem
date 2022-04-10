@@ -1,4 +1,4 @@
-project_name         : AdaSparseChem
+project_name         : AdaSparseChem-Synthetic
 ## Leave empty to have date_time used 
 exp_id               :
 exp_name             : 
@@ -69,7 +69,8 @@ train:
   task_lr        :    0.001
   backbone_lr    :    0.001
 
-  
+  weight_optimizer : adam
+  policy_optimizer : adam
   # Decay parameters for weights training
   decay_lr_rate  :          0.85
   decay_lr_freq  :          2000
@@ -143,9 +144,9 @@ train:
 ## Data & Folder parameters
 ##------------------------------------------------------
 paths:
-  log_dir        :     ../../experiments/AdaSparseChem
-  result_dir     :     ../../experiments/AdaSparseChem
-  checkpoint_dir :     ../../experiments/AdaSparseChem
+  log_dir        :     ../../experiments/synt-AdaSparseChem
+  result_dir     :     ../../experiments/synt-AdaSparseChem
+  checkpoint_dir :     ../../experiments/synt-AdaSparseChem
 
 dataload:
   dataset        : Chembl23_mini
