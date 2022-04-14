@@ -25,7 +25,7 @@ from pynvml import *
 import pandas as pd
 from utils.notebook_modules import (initialize, init_dataloaders, init_environment, init_wandb, 
                                    training_prep, disp_dataloader_info,disp_info_1, 
-                                   warmup_phase, weight_policy_training, disp_gpu_info,
+                                   warmup_phase, weight_policy_training, display_gpu_info,
                                 init_dataloaders_by_fold_id)
                                     
 
@@ -43,37 +43,7 @@ pd.options.display.width = 132
 os.environ["WANDB_NOTEBOOK_NAME"] = "Adashare_Training-Chembl_mini.ipynb"
 
 
-
-if torch.cuda.is_available():
-    print('cuda is available')
-
-    disp_gpu_info()
-    nvmlInit()
-
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    print(device)
-    # torch.cuda package supports CUDA tensor types but works with GPU computations. Hence, if GPU is used, it is common to use CUDA. 
-    torch.cuda.current_device()
-    torch.cuda.device_count()
-    torch.cuda.get_device_name(0)
-
-    torch_gpu_id = torch.cuda.current_device()
-    print(torch_gpu_id)
-    if "CUDA_VISIBLE_DEVICES" in os.environ:
-      ids = list(map(int, os.environ.get("CUDA_VISIBLE_DEVICES", "").split(",")))
-      print(' ids : ', ids)
-      nvml_gpu_id = ids[torch_gpu_id] # remap
-    else:
-      nvml_gpu_id = torch_gpu_id
-    print('nvml_gpu_id: ', nvml_gpu_id)
-    nvml_handle = nvmlDeviceGetHandleByIndex(nvml_gpu_id)
-    print(nvml_handle)
-
-    info = nvmlDeviceGetMemoryInfo(nvml_handle)
-    print(info)
-else :
-    print('No CUDA devices found ')
-
+# display_gpu_info()
 
 # ## Create Environment
 

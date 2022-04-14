@@ -762,14 +762,11 @@ def disp_info_1(ns, opt, environ):
             # f"\n stop_iter_w               : {ns.stop_iter_w}",
         )
 
-def disp_gpu_info():
-    from GPUtil import showUtilization as gpu_usage
-    print(' Cuda is available  : ', torch.cuda.is_available())
-    print(' CUDA device count  : ', torch.cuda.device_count())
-    print(' CUDA current device: ', torch.cuda.current_device())
-    print(' GPU Processes      : \n', torch.cuda.list_gpu_processes())
-    print()
+ 
 
+def disp_gpu_device_info():
+    from GPUtil import showUtilization as gpu_usage
+ 
     for i in range(torch.cuda.device_count()):
         print(f" Device : cuda:{i}")
         print('   name:       ', torch.cuda.get_device_name())
@@ -783,3 +780,38 @@ def disp_gpu_info():
         print()
 
     gpu_usage()                             
+
+def display_gpu_info():
+    from pynvml import nvmlInit, nvmlDeviceGetHandleByIndex ,nvmlDeviceGetMemoryInfo   
+
+    if torch.cuda.is_available():
+        print('cuda is available')
+        print(' CUDA device count  : ', torch.cuda.device_count())
+        print(' CUDA current device: ', torch.cuda.current_device())
+        print(' GPU Processes      : \n', torch.cuda.list_gpu_processes())
+        disp_gpu_device_info()
+        nvmlInit()
+
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        print(device)
+        # torch.cuda package supports CUDA tensor types but works with GPU computations. Hence, if GPU is used, it is common to use CUDA. 
+        torch.cuda.current_device()
+        torch.cuda.device_count()
+        torch.cuda.get_device_name(0)
+
+        torch_gpu_id = torch.cuda.current_device()
+        print(torch_gpu_id)
+        if "CUDA_VISIBLE_DEVICES" in os.environ:
+            ids = list(map(int, os.environ.get("CUDA_VISIBLE_DEVICES", "").split(",")))
+            print(' ids : ', ids)
+            nvml_gpu_id = ids[torch_gpu_id] # remap
+        else:
+            nvml_gpu_id = torch_gpu_id
+            print('nvml_gpu_id: ', nvml_gpu_id)
+            nvml_handle = nvmlDeviceGetHandleByIndex(nvml_gpu_id)
+            print(nvml_handle)
+
+        info = nvmlDeviceGetMemoryInfo(nvml_handle)
+        print(info)
+    else :
+        print('No CUDA devices found ')

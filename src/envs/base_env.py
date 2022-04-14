@@ -167,6 +167,7 @@ class BaseEnv():
     folder: {self.opt['exp_folder']}
     layers: {len(self.opt['hidden_sizes'])} {self.opt['hidden_sizes']} 
     
+    first dropout          : {self.opt['first_dropout']}
     middle dropout         : {self.opt['middle_dropout']}
     last dropout           : {self.opt['last_dropout']}
     diff_sparsity_weights  : {self.opt['diff_sparsity_weights']}
@@ -196,41 +197,8 @@ class BaseEnv():
     training epochs        : {self.opt['train']['training_epochs']}
     Data split ratios      : {self.opt['dataload']['x_split_ratios']}
 """
-        return ln
+        return ln   
 
-    # def disp_for_excel(self):
-    #     ln= f"\n # folder: {self.opt['exp_folder']}"    \
-    #         f"\n # layers: {len(self.opt['hidden_sizes'])} {self.opt['hidden_sizes']} "  \
-    #         f"                               \n" \
-    #         f"\n middle dropout         : {self.opt['middle_dropout']}"  \
-    #         f"\n last dropout           : {self.opt['last_dropout']}"    \
-    #         f"\n diff_sparsity_weights  : {self.opt['diff_sparsity_weights']}" \
-    #         f"\n skip_layer             : {self.opt['skip_layer']}"            \
-    #         f"\n is_curriculum          : {self.opt['is_curriculum']}"         \
-    #         f"\n curriculum_speed       : {self.opt['curriculum_speed']}"      \
-    #         f"                              \n"    \
-    #         f"\n task_lr                : {self.opt['train']['task_lr']}"  \
-    #         f"\n backbone_lr            : {self.opt['train']['backbone_lr']}"\
-    #         f"\n decay_lr_rate          : {self.opt['train']['decay_lr_rate']}" \
-    #         f"\n decay_lr_freq          : {self.opt['train']['decay_lr_freq']}" \
-    #         f"                              \n"    \
-    #         f"\n policy_lr              : {self.opt['train']['policy_lr']}"       \
-    #         f"\n policy_decay_lr_rate   : {self.opt['train']['policy_decay_lr_rate']}" \
-    #         f"\n policy_decay_lr_freq   : {self.opt['train']['policy_decay_lr_freq']}" \
-    #         f"\n lambda_sparsity        : {self.opt['train']['lambda_sparsity']}" \
-    #         f"\n lambda_sharing         : {self.opt['train']['lambda_sharing']}"  \
-    #         f"\n lambda_tasks           : {self.opt['train']['lambda_tasks']}"  \
-    #         f"                              \n"    \
-    #         f"\n Gumbel init_temp       : {self.opt['train']['init_temp']}"     \
-    #         f"\n Gumbel decay_temp      : {self.opt['train']['decay_temp']}"    \
-    #         f"\n Gumbel decay_temp_freq : {self.opt['train']['decay_temp_freq']}" \
-    #         f"\n Logit init_method      : {self.opt['train']['init_method']}"     \
-    #         f"\n Logit init_neg_logits  : {self.opt['train']['init_neg_logits']}" \
-    #         f"\n Logit hard_sampling    : {self.opt['train']['hard_sampling']}"   \
-    #         f"\n Warm-up epochs         : {self.opt['train']['warmup_epochs']}"   \
-    #         f"\n training epochs        : {self.opt['train']['training_epochs']}" \
-    #         f"\n Data split ratios      : {self.opt['dataload']['x_split_ratios']}"
-    #     return ln
 
 
     def write_run_info(self):
