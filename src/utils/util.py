@@ -384,7 +384,7 @@ def get_command_line_args(input = None, display = True):
     """ get and parse command line arguments """
     parser = argparse.ArgumentParser()
     parser.add_argument("--config"           , required=True, help="Path for the config file")
-    parser.add_argument("--exp_id"           , type=str,    help="experiment unqiue id, used by wandb - defaults to wandb.util.generate_id()")
+    parser.add_argument("--exp_id"           , type=str,   help="experiment unqiue id, used by wandb - defaults to wandb.util.generate_id()")
     parser.add_argument("--exp_name"         , type=str,   help="experiment name, used as folder prefix and wandb name, defaults to mmdd_hhmm")
     parser.add_argument("--folder_sfx"       , type=str,   help="experiment folder suffix, defaults to None")
     parser.add_argument("--exp_desc"         , type=str,   nargs='+', default=[] , help="experiment description")
@@ -406,6 +406,7 @@ def get_command_line_args(input = None, display = True):
     parser.add_argument("--lambda_sharing"   , type=float, help="Sharing Regularization - default read from config file")
     parser.add_argument("--gpu_ids"          , type=int,   nargs='+', default=[0],  help="GPU Device Ids")
     # parser.add_argument("--policy"           , action="store_true",  help="Train policies")
+    parser.add_argument("--no_residual"      , default=False, action="store_true",  help="Do not use residual layers")
     parser.add_argument("--resume"           , default=False, action="store_true",  help="Resume previous run")
     parser.add_argument("--cpu"              , default=False, action="store_true",  help="CPU instead of GPU")
     
@@ -461,7 +462,10 @@ def read_yaml(args = None, exp_name = None):
     opt['folder_sfx'] = args.folder_sfx
     opt['train']['resume'] = args.resume
     opt["exp_id"] = args.exp_id 
+    opt["random_seed"] = opt["seed_list"][args.seed_idx]
     
+    if args.no_residual:
+        opt['is_residual'] = False
     
     if args.warmup_epochs is not None:
         opt['train']['warmup_epochs'] = args.warmup_epochs
@@ -518,17 +522,19 @@ def read_yaml(args = None, exp_name = None):
     
     if args.folder_sfx is not None:
         opt['folder_sfx'] = args.folder_sfx
+        
+    if  opt['folder_sfx'] is not None:
         opt['exp_name']  += f"_{args.folder_sfx}"
 
     if args.exp_desc is not None:
         opt['exp_description'] = args.exp_desc 
 
-    if args.seed_idx is not None:
-        opt["random_seed"] = opt["seed_list"][args.seed_idx]
-    else:    
-        opt["random_seed"] = opt["seed_list"][0]
-
     opt['exp_folder'] = build_exp_folder_name(opt)
+    # if args.seed_idx is not None:
+    #     opt["random_seed"] = opt["seed_list"][args.seed_idx]
+    # else:    
+    #     opt["random_seed"] = opt["seed_list"][0]
+
 
     return opt
 

@@ -45,6 +45,8 @@ regr_output_size     :
 # policy               : False
 policy               : True
 
+is_residual          : True
+
 is_sparse            : True
 is_sharing           : True
 diff_sparsity_weights: False
@@ -87,20 +89,20 @@ train:
   policy_decay_lr_cooldown :    0
   # Policy Learning Rates
   # policy_lr      :       0.1    # 1.0e-01
-  policy_lr      :       0.01   # 1.0e-02
-  # policy_lr      :       0.001  # 1.0e-03
+  # policy_lr      :       0.01   # 1.0e-02
+  policy_lr      :       0.001  # 1.0e-03
   # policy_lr      :       0.0001 # 1.0e-04
   
   # Lambda sparsity (cross entropy) 
   # lambda_sparsity:       1.0e+01
   # lambda_sparsity:       1.0e-01
-  lambda_sparsity:       1.0e-02
+  # lambda_sparsity:       1.0e-02
   # lambda_sparsity:       1.0e-03
   # lambda_sparsity:       1.0e-04 
   # lambda_sparsity:       1.0e-05 
   # lambda_sparsity:       1.0e-06 
   # lambda_sparsity:       1.0e-07 
-  # lambda_sparsity:       5.0e-02
+  lambda_sparsity:       2.0e-02
   
   # Lambda Sharing (hamming distance)
   # lambda_sharing :       1.0e+02
@@ -109,7 +111,6 @@ train:
   # lambda_sharing :       1.0e-01
   lambda_sharing :       1.0e-02
   # lambda_sharing :       1.0e-03
-
   # lambda_sharing :       5.0e-02
 
   # Lambda sharing (hamming) - original 0.05
@@ -172,8 +173,8 @@ dataload:
   input_transform: 
   weights_class  :  
   
-  crop_h         : 321
-  crop_w         : 321
+  # crop_h         : 321
+  # crop_w         : 321
   
   min_samples_class : 0
   fold_va        : 0

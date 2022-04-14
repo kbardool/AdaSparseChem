@@ -35,6 +35,8 @@ def initialize(input_args = None, build_folders = True):
     if build_folders:
         create_path(opt)    
      
+
+
     print_heading(f" experiment name       : {opt['exp_name']} \n"
                 f" experiment id         : {opt['exp_id']} \n"
                 f" folder_name           : {opt['exp_folder']} \n"
@@ -55,24 +57,27 @@ def initialize(input_args = None, build_folders = True):
     return opt, ns
 
 
-def init_wandb(namespace, opt, environment = None, resume = "allow" ):
+def init_wandb(ns, opt, environment = None, resume = "allow" ):
 
     # opt['exp_id'] = wandb.util.generate_id()
     print(opt['exp_id'], opt['exp_name'], opt['project_name']) # , opt['exp_instance'])
-    namespace.wandb_run = wandb.init(project=opt['project_name'], 
+    ns.wandb_run = wandb.init(project=opt['project_name'], 
                                      entity="kbardool", 
                                      id = opt['exp_id'], 
                                      name = opt['exp_name'],
                                      resume=resume )
-    wandb.config = opt.copy()
+    wandb.config.update(ns.args)
+    wandb.config.update(opt,allow_val_change=True)   ## wandb.config = opt.copy()
 
     # wandb.watch(environ.networks['mtl-net'], log='all', log_freq=10)
-
+    wandb.define_metric("best_accuracy", summary="last")
+    wandb.define_metric("best_epoch", summary="last")
+    wandb.define_metric("best_iter", summary="last")
 
     # assert wandb.run is None, "Run is still running"
-    print(f" PROJECT NAME: {namespace.wandb_run.project}\n"
-          f" RUN ID      : {namespace.wandb_run.id} \n"
-          f" RUN NAME    : {namespace.wandb_run.name}")     
+    print(f" PROJECT NAME: {ns.wandb_run.project}\n"
+          f" RUN ID      : {ns.wandb_run.id} \n"
+          f" RUN NAME    : {ns.wandb_run.name}")     
     return 
 
 def init_dataloaders(opt, verbose = False):
@@ -154,10 +159,10 @@ def disp_dataloader_info(dldrs):
         #   f'\n size of test set                                   :  {len(dldrs.testset)}',
         #   f'\n                               Total                :  {len(dldrs.trainset0)+len(dldrs.trainset1)+len(dldrs.trainset2)+len(dldrs.valset)+ len(dldrs.testset)}',
           f"\n                                ",
-          f"\n lenght (# batches) in training 0 (warm up)         :  {len(dldrs.warmup_trn_loader)}",
-          f"\n lenght (# batches) in training 1 (network parms)   :  {len(dldrs.weight_trn_loader)}",
-          f"\n lenght (# batches) in training 2 (policy weights)  :  {len(dldrs.policy_trn_loader)}",
-          f"\n lenght (# batches) in validation dataset           :  {len(dldrs.val_loader)}",
+          f"\n Number of batches in training 0 (warm up)          :  {len(dldrs.warmup_trn_loader)}",
+          f"\n Number of batches in training 1 (network parms)    :  {len(dldrs.weight_trn_loader)}",
+          f"\n Number of batches in training 2 (policy weights)   :  {len(dldrs.policy_trn_loader)}",
+          f"\n Number of batches in validation dataset            :  {len(dldrs.val_loader)}",
         #   f"\n lenght (# batches) in test dataset                 :  {len(dldrs.test_loader)}",
           f"\n                                ")
                 
@@ -192,6 +197,20 @@ def init_environment(ns, opt, is_train = True, policy_learning = False, display_
 def wandb_watch(item = None, log = 'all', log_freq = 10):
     if item is not None:
         wandb.watch(item, log='all', log_freq= log_freq)     ###  Weights and Biases Initialization         
+
+def wandb_log_metrics(val_metrics):
+    # wandb.log(val_metrics['aggregated'])
+    # wandb.log(val_metrics['total'])
+    # wandb.log(val_metrics['parms'])
+    # wandb.log(val_metrics['sharing'])
+    # wandb.log(val_metrics['sparsity'])
+    # wandb.log(val_metrics['epoch'])
+    wandb.log({**val_metrics['aggregated'], 
+               **val_metrics['total'], 
+               **val_metrics['parms'], 
+               **val_metrics['sharing'], 
+               **val_metrics['sparsity']})
+    wandb.log({'epoch': val_metrics['epoch']})
 
 
 def check_for_resume_training(ns, opt, environ):
@@ -329,6 +348,7 @@ def retrain_prep(ns, opt, environ, dldrs, phase = 'update_w', epoch = 0, iter = 
 
 
 def warmup_phase(ns,opt, environ, dldrs, disable_tqdm = True, epochs = None):
+
     ns.phase = 'warmup'
     ns.flag  = 'update_weights'
     if epochs is not None:
@@ -369,12 +389,12 @@ def warmup_phase(ns,opt, environ, dldrs, disable_tqdm = True, epochs = None):
 
         ns.trn_losses = environ.losses
         environ.print_trn_metrics(ns.current_epoch, ns.current_iter, start_time, title = f"[Warmup Trn]")
-        wandb.log(environ.losses)
+        # wandb.log(environ.losses)
 
         ##--------------------------------------------------------------- 
         ## validation
         ##--------------------------------------------------------------- 
-        val_metrics = environ.evaluate(dldrs.val_loader,
+        ns.val_metrics = environ.evaluate(dldrs.val_loader,
                                         is_policy       = False, 
                                         num_train_layers= None,
                                         eval_iters      = ns.eval_iters, 
@@ -383,13 +403,13 @@ def warmup_phase(ns,opt, environ, dldrs, disable_tqdm = True, epochs = None):
                                         verbose         = False)
 
         environ.print_val_metrics(ns.current_epoch, ns.current_iter, start_time, title = f"[Warmup Val]")    
-        print_metrics_cr(ns.current_epoch,  time.time() - start_time, ns.trn_losses, environ.val_metrics, line_count, 
+        print_metrics_cr(ns.current_epoch,  time.time() - start_time, ns.trn_losses, ns.val_metrics, line_count, 
                         out=[sys.stdout, environ.log_file], to_tqdm = True) 
         line_count += 1
+        wandb_log_metrics(ns.val_metrics)
 
         environ.schedulers['weights'].step(ns.trn_losses['total']['total'])
         environ.schedulers['alphas'].step(ns.trn_losses['total']['total'])            
-        wandb.log(environ.val_metrics)
         
         # Checkpoint on best results
         check_for_improvement(ns,opt,environ)    
@@ -470,12 +490,12 @@ def weight_policy_training(ns, opt, environ, dldrs, disable_tqdm = True, epochs 
     
             trn_losses = environ.losses
             environ.print_trn_metrics(ns.current_epoch, ns.current_iter, start_time, title = f"[Weight Trn]", to_display = False)
-            wandb.log(environ.losses)
+            # wandb.log(environ.losses)
                         
             #--------------------------------------------------------------------
             # validation process (here current_iter_w and stop_iter_w are equal)
             #--------------------------------------------------------------------
-            val_metrics = environ.evaluate(dldrs.val_loader,  
+            ns.val_metrics = environ.evaluate(dldrs.val_loader,  
                                            is_policy        = opt['policy'],
                                            num_train_layers = ns.num_train_layers,
                                            hard_sampling    = opt['train']['hard_sampling'],
@@ -486,10 +506,10 @@ def weight_policy_training(ns, opt, environ, dldrs, disable_tqdm = True, epochs 
             environ.print_val_metrics(ns.current_epoch, ns.current_iter, start_time, title = f"[Weight Val]", verbose = False)
             print_metrics_cr(ns.current_epoch, time.time() - start_time, trn_losses, environ.val_metrics, line_count, out=[sys.stdout, environ.log_file]) 
             line_count +=1
+            wandb_log_metrics(ns.val_metrics)
 
-            environ.schedulers['weights'].step(val_metrics['task']['total'])
+            environ.schedulers['weights'].step(ns.val_metrics['task']['total'])
             
-            wandb.log(environ.val_metrics)
 
             # Checkpoint on best results
             check_for_improvement(ns,opt,environ)                                 
@@ -533,12 +553,12 @@ def weight_policy_training(ns, opt, environ, dldrs, disable_tqdm = True, epochs 
             # print loss results - here current_iter_w and stop_iter_w are equal
             trn_losses = environ.losses
             environ.print_trn_metrics(ns.current_epoch, ns.current_iter, start_time, title = f"[Policy Trn]")
-            wandb.log(environ.losses)
+            # wandb.log(environ.losses)
             
             #--------------------------------------------------------------------
             # validation process (here current_iter_a and stop_iter_a are equal)
             #--------------------------------------------------------------------        
-            val_metrics = environ.evaluate(dldrs.val_loader, 
+            ns.val_metrics = environ.evaluate(dldrs.val_loader, 
                                            is_policy        = opt['policy'],
                                            num_train_layers = ns.num_train_layers, 
                                            hard_sampling    = opt['train']['hard_sampling'],
@@ -550,9 +570,9 @@ def weight_policy_training(ns, opt, environ, dldrs, disable_tqdm = True, epochs 
             print_metrics_cr(ns.current_epoch, time.time() - start_time, trn_losses, environ.val_metrics, 
                              line_count, out=[sys.stdout, environ.log_file])      
             line_count +=1
+            wandb_log_metrics(ns.val_metrics)
 
-            environ.schedulers['alphas'].step(val_metrics['total']['total'])
-            wandb.log(environ.val_metrics)
+            environ.schedulers['alphas'].step(ns.val_metrics['total']['total'])
 
             # Checkpoint on best results
             check_for_improvement(ns,opt,environ)    
@@ -636,11 +656,11 @@ def retrain_phase(ns, opt, environ, dldrs, epochs = None, disable_tqdm = True,
 
             trn_losses = environ.losses
             environ.print_trn_metrics(ns.current_epoch, ns.current_iter, start_time, title = f"[Weight Trn]", to_display = False)
-            wandb.log(environ.losses)
+            # wandb.log(environ.losses)
 
         # validation   
         # val_metrics = eval_fix_policy(environ = environ, dataloader = val_loader, tasks = opt['tasks'], num_seg_cls = num_seg_class)    
-        val_metrics = environ.evaluate(dldrs.val_loader, 
+        ns.val_metrics = environ.evaluate(dldrs.val_loader, 
                                         is_policy        = True,
                                         policy_sampling_mode = 'fix_policy',
                                         hard_sampling    = opt['train']['hard_sampling'],
@@ -652,7 +672,8 @@ def retrain_phase(ns, opt, environ, dldrs, epochs = None, disable_tqdm = True,
         environ.print_val_metrics(ns.current_epoch, ns.current_iter, start_time, title = f"[Weight Val]", verbose = False)
         print_metrics_cr(ns.current_epoch, time.time() - start_time, trn_losses, environ.val_metrics, line_count, out=[sys.stdout, environ.log_file]) 
         line_count +=1        
-        wandb.log(environ.val_metrics)
+        wandb_log_metrics(ns.val_metrics)
+
         
     wrapup_phase(ns, opt, environ)
     return 
@@ -692,10 +713,15 @@ def check_for_improvement(ns,opt,environ):
             ns.best_metrics = environ.val_metrics
             ns.best_iter    = ns.current_iter
             ns.best_epoch   = ns.current_epoch
-            model_label     = 'model_best_seed_%04d' % (opt['random_seed'])
-            environ.save_checkpoint(model_label, ns.current_iter, ns.current_epoch) 
+            wandb.log({"best_accuracy": ns.best_value,
+                       "best_epoch"   : ns.best_epoch,
+                       "best_iter"    : ns.best_iter})        
             print('New      best_epoch: %5d   best iter: %5d,   best_value: %.5f' % (ns.best_epoch, ns.best_iter, ns.best_value))        
-            metrics_label = 'metrics_best_seed_%04d.pickle' % (opt['random_seed'])
+            # model_label     = 'model_best_seed_%04d' % (opt['random_seed'])
+            # metrics_label = 'metrics_best_seed_%04d.pickle' % (opt['random_seed'])
+            model_label   = 'model_best_seed'  
+            metrics_label = 'metrics_best_seed.pickle' 
+            environ.save_checkpoint(model_label, ns.current_iter, ns.current_epoch) 
             save_to_pickle(environ.val_metrics, environ.opt['paths']['checkpoint_dir'], metrics_label)    
     return
 

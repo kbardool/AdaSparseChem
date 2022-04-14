@@ -114,7 +114,9 @@ class SparseChem_Backbone(torch.nn.Module):
             self.regr_output_size  = None
 
         self.layer_config = layers
-        print_dbg(f" layer config : {self.layer_config} \n", verbose = verbose)
+        self.residual_layers  = conf['is_residual']
+        print_dbg(f" layer config   : {self.layer_config} \n", verbose = verbose)
+        print_dbg(f" residual layers: {self.residual_layers} \n", verbose = verbose)
 
         ##----------------------------------------------------
         ## Input Net        
@@ -247,7 +249,7 @@ class SparseChem_Backbone(torch.nn.Module):
         # layers.append(block(input_sz, output_sz, non_linearity, dropout, bias, verbose = verbose))
         layers = block(input_sz, output_sz, non_linearity, dropout, bias, verbose = verbose)
 
-        if (input_sz != output_sz):
+        if (self.residual_layers) and (input_sz != output_sz):
             residual = nn.Sequential(block(input_sz, output_sz, non_linearity, dropout, bias, verbose = verbose))
 
         return layers, residual
@@ -267,13 +269,15 @@ class SparseChem_Backbone(torch.nn.Module):
             # forward through the all blocks without dropping
             for layer, _ in enumerate(self.layer_config):
                 # apply the residual skip out of _make_layers_
-                residual = x  if self.residuals[layer] is None else self.residuals[layer](x)
-                x = F.relu(residual + self.blocks[layer](x))
+                if self.residual_layers:
+                    residual = x  if self.residuals[layer] is None else self.residuals[layer](x)
+                    x = F.relu(residual + self.blocks[layer](x))
+                else:
+                    x = self.blocks[layer](x)
+                    
                 # x = residual + self.blocks[layer](x)
-                # x = self.blocks[layer](x)
-
-                # print_dbg(f"\t Segment{segment} num_blocks: {num_blocks}   block {b} -  output: {x.shape}", verbose = verbose)
                 # x  =  self.blocks[segment][b](x)
+                # print_dbg(f"\t Segment{segment} num_blocks: {num_blocks}   block {b} -  output: {x.shape}", verbose = verbose)
 
 
             # for layer, num_blocks in enumerate(self.layer_config):
