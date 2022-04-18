@@ -20,5 +20,7 @@ nyu_v2_samples/**
 *.code-workspace
 nb_ScratchPad.ipynb
 *.pbs
-pbs**
+pbsjobs/wandb
+pbs_output
+
  

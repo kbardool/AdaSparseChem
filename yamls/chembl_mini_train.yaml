@@ -15,7 +15,6 @@ backbone             : SparseChem
 tasks                : ["class"]
 tasks_num_class      : [100]
 lambdas              : [1]
-policy_model         : task-specific
 verbose              : False
  
 
@@ -44,6 +43,7 @@ regr_output_size     :
 
 # policy               : False
 policy               : True
+policy_model         : task-specific
 
 is_residual          : True
 
@@ -54,7 +54,7 @@ diff_sparsity_weights: False
 skip_layer           :     0
 
 is_curriculum        : False
-# curriculum_speed   :     20
+# curriculum_speed   :    20
 curriculum_speed     :     3
 
 fix_BN               : False
@@ -68,7 +68,7 @@ train:
   
   ## Use with caution - Increasing warmp_up epochs too much 
   ## introduces  instability in the validation 
-  warmup_epochs  :      75
+  warmup_epochs  :     100
   training_epochs:     250
   total_iters    :   25000
   warm_up_iters  :

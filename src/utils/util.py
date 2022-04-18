@@ -409,11 +409,16 @@ def get_command_line_args(input = None, display = True):
     parser.add_argument("--no_residual"      , default=False, action="store_true",  help="Do not use residual layers")
     parser.add_argument("--resume"           , default=False, action="store_true",  help="Resume previous run")
     parser.add_argument("--cpu"              , default=False, action="store_true",  help="CPU instead of GPU")
+    parser.add_argument("--min_samples_class", type=int,   help="Minimum number samples in each class and in each fold for AUC "\
+                                               "calculation (only used if aggregation_weight is not provided in --weights_class)")    
     
     if input is None:
         args = parser.parse_args()
     else:
         args = parser.parse_args(input)
+    
+    if args.resume:
+        assert args.exp_id is not None and args.exp_name is not None, " exp_id & exp_name must be provided when specifying --resume"
     
     args.exp_desc = ' '.join(str(e) for e in args.exp_desc)
     
@@ -426,21 +431,16 @@ def get_command_line_args(input = None, display = True):
             print(f" {key:.<25s}  {val}")
         print('\n\n')
     
-    if args.resume:
-        assert args.exp_id is not None and args.exp_name is not None, " exp_id & exp_name must be provided when specifying --resume"
     return args
 
 # def read_yaml():
 #     # get command line arguments
 #     args = get_command_line_args()
-    
 #     # torch.cuda.set_device(args.gpu)
-    
 #     with open(args.config) as f:
 #         opt = yaml.load(f)
 #     opt['exp_name'] = args.exp_name
 #     opt['cpu'] = args.cpu
-
 #     return opt, args.gpus, args.exp_ids
  
 
@@ -452,90 +452,86 @@ def read_yaml(args = None, exp_name = None):
     with open(args.config) as f:
         opt = yaml.safe_load(f)
 
-    ## moved to base_env.py
-    # if args.gpu_ids is not None:
-    #     torch.cuda.set_device(args.gpu_ids[0])
-        
     opt['config']= args.config
-    opt['cpu'] = args.cpu
-    opt['gpu_ids'] = args.gpu_ids
-    opt['folder_sfx'] = args.folder_sfx
-    opt['train']['resume'] = args.resume
+
     opt["exp_id"] = args.exp_id 
-    opt["random_seed"] = opt["seed_list"][args.seed_idx]
-    
-    if args.no_residual:
-        opt['is_residual'] = False
-    
-    if args.warmup_epochs is not None:
-        opt['train']['warmup_epochs'] = args.warmup_epochs
-        
-    if args.training_epochs is not None:
-        opt['train']['training_epochs'] = args.training_epochs
-        
-    if args.lambda_sparsity is not None:
-        opt['train']['lambda_sparsity'] = args.lambda_sparsity
-
-    if args.lambda_sharing  is not None:
-        opt['train']['lambda_sharing'] = args.lambda_sharing
-    
-    if args.hidden_sizes is not None:
-        opt['hidden_sizes'] = args.hidden_sizes
-
-    if args.first_dropout is not None:
-        opt['first_dropout'] = args.first_dropout
-
-    if args.middle_dropout is not None:
-        opt['middle_dropout'] = args.middle_dropout
-
-    if args.last_dropout is not None:
-        opt['last_dropout'] = args.last_dropout
-
-    if args.tail_hidden_size is not None:
-        opt['tail_hidden_size'] = args.tail_hidden_size
-
-    # elif opt['tail_hidden_size'] is None:
-    #     opt['tail_hidden_size'] = opt['hidden_size'][-1]
-
-    if args.task_lr  is not None:
-        opt['train']['task_lr'] = args.task_lr
-
-    if args.task_lr  is not None:
-        opt['train']['backbone_lr'] = args.backbone_lr
-
-    if args.decay_lr_rate is not None:
-        opt['train']['decay_lr_rate'] = args.decay_lr_rate
-    if args.decay_lr_freq is not None:
-        opt['train']['decay_lr_freq'] = args.decay_lr_freq
- 
-    if args.policy_lr  is not None:
-        opt['train']['policy_lr'] = args.policy_lr
 
     if exp_name is not None:
         opt['exp_name_pfx'] = exp_name
     elif args.exp_name is not None:
         opt['exp_name_pfx'] = args.exp_name
     else: 
-        opt['exp_name_pfx'] = datetime.now().strftime("%m%d_%H%M")
+        opt['exp_name_pfx'] = datetime.now().strftime("%m%d_%H%M")    
     
     opt['exp_name']   = opt['exp_name_pfx'] 
     
     if args.folder_sfx is not None:
         opt['folder_sfx'] = args.folder_sfx
-        
-    if  opt['folder_sfx'] is not None:
-        opt['exp_name']  += f"_{args.folder_sfx}"
 
     if args.exp_desc is not None:
         opt['exp_description'] = args.exp_desc 
 
+    if args.hidden_sizes is not None:
+        opt['hidden_sizes'] = args.hidden_sizes
+    if args.tail_hidden_size is not None:
+        opt['tail_hidden_size'] = args.tail_hidden_size
+
+    if args.warmup_epochs is not None:
+        opt['train']['warmup_epochs'] = args.warmup_epochs
+    if args.training_epochs is not None:
+        opt['train']['training_epochs'] = args.training_epochs
+
+    opt["random_seed"] = opt["seed_list"][args.seed_idx]
+    
+    if args.batch_size is not None:
+        opt['train']['batch_size']
+
+
+    if args.first_dropout is not None:
+        opt['first_dropout'] = args.first_dropout
+    if args.middle_dropout is not None:
+        opt['middle_dropout'] = args.middle_dropout
+    if args.last_dropout is not None:
+        opt['last_dropout'] = args.last_dropout
+    if args.task_lr  is not None:
+        opt['train']['backbone_lr'] = args.backbone_lr
+    if args.task_lr  is not None:
+        opt['train']['task_lr'] = args.task_lr
+    if args.policy_lr  is not None:
+        opt['train']['policy_lr'] = args.policy_lr
+    if args.decay_lr_rate is not None:
+        opt['train']['decay_lr_rate'] = args.decay_lr_rate
+    if args.decay_lr_freq is not None:
+        opt['train']['decay_lr_freq'] = args.decay_lr_freq
+    if args.lambda_sparsity is not None:
+        opt['train']['lambda_sparsity'] = args.lambda_sparsity
+    if args.lambda_sharing  is not None:
+        opt['train']['lambda_sharing'] = args.lambda_sharing
+
+    opt['gpu_ids'] = args.gpu_ids
+    
+    if args.no_residual:
+        opt['is_residual'] = False
+        if  opt['folder_sfx'] is not None:
+            opt['folder_sfx'] += "no_resid"
+        else:
+            opt['folder_sfx'] = "no_resid"
+
+    if  opt['folder_sfx'] is not None:
+        opt['exp_name']  += f"_{opt['folder_sfx']}"
+  
+    opt['cpu'] = args.cpu
+    opt['train']['resume'] = args.resume
+    
+    if args.min_samples_class is not None:
+        opt['dataload']['min_samples_class'] = args.min_samples_class
+        
     opt['exp_folder'] = build_exp_folder_name(opt)
+
     # if args.seed_idx is not None:
     #     opt["random_seed"] = opt["seed_list"][args.seed_idx]
     # else:    
     #     opt["random_seed"] = opt["seed_list"][0]
-
-
     return opt
 
 
@@ -549,13 +545,12 @@ def build_exp_folder_name(opt):
                     # f"_plr{opt['train']['policy_lr']}" \
                     # f"_sp{opt['train']['lambda_sparsity']}" \
                     # f"_sh{opt['train']['lambda_sharing']}"  \
+                    # f"_dr{opt['train']['decay_lr_rate']:3.2f}" \
+                    # f"_df{opt['train']['decay_lr_freq']:04d}"      
+    
     if opt['folder_sfx'] is not None:
         folder_name += f"_{opt['folder_sfx']}"
         
-    # f"{opt['hidden_sizes'][0]}x{len(opt['hidden_sizes'])}" \
-                    #   f"_{opt['exp_name']}"     
-    #   f"_dr{opt['train']['decay_lr_rate']:3.2f}" \
-    #   f"_df{opt['train']['decay_lr_freq']:04d}"      
     return folder_name 
 
 

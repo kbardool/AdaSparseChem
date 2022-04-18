@@ -65,6 +65,7 @@ def init_wandb(ns, opt, environment = None, resume = "allow" ):
                                      entity="kbardool", 
                                      id = opt['exp_id'], 
                                      name = opt['exp_name'],
+                                     notes = opt['exp_description'],
                                      resume=resume )
     wandb.config.update(ns.args)
     wandb.config.update(opt,allow_val_change=True)   ## wandb.config = opt.copy()
@@ -110,6 +111,8 @@ def init_dataloaders(opt, verbose = False):
 def init_dataloaders_by_fold_id(opt, verbose = False):
 
     dldrs = types.SimpleNamespace()
+    ## Identify indicies corresponding to =fold_va and !=fold_va
+    ## These indices are passed to the ClassRegrSparseDataset 
     ecfp     = load_sparse(opt['dataload']['dataroot'], opt['dataload']['x'])
     folding  = np.load(os.path.join(opt['dataload']['dataroot'], opt['dataload']['folding']))
 
@@ -120,8 +123,8 @@ def init_dataloaders_by_fold_id(opt, verbose = False):
     idx_va  = np.where(folding == fold_va)[0]
 
 
-    print(idx_tr.shape, idx_va.shape)
-    print(idx_tr[-1], idx_va[-1])
+    print(f"Training dataset shape  : {idx_tr.shape}   last index #: {idx_tr[-1]}")
+    print(f"Validation dataset shape: {idx_va.shape}   last index #: {idx_va[-1]}")
 
     dldrs = types.SimpleNamespace()
     dldrs.trainset0 = ClassRegrSparseDataset_v3(opt, index = idx_tr, verbose = verbose)

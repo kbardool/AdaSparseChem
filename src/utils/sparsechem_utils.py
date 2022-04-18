@@ -133,7 +133,9 @@ def fold_and_transform_inputs(x, folding_size=None, transform=None, verbose = Fa
 ## SparseChem Metric calculations 
 ##
 def calc_acc_kappa(recall, fpr, num_pos, num_neg):
-    """Calculates accuracy from recall and precision."""
+    """Calculates accuracy from recall and precision.
+    num_pos: All True (tp+fn)    num_neg: all negs (tn + fp)
+    """
     num_all = num_neg + num_pos
     tp = np.round(recall * num_pos).astype(np.int)
     fn = num_pos - tp
