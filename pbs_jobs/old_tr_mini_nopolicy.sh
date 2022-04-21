@@ -6,12 +6,7 @@
 
 # module purge
 source /user/leuven/326/vsc32647/.initconda
-# echo PTH is $PATH
-# source $PBS_O_HOME/.bashrc
-# cd /data/leuven/326/vsc32647/projs/pbs
 cd $PBS_O_WORKDIR # cd to the directory from which qsub is run
-# echo PBS HOMEDIR is $PBS_O_HOMEDIR
-# echo PBS WORKDIR is $PBS_O_WORKDIR
 which conda
 echo switch to pyt-gpu 
 conda activate pyt-gpu

@@ -122,7 +122,7 @@ print_heading(f" Last Epoch: {ns.current_epoch}   # of warm-up epochs to do:  {n
               f"Run epochs {ns.current_epoch+1} to {ns.current_epoch + ns.warmup_epochs}", verbose = True)
 
 
-warmup_phase(ns,opt, environ, dldrs)
+warmup_phase(ns,opt, environ, dldrs, write_checkpoint=False)
 
 print(f"Best Epoch :       {ns.best_epoch}\n"
       f"Best Iteration :   {ns.best_iter} \n"

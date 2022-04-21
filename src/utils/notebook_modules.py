@@ -299,7 +299,7 @@ def training_prep(ns, opt, environ, dldrs, phase = 'update_w', epoch = 0, iter =
     ns.curriculum_speed   = opt['curriculum_speed'] 
     ns.curriculum_epochs  = 0
     ns.check_for_improvment_wait  = 0
-
+    ns.write_checkpoint = True
     return
 
 
@@ -337,12 +337,13 @@ def retrain_prep(ns, opt, environ, dldrs, phase = 'update_w', epoch = 0, iter = 
     # environ.define_scheduler(policy_learning=False)   
     ns.current_epoch  = epoch
     ns.current_iter   = iter
-    ns.check_for_improvment_wait  = 0
     ns.best_results   = {}
     ns.best_metrics   = None
     ns.best_value     = 0 
     ns.best_iter      = 0
     ns.best_epoch     = 0 
+    ns.check_for_improvment_wait  = 0
+    ns.write_checkpoint = True
 
     opt['train']['retrain_total_iters'] = opt['train'].get('retrain_total_iters', opt['train']['total_iters'])
     print(f"opt['train']['retrain_total_iters']:   {opt['train']['retrain_total_iters']}")
@@ -350,8 +351,8 @@ def retrain_prep(ns, opt, environ, dldrs, phase = 'update_w', epoch = 0, iter = 
 
 
 
-def warmup_phase(ns,opt, environ, dldrs, disable_tqdm = True, epochs = None):
-
+def warmup_phase(ns,opt, environ, dldrs, disable_tqdm = True, epochs = None, write_checkpoint = True):
+    ns.write_checkpoint = write_checkpoint
     ns.phase = 'warmup'
     ns.flag  = 'update_weights'
     if epochs is not None:
@@ -687,15 +688,18 @@ def wrapup_phase(ns, opt, environ, label = None):
 
     # ns.model_label   = 'model_%s_ep_%d_seed_%04d'  % (label, ns.current_epoch, opt['random_seed'])
     # ns.metrics_label = 'metrics_%s_ep_%d_seed_%04d.pickle' % (label,ns.current_epoch, opt['random_seed'])
-    ns.model_label   = 'model_%s_ep_%d'  % (label, ns.current_epoch)
+    if ns.write_checkpoint:
+        ns.model_label   = 'model_%s_ep_%d'  % (label, ns.current_epoch)
+        environ.save_checkpoint(ns.model_label, ns.current_iter, ns.current_epoch) 
+        print_to(f" save {label} checkpoint  to :  {ns.model_label}", out=[sys.stdout, environ.log_file])    
+    
     ns.metrics_label = 'metrics_%s_ep_%d.pickle' % (label,ns.current_epoch)
-    environ.save_checkpoint(ns.model_label, ns.current_iter, ns.current_epoch) 
     save_to_pickle(environ.val_metrics, environ.opt['paths']['checkpoint_dir'], ns.metrics_label)
+    print_to(f" save {label} val_metrics to :  {ns.metrics_label}", out=[sys.stdout, environ.log_file])
+    
     print_loss(environ.val_metrics, title = f"[Final] ep:{ns.current_epoch}  it:{ns.current_iter}",)
     environ.display_trained_policy(ns.current_epoch,out=[sys.stdout, environ.log_file])
     environ.display_trained_logits(ns.current_epoch,out=[sys.stdout, environ.log_file])
-    print_to(f" save {label} val_metrics to :  {ns.model_label}", out=[sys.stdout, environ.log_file])
-    print_to(f" save {label} checkpoint  to :  {ns.model_label}", out=[sys.stdout, environ.log_file])    
     environ.log_file.flush()
     return 
 
@@ -720,12 +724,15 @@ def check_for_improvement(ns,opt,environ):
                        "best_epoch"   : ns.best_epoch,
                        "best_iter"    : ns.best_iter})        
             print('New      best_epoch: %5d   best iter: %5d,   best_value: %.5f' % (ns.best_epoch, ns.best_iter, ns.best_value))        
-            # model_label     = 'model_best_seed_%04d' % (opt['random_seed'])
+            
             # metrics_label = 'metrics_best_seed_%04d.pickle' % (opt['random_seed'])
-            model_label   = 'model_best_seed'  
             metrics_label = 'metrics_best_seed.pickle' 
-            environ.save_checkpoint(model_label, ns.current_iter, ns.current_epoch) 
             save_to_pickle(environ.val_metrics, environ.opt['paths']['checkpoint_dir'], metrics_label)    
+            
+            if ns.write_checkpoint:
+                # model_label     = 'model_best_seed_%04d' % (opt['random_seed'])
+                model_label   = 'model_best_seed'  
+                environ.save_checkpoint(model_label, ns.current_iter, ns.current_epoch) 
     return
 
 

@@ -1,25 +1,27 @@
 #!/bin/bash
-# config=$1
-# if [ -z "${config}" ]; then
-#     exit 1
-# fi
-# for layer in 800 ; do                   
-# for lr in 1e-05; do
-# for lr in  0.001 0.0001 1e-06; do
-# export config="../yamls/chembl_synt_train_1task.yaml"
-# export config="../yamls/chembl_synt_train_3task.yaml"
-# export config="../yamls/chembl_synt_train_5task.yaml"
-export epochs=100
-export  config="../yamls/chembl_mini_train.yaml"
-export datadir="../../MLDatasets/chembl23_mini"
-export  outdir="../../experiments/mini-SparseChem"
 
-for layer in 600 ; do                   
-    for lr in  0.001 ; do
-        for dropout in 0.1 ; do
-            echo "Layer size: $layer   Task LR: $lr  Dropout: $dropout  datadir: $datadir outdir: $outdir  Config: $config"
-            qsub pbs_train_residual.sh -v epochs=${epochs},dropout=${dropout},task_lr=${lr},backbone_lr=${lr},layer=${layer},config=${config} 
-            qsub pbs_train_nonres.sh   -v epochs=${epochs},dropout=${dropout},task_lr=${lr},backbone_lr=${lr},layer=${layer},config=${config} 
-        done
-    done
-done
+pbs_account="-A lp_symbiosys "
+pbs_folders="-e ../pbs_output/  -o ../pbs_output/ "
+pbs_allocate="-l nodes=1:ppn=9,walltime=06:00:00 "
+# pbs_allocate="-l nodes=1:ppn=9:gpus=1,partition=gpu,walltime=06:00:00 "
+config="../yamls/chembl_mini_train.yaml"
+datadir="../../MLDatasets/chembl23_mini"
+outdir="../../experiments/mini-AdaSparseChem"
+echo  datadir: $datadir outdir: $outdir confg: $config
+echo  $pbs_account
+echo  $pbs_folders
+echo  $pbs_allocate
+epochs=100
+lr=0.001
+
+layer=600                   
+num_layers=3
+dropout=0.45
+
+echo "Epochs: $epochs  Layers: $num_layers   Layer size: $layer   Dropout: $dropout  Task LR: $lr "
+
+# qsub pbs_tr_resid.sh -N ASR-${layer}x${num_layers}-${dropout} $pbs_account $pbs_gpu $pbs_folders \
+#     -v epochs=$epochs,num_layers=$num_layers,layer=$layer,dropout=$dropout,datadir=$datadir,outdir=$outdir,config=$config,lr=$lr
+
+qsub pbs_tr_nores.sh -N ASN-${layer}x${num_layers}-${dropout} $pbs_account $pbs_allocate $pbs_folders \
+    -v epochs=$epochs,num_layers=$num_layers,layer=$layer,dropout=$dropout,datadir=$datadir,outdir=$outdir,config=$config,lr=$lr
