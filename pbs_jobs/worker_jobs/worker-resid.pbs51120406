@@ -1,0 +1,78 @@
+#!/bin/bash
+#PBS -A lp_symbiosys
+#PBS -l nodes=1:ppn=9:gpus=1,partition=gpu,walltime=06:00:00
+#PBS -e ../pbs_output/  -o ../pbs_output/ 
+#PBS -N AS-resid
+
+
+# pbs_account="-A lp_symbiosys "
+# pbs_folders="-e ../pbs_output/  -o ../pbs_output/ "
+# pbs_cpu="-l nodes=1:ppn=9,walltime=06:00:00 "
+# pbs_gpu="-l nodes=1:ppn=9:gpus=1,partition=gpu,walltime=06:00:00 "
+# pbs_name="-N AS-resid"
+# $pbs_account
+# $pbs_folders
+# $pbs_gpu
+# $pbs_name
+
+
+
+# load appropriate MPI implementation module
+module unload intel
+module purge
+module use /apps/leuven/skylake/2018a/software/worker/1.6.12-intel-2018a/../../../modules/all
+module load intel/2018a
+
+# set worker application and options
+WORKER_APPL="/vsc-hard-mounts/leuven-apps/skylake/2018a/software/worker/1.6.12-intel-2018a/lib/../bin/worker"
+
+# get the job ID and to compute appropriate names
+WORKER_JOBID=`echo $PBS_JOBID | sed 's/\([0-9][0-9]*\).*/\1/'`
+
+# change to the working directory
+cd $PBS_O_WORKDIR
+
+# rename artifacts consistently with job name and ID scheme
+mv .workertaEK/pbs_tr_resid_worker.sh.worker ${PBS_JOBNAME}.sh${WORKER_JOBID}
+mv .workertaEK/pbs_tr_resid_worker.sh.run ${PBS_JOBNAME}.run${WORKER_JOBID}
+mv .workertaEK/worker.pbs ${PBS_JOBNAME}.pbs${WORKER_JOBID}
+
+# compute prolog option
+
+WORKER_PROLOG=""
+
+# master sleep time to avoid MPI_Test spinning load
+WORKER_SLEEP="-s 10000"
+
+# compute batch option
+WORKER_BATCH="-b ${PBS_JOBNAME}.sh${WORKER_JOBID}"
+
+# compute epilog option
+
+WORKER_EPILOG=""
+
+rm -rf .workertaEK/
+
+# determine the number of processes to run, modify later if master
+# or threaded switch is active
+n_proc=$(cat ${PBS_NODEFILE} | wc -l)
+
+# only applicable when the master switch is on
+# create host file to use for this job and compute number of cores
+
+
+# only applicable when the threaded swith is on
+
+
+# export I_MPI_WAIT_MODE=enable
+# compute log option
+WORKER_LOG_FILE="-l ${PBS_JOBNAME}.log${WORKER_JOBID}"
+
+# compute verbose option
+WORKER_VERBOSE=""
+
+# start the worker
+mpirun  ${mpi_opt} ${ppn_opt} \
+    "${WORKER_APPL}" ${WORKER_PROLOG} ${WORKER_BATCH} ${WORKER_EPILOG} \
+                   ${WORKER_LOG_FILE} ${WORKER_VERBOSE} ${WORKER_SLEEP} \
+                   ${WORKER_THREADS}

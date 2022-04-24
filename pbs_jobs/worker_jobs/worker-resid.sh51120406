@@ -1,0 +1,940 @@
+program="../src/Adashare_Train_mini.py"
+JOBID=${PBS_JOBID:0:8}
+
+echo Job $JOBID start : $(date)
+source /user/leuven/326/vsc32647/.initconda
+cd $PBS_O_WORKDIR # cd to the directory from which qsub is run
+echo PBS VERSION is $PBS_VERSION
+echo switch to pyt-gpu 
+conda activate pyt-gpu
+python -V
+echo  $pbs_account
+echo  $pbs_folders
+echo  $pbs_gpu
+
+
+echo program excution start: $(date)
+echo  datadir: ../../MLDatasets/chembl23_mini outdir: ../../experiments/mini-AdaSparseChem confg: ../yamls/chembl_mini_train.yaml
+
+layers=""
+echo "Number Layers: 5   Layer size: 700   Dropout: 0.0  Task LR: 0.001 "
+for ((i=0 ; i < 5 ; i +=1)); do
+    layers+=" 700 "
+done
+echo "Number Layers: 5   Layer size: $layers   Dropout: 0.0  Task LR: 0.001 "
+
+
+python                     ${program} \
+     --config              ../yamls/chembl_mini_train.yaml \
+     --exp_desc            ${JOBID} - Run with residiual layers  \
+     --warmup_epochs       100  \
+     --hidden_size         ${layers}  \
+     --tail_hidden_size     700  \
+     --first_dropout       0.0 \
+     --middle_dropout      0.0 \
+     --last_dropout        0.0 \
+     --seed_idx                    0  \
+     --batch_size                128  \
+     --task_lr                 0.001  \
+     --backbone_lr             0.001  \
+     --decay_lr_rate             0.3  \
+     --decay_lr_freq              10  \
+     --min_samples_class           2
+ 
+     
+echo Job $JOBID finished : $(date)
+
+#####--END
+program="../src/Adashare_Train_mini.py"
+JOBID=${PBS_JOBID:0:8}
+
+echo Job $JOBID start : $(date)
+source /user/leuven/326/vsc32647/.initconda
+cd $PBS_O_WORKDIR # cd to the directory from which qsub is run
+echo PBS VERSION is $PBS_VERSION
+echo switch to pyt-gpu 
+conda activate pyt-gpu
+python -V
+echo  $pbs_account
+echo  $pbs_folders
+echo  $pbs_gpu
+
+
+echo program excution start: $(date)
+echo  datadir: ../../MLDatasets/chembl23_mini outdir: ../../experiments/mini-AdaSparseChem confg: ../yamls/chembl_mini_train.yaml
+
+layers=""
+echo "Number Layers: 5   Layer size: 700   Dropout: 0.05  Task LR: 0.001 "
+for ((i=0 ; i < 5 ; i +=1)); do
+    layers+=" 700 "
+done
+echo "Number Layers: 5   Layer size: $layers   Dropout: 0.05  Task LR: 0.001 "
+
+
+python                     ${program} \
+     --config              ../yamls/chembl_mini_train.yaml \
+     --exp_desc            ${JOBID} - Run with residiual layers  \
+     --warmup_epochs       100  \
+     --hidden_size         ${layers}  \
+     --tail_hidden_size     700  \
+     --first_dropout       0.05 \
+     --middle_dropout      0.05 \
+     --last_dropout        0.05 \
+     --seed_idx                    0  \
+     --batch_size                128  \
+     --task_lr                 0.001  \
+     --backbone_lr             0.001  \
+     --decay_lr_rate             0.3  \
+     --decay_lr_freq              10  \
+     --min_samples_class           2
+ 
+     
+echo Job $JOBID finished : $(date)
+
+#####--END
+program="../src/Adashare_Train_mini.py"
+JOBID=${PBS_JOBID:0:8}
+
+echo Job $JOBID start : $(date)
+source /user/leuven/326/vsc32647/.initconda
+cd $PBS_O_WORKDIR # cd to the directory from which qsub is run
+echo PBS VERSION is $PBS_VERSION
+echo switch to pyt-gpu 
+conda activate pyt-gpu
+python -V
+echo  $pbs_account
+echo  $pbs_folders
+echo  $pbs_gpu
+
+
+echo program excution start: $(date)
+echo  datadir: ../../MLDatasets/chembl23_mini outdir: ../../experiments/mini-AdaSparseChem confg: ../yamls/chembl_mini_train.yaml
+
+layers=""
+echo "Number Layers: 5   Layer size: 700   Dropout: 0.1  Task LR: 0.001 "
+for ((i=0 ; i < 5 ; i +=1)); do
+    layers+=" 700 "
+done
+echo "Number Layers: 5   Layer size: $layers   Dropout: 0.1  Task LR: 0.001 "
+
+
+python                     ${program} \
+     --config              ../yamls/chembl_mini_train.yaml \
+     --exp_desc            ${JOBID} - Run with residiual layers  \
+     --warmup_epochs       100  \
+     --hidden_size         ${layers}  \
+     --tail_hidden_size     700  \
+     --first_dropout       0.1 \
+     --middle_dropout      0.1 \
+     --last_dropout        0.1 \
+     --seed_idx                    0  \
+     --batch_size                128  \
+     --task_lr                 0.001  \
+     --backbone_lr             0.001  \
+     --decay_lr_rate             0.3  \
+     --decay_lr_freq              10  \
+     --min_samples_class           2
+ 
+     
+echo Job $JOBID finished : $(date)
+
+#####--END
+program="../src/Adashare_Train_mini.py"
+JOBID=${PBS_JOBID:0:8}
+
+echo Job $JOBID start : $(date)
+source /user/leuven/326/vsc32647/.initconda
+cd $PBS_O_WORKDIR # cd to the directory from which qsub is run
+echo PBS VERSION is $PBS_VERSION
+echo switch to pyt-gpu 
+conda activate pyt-gpu
+python -V
+echo  $pbs_account
+echo  $pbs_folders
+echo  $pbs_gpu
+
+
+echo program excution start: $(date)
+echo  datadir: ../../MLDatasets/chembl23_mini outdir: ../../experiments/mini-AdaSparseChem confg: ../yamls/chembl_mini_train.yaml
+
+layers=""
+echo "Number Layers: 5   Layer size: 700   Dropout: 0.15  Task LR: 0.001 "
+for ((i=0 ; i < 5 ; i +=1)); do
+    layers+=" 700 "
+done
+echo "Number Layers: 5   Layer size: $layers   Dropout: 0.15  Task LR: 0.001 "
+
+
+python                     ${program} \
+     --config              ../yamls/chembl_mini_train.yaml \
+     --exp_desc            ${JOBID} - Run with residiual layers  \
+     --warmup_epochs       100  \
+     --hidden_size         ${layers}  \
+     --tail_hidden_size     700  \
+     --first_dropout       0.15 \
+     --middle_dropout      0.15 \
+     --last_dropout        0.15 \
+     --seed_idx                    0  \
+     --batch_size                128  \
+     --task_lr                 0.001  \
+     --backbone_lr             0.001  \
+     --decay_lr_rate             0.3  \
+     --decay_lr_freq              10  \
+     --min_samples_class           2
+ 
+     
+echo Job $JOBID finished : $(date)
+
+#####--END
+program="../src/Adashare_Train_mini.py"
+JOBID=${PBS_JOBID:0:8}
+
+echo Job $JOBID start : $(date)
+source /user/leuven/326/vsc32647/.initconda
+cd $PBS_O_WORKDIR # cd to the directory from which qsub is run
+echo PBS VERSION is $PBS_VERSION
+echo switch to pyt-gpu 
+conda activate pyt-gpu
+python -V
+echo  $pbs_account
+echo  $pbs_folders
+echo  $pbs_gpu
+
+
+echo program excution start: $(date)
+echo  datadir: ../../MLDatasets/chembl23_mini outdir: ../../experiments/mini-AdaSparseChem confg: ../yamls/chembl_mini_train.yaml
+
+layers=""
+echo "Number Layers: 5   Layer size: 700   Dropout: 0.2  Task LR: 0.001 "
+for ((i=0 ; i < 5 ; i +=1)); do
+    layers+=" 700 "
+done
+echo "Number Layers: 5   Layer size: $layers   Dropout: 0.2  Task LR: 0.001 "
+
+
+python                     ${program} \
+     --config              ../yamls/chembl_mini_train.yaml \
+     --exp_desc            ${JOBID} - Run with residiual layers  \
+     --warmup_epochs       100  \
+     --hidden_size         ${layers}  \
+     --tail_hidden_size     700  \
+     --first_dropout       0.2 \
+     --middle_dropout      0.2 \
+     --last_dropout        0.2 \
+     --seed_idx                    0  \
+     --batch_size                128  \
+     --task_lr                 0.001  \
+     --backbone_lr             0.001  \
+     --decay_lr_rate             0.3  \
+     --decay_lr_freq              10  \
+     --min_samples_class           2
+ 
+     
+echo Job $JOBID finished : $(date)
+
+#####--END
+program="../src/Adashare_Train_mini.py"
+JOBID=${PBS_JOBID:0:8}
+
+echo Job $JOBID start : $(date)
+source /user/leuven/326/vsc32647/.initconda
+cd $PBS_O_WORKDIR # cd to the directory from which qsub is run
+echo PBS VERSION is $PBS_VERSION
+echo switch to pyt-gpu 
+conda activate pyt-gpu
+python -V
+echo  $pbs_account
+echo  $pbs_folders
+echo  $pbs_gpu
+
+
+echo program excution start: $(date)
+echo  datadir: ../../MLDatasets/chembl23_mini outdir: ../../experiments/mini-AdaSparseChem confg: ../yamls/chembl_mini_train.yaml
+
+layers=""
+echo "Number Layers: 5   Layer size: 700   Dropout: 0.25  Task LR: 0.001 "
+for ((i=0 ; i < 5 ; i +=1)); do
+    layers+=" 700 "
+done
+echo "Number Layers: 5   Layer size: $layers   Dropout: 0.25  Task LR: 0.001 "
+
+
+python                     ${program} \
+     --config              ../yamls/chembl_mini_train.yaml \
+     --exp_desc            ${JOBID} - Run with residiual layers  \
+     --warmup_epochs       100  \
+     --hidden_size         ${layers}  \
+     --tail_hidden_size     700  \
+     --first_dropout       0.25 \
+     --middle_dropout      0.25 \
+     --last_dropout        0.25 \
+     --seed_idx                    0  \
+     --batch_size                128  \
+     --task_lr                 0.001  \
+     --backbone_lr             0.001  \
+     --decay_lr_rate             0.3  \
+     --decay_lr_freq              10  \
+     --min_samples_class           2
+ 
+     
+echo Job $JOBID finished : $(date)
+
+#####--END
+program="../src/Adashare_Train_mini.py"
+JOBID=${PBS_JOBID:0:8}
+
+echo Job $JOBID start : $(date)
+source /user/leuven/326/vsc32647/.initconda
+cd $PBS_O_WORKDIR # cd to the directory from which qsub is run
+echo PBS VERSION is $PBS_VERSION
+echo switch to pyt-gpu 
+conda activate pyt-gpu
+python -V
+echo  $pbs_account
+echo  $pbs_folders
+echo  $pbs_gpu
+
+
+echo program excution start: $(date)
+echo  datadir: ../../MLDatasets/chembl23_mini outdir: ../../experiments/mini-AdaSparseChem confg: ../yamls/chembl_mini_train.yaml
+
+layers=""
+echo "Number Layers: 5   Layer size: 700   Dropout: 0.3  Task LR: 0.001 "
+for ((i=0 ; i < 5 ; i +=1)); do
+    layers+=" 700 "
+done
+echo "Number Layers: 5   Layer size: $layers   Dropout: 0.3  Task LR: 0.001 "
+
+
+python                     ${program} \
+     --config              ../yamls/chembl_mini_train.yaml \
+     --exp_desc            ${JOBID} - Run with residiual layers  \
+     --warmup_epochs       100  \
+     --hidden_size         ${layers}  \
+     --tail_hidden_size     700  \
+     --first_dropout       0.3 \
+     --middle_dropout      0.3 \
+     --last_dropout        0.3 \
+     --seed_idx                    0  \
+     --batch_size                128  \
+     --task_lr                 0.001  \
+     --backbone_lr             0.001  \
+     --decay_lr_rate             0.3  \
+     --decay_lr_freq              10  \
+     --min_samples_class           2
+ 
+     
+echo Job $JOBID finished : $(date)
+
+#####--END
+program="../src/Adashare_Train_mini.py"
+JOBID=${PBS_JOBID:0:8}
+
+echo Job $JOBID start : $(date)
+source /user/leuven/326/vsc32647/.initconda
+cd $PBS_O_WORKDIR # cd to the directory from which qsub is run
+echo PBS VERSION is $PBS_VERSION
+echo switch to pyt-gpu 
+conda activate pyt-gpu
+python -V
+echo  $pbs_account
+echo  $pbs_folders
+echo  $pbs_gpu
+
+
+echo program excution start: $(date)
+echo  datadir: ../../MLDatasets/chembl23_mini outdir: ../../experiments/mini-AdaSparseChem confg: ../yamls/chembl_mini_train.yaml
+
+layers=""
+echo "Number Layers: 5   Layer size: 700   Dropout: 0.35  Task LR: 0.001 "
+for ((i=0 ; i < 5 ; i +=1)); do
+    layers+=" 700 "
+done
+echo "Number Layers: 5   Layer size: $layers   Dropout: 0.35  Task LR: 0.001 "
+
+
+python                     ${program} \
+     --config              ../yamls/chembl_mini_train.yaml \
+     --exp_desc            ${JOBID} - Run with residiual layers  \
+     --warmup_epochs       100  \
+     --hidden_size         ${layers}  \
+     --tail_hidden_size     700  \
+     --first_dropout       0.35 \
+     --middle_dropout      0.35 \
+     --last_dropout        0.35 \
+     --seed_idx                    0  \
+     --batch_size                128  \
+     --task_lr                 0.001  \
+     --backbone_lr             0.001  \
+     --decay_lr_rate             0.3  \
+     --decay_lr_freq              10  \
+     --min_samples_class           2
+ 
+     
+echo Job $JOBID finished : $(date)
+
+#####--END
+program="../src/Adashare_Train_mini.py"
+JOBID=${PBS_JOBID:0:8}
+
+echo Job $JOBID start : $(date)
+source /user/leuven/326/vsc32647/.initconda
+cd $PBS_O_WORKDIR # cd to the directory from which qsub is run
+echo PBS VERSION is $PBS_VERSION
+echo switch to pyt-gpu 
+conda activate pyt-gpu
+python -V
+echo  $pbs_account
+echo  $pbs_folders
+echo  $pbs_gpu
+
+
+echo program excution start: $(date)
+echo  datadir: ../../MLDatasets/chembl23_mini outdir: ../../experiments/mini-AdaSparseChem confg: ../yamls/chembl_mini_train.yaml
+
+layers=""
+echo "Number Layers: 5   Layer size: 700   Dropout: 0.4  Task LR: 0.001 "
+for ((i=0 ; i < 5 ; i +=1)); do
+    layers+=" 700 "
+done
+echo "Number Layers: 5   Layer size: $layers   Dropout: 0.4  Task LR: 0.001 "
+
+
+python                     ${program} \
+     --config              ../yamls/chembl_mini_train.yaml \
+     --exp_desc            ${JOBID} - Run with residiual layers  \
+     --warmup_epochs       100  \
+     --hidden_size         ${layers}  \
+     --tail_hidden_size     700  \
+     --first_dropout       0.4 \
+     --middle_dropout      0.4 \
+     --last_dropout        0.4 \
+     --seed_idx                    0  \
+     --batch_size                128  \
+     --task_lr                 0.001  \
+     --backbone_lr             0.001  \
+     --decay_lr_rate             0.3  \
+     --decay_lr_freq              10  \
+     --min_samples_class           2
+ 
+     
+echo Job $JOBID finished : $(date)
+
+#####--END
+program="../src/Adashare_Train_mini.py"
+JOBID=${PBS_JOBID:0:8}
+
+echo Job $JOBID start : $(date)
+source /user/leuven/326/vsc32647/.initconda
+cd $PBS_O_WORKDIR # cd to the directory from which qsub is run
+echo PBS VERSION is $PBS_VERSION
+echo switch to pyt-gpu 
+conda activate pyt-gpu
+python -V
+echo  $pbs_account
+echo  $pbs_folders
+echo  $pbs_gpu
+
+
+echo program excution start: $(date)
+echo  datadir: ../../MLDatasets/chembl23_mini outdir: ../../experiments/mini-AdaSparseChem confg: ../yamls/chembl_mini_train.yaml
+
+layers=""
+echo "Number Layers: 5   Layer size: 700   Dropout: 0.45  Task LR: 0.001 "
+for ((i=0 ; i < 5 ; i +=1)); do
+    layers+=" 700 "
+done
+echo "Number Layers: 5   Layer size: $layers   Dropout: 0.45  Task LR: 0.001 "
+
+
+python                     ${program} \
+     --config              ../yamls/chembl_mini_train.yaml \
+     --exp_desc            ${JOBID} - Run with residiual layers  \
+     --warmup_epochs       100  \
+     --hidden_size         ${layers}  \
+     --tail_hidden_size     700  \
+     --first_dropout       0.45 \
+     --middle_dropout      0.45 \
+     --last_dropout        0.45 \
+     --seed_idx                    0  \
+     --batch_size                128  \
+     --task_lr                 0.001  \
+     --backbone_lr             0.001  \
+     --decay_lr_rate             0.3  \
+     --decay_lr_freq              10  \
+     --min_samples_class           2
+ 
+     
+echo Job $JOBID finished : $(date)
+
+#####--END
+program="../src/Adashare_Train_mini.py"
+JOBID=${PBS_JOBID:0:8}
+
+echo Job $JOBID start : $(date)
+source /user/leuven/326/vsc32647/.initconda
+cd $PBS_O_WORKDIR # cd to the directory from which qsub is run
+echo PBS VERSION is $PBS_VERSION
+echo switch to pyt-gpu 
+conda activate pyt-gpu
+python -V
+echo  $pbs_account
+echo  $pbs_folders
+echo  $pbs_gpu
+
+
+echo program excution start: $(date)
+echo  datadir: ../../MLDatasets/chembl23_mini outdir: ../../experiments/mini-AdaSparseChem confg: ../yamls/chembl_mini_train.yaml
+
+layers=""
+echo "Number Layers: 5   Layer size: 700   Dropout: 0.5  Task LR: 0.001 "
+for ((i=0 ; i < 5 ; i +=1)); do
+    layers+=" 700 "
+done
+echo "Number Layers: 5   Layer size: $layers   Dropout: 0.5  Task LR: 0.001 "
+
+
+python                     ${program} \
+     --config              ../yamls/chembl_mini_train.yaml \
+     --exp_desc            ${JOBID} - Run with residiual layers  \
+     --warmup_epochs       100  \
+     --hidden_size         ${layers}  \
+     --tail_hidden_size     700  \
+     --first_dropout       0.5 \
+     --middle_dropout      0.5 \
+     --last_dropout        0.5 \
+     --seed_idx                    0  \
+     --batch_size                128  \
+     --task_lr                 0.001  \
+     --backbone_lr             0.001  \
+     --decay_lr_rate             0.3  \
+     --decay_lr_freq              10  \
+     --min_samples_class           2
+ 
+     
+echo Job $JOBID finished : $(date)
+
+#####--END
+program="../src/Adashare_Train_mini.py"
+JOBID=${PBS_JOBID:0:8}
+
+echo Job $JOBID start : $(date)
+source /user/leuven/326/vsc32647/.initconda
+cd $PBS_O_WORKDIR # cd to the directory from which qsub is run
+echo PBS VERSION is $PBS_VERSION
+echo switch to pyt-gpu 
+conda activate pyt-gpu
+python -V
+echo  $pbs_account
+echo  $pbs_folders
+echo  $pbs_gpu
+
+
+echo program excution start: $(date)
+echo  datadir: ../../MLDatasets/chembl23_mini outdir: ../../experiments/mini-AdaSparseChem confg: ../yamls/chembl_mini_train.yaml
+
+layers=""
+echo "Number Layers: 5   Layer size: 700   Dropout: 0.55  Task LR: 0.001 "
+for ((i=0 ; i < 5 ; i +=1)); do
+    layers+=" 700 "
+done
+echo "Number Layers: 5   Layer size: $layers   Dropout: 0.55  Task LR: 0.001 "
+
+
+python                     ${program} \
+     --config              ../yamls/chembl_mini_train.yaml \
+     --exp_desc            ${JOBID} - Run with residiual layers  \
+     --warmup_epochs       100  \
+     --hidden_size         ${layers}  \
+     --tail_hidden_size     700  \
+     --first_dropout       0.55 \
+     --middle_dropout      0.55 \
+     --last_dropout        0.55 \
+     --seed_idx                    0  \
+     --batch_size                128  \
+     --task_lr                 0.001  \
+     --backbone_lr             0.001  \
+     --decay_lr_rate             0.3  \
+     --decay_lr_freq              10  \
+     --min_samples_class           2
+ 
+     
+echo Job $JOBID finished : $(date)
+
+#####--END
+program="../src/Adashare_Train_mini.py"
+JOBID=${PBS_JOBID:0:8}
+
+echo Job $JOBID start : $(date)
+source /user/leuven/326/vsc32647/.initconda
+cd $PBS_O_WORKDIR # cd to the directory from which qsub is run
+echo PBS VERSION is $PBS_VERSION
+echo switch to pyt-gpu 
+conda activate pyt-gpu
+python -V
+echo  $pbs_account
+echo  $pbs_folders
+echo  $pbs_gpu
+
+
+echo program excution start: $(date)
+echo  datadir: ../../MLDatasets/chembl23_mini outdir: ../../experiments/mini-AdaSparseChem confg: ../yamls/chembl_mini_train.yaml
+
+layers=""
+echo "Number Layers: 5   Layer size: 700   Dropout: 0.6  Task LR: 0.001 "
+for ((i=0 ; i < 5 ; i +=1)); do
+    layers+=" 700 "
+done
+echo "Number Layers: 5   Layer size: $layers   Dropout: 0.6  Task LR: 0.001 "
+
+
+python                     ${program} \
+     --config              ../yamls/chembl_mini_train.yaml \
+     --exp_desc            ${JOBID} - Run with residiual layers  \
+     --warmup_epochs       100  \
+     --hidden_size         ${layers}  \
+     --tail_hidden_size     700  \
+     --first_dropout       0.6 \
+     --middle_dropout      0.6 \
+     --last_dropout        0.6 \
+     --seed_idx                    0  \
+     --batch_size                128  \
+     --task_lr                 0.001  \
+     --backbone_lr             0.001  \
+     --decay_lr_rate             0.3  \
+     --decay_lr_freq              10  \
+     --min_samples_class           2
+ 
+     
+echo Job $JOBID finished : $(date)
+
+#####--END
+program="../src/Adashare_Train_mini.py"
+JOBID=${PBS_JOBID:0:8}
+
+echo Job $JOBID start : $(date)
+source /user/leuven/326/vsc32647/.initconda
+cd $PBS_O_WORKDIR # cd to the directory from which qsub is run
+echo PBS VERSION is $PBS_VERSION
+echo switch to pyt-gpu 
+conda activate pyt-gpu
+python -V
+echo  $pbs_account
+echo  $pbs_folders
+echo  $pbs_gpu
+
+
+echo program excution start: $(date)
+echo  datadir: ../../MLDatasets/chembl23_mini outdir: ../../experiments/mini-AdaSparseChem confg: ../yamls/chembl_mini_train.yaml
+
+layers=""
+echo "Number Layers: 5   Layer size: 700   Dropout: 0.65  Task LR: 0.001 "
+for ((i=0 ; i < 5 ; i +=1)); do
+    layers+=" 700 "
+done
+echo "Number Layers: 5   Layer size: $layers   Dropout: 0.65  Task LR: 0.001 "
+
+
+python                     ${program} \
+     --config              ../yamls/chembl_mini_train.yaml \
+     --exp_desc            ${JOBID} - Run with residiual layers  \
+     --warmup_epochs       100  \
+     --hidden_size         ${layers}  \
+     --tail_hidden_size     700  \
+     --first_dropout       0.65 \
+     --middle_dropout      0.65 \
+     --last_dropout        0.65 \
+     --seed_idx                    0  \
+     --batch_size                128  \
+     --task_lr                 0.001  \
+     --backbone_lr             0.001  \
+     --decay_lr_rate             0.3  \
+     --decay_lr_freq              10  \
+     --min_samples_class           2
+ 
+     
+echo Job $JOBID finished : $(date)
+
+#####--END
+program="../src/Adashare_Train_mini.py"
+JOBID=${PBS_JOBID:0:8}
+
+echo Job $JOBID start : $(date)
+source /user/leuven/326/vsc32647/.initconda
+cd $PBS_O_WORKDIR # cd to the directory from which qsub is run
+echo PBS VERSION is $PBS_VERSION
+echo switch to pyt-gpu 
+conda activate pyt-gpu
+python -V
+echo  $pbs_account
+echo  $pbs_folders
+echo  $pbs_gpu
+
+
+echo program excution start: $(date)
+echo  datadir: ../../MLDatasets/chembl23_mini outdir: ../../experiments/mini-AdaSparseChem confg: ../yamls/chembl_mini_train.yaml
+
+layers=""
+echo "Number Layers: 5   Layer size: 700   Dropout: 0.7  Task LR: 0.001 "
+for ((i=0 ; i < 5 ; i +=1)); do
+    layers+=" 700 "
+done
+echo "Number Layers: 5   Layer size: $layers   Dropout: 0.7  Task LR: 0.001 "
+
+
+python                     ${program} \
+     --config              ../yamls/chembl_mini_train.yaml \
+     --exp_desc            ${JOBID} - Run with residiual layers  \
+     --warmup_epochs       100  \
+     --hidden_size         ${layers}  \
+     --tail_hidden_size     700  \
+     --first_dropout       0.7 \
+     --middle_dropout      0.7 \
+     --last_dropout        0.7 \
+     --seed_idx                    0  \
+     --batch_size                128  \
+     --task_lr                 0.001  \
+     --backbone_lr             0.001  \
+     --decay_lr_rate             0.3  \
+     --decay_lr_freq              10  \
+     --min_samples_class           2
+ 
+     
+echo Job $JOBID finished : $(date)
+
+#####--END
+program="../src/Adashare_Train_mini.py"
+JOBID=${PBS_JOBID:0:8}
+
+echo Job $JOBID start : $(date)
+source /user/leuven/326/vsc32647/.initconda
+cd $PBS_O_WORKDIR # cd to the directory from which qsub is run
+echo PBS VERSION is $PBS_VERSION
+echo switch to pyt-gpu 
+conda activate pyt-gpu
+python -V
+echo  $pbs_account
+echo  $pbs_folders
+echo  $pbs_gpu
+
+
+echo program excution start: $(date)
+echo  datadir: ../../MLDatasets/chembl23_mini outdir: ../../experiments/mini-AdaSparseChem confg: ../yamls/chembl_mini_train.yaml
+
+layers=""
+echo "Number Layers: 5   Layer size: 700   Dropout: 0.75  Task LR: 0.001 "
+for ((i=0 ; i < 5 ; i +=1)); do
+    layers+=" 700 "
+done
+echo "Number Layers: 5   Layer size: $layers   Dropout: 0.75  Task LR: 0.001 "
+
+
+python                     ${program} \
+     --config              ../yamls/chembl_mini_train.yaml \
+     --exp_desc            ${JOBID} - Run with residiual layers  \
+     --warmup_epochs       100  \
+     --hidden_size         ${layers}  \
+     --tail_hidden_size     700  \
+     --first_dropout       0.75 \
+     --middle_dropout      0.75 \
+     --last_dropout        0.75 \
+     --seed_idx                    0  \
+     --batch_size                128  \
+     --task_lr                 0.001  \
+     --backbone_lr             0.001  \
+     --decay_lr_rate             0.3  \
+     --decay_lr_freq              10  \
+     --min_samples_class           2
+ 
+     
+echo Job $JOBID finished : $(date)
+
+#####--END
+program="../src/Adashare_Train_mini.py"
+JOBID=${PBS_JOBID:0:8}
+
+echo Job $JOBID start : $(date)
+source /user/leuven/326/vsc32647/.initconda
+cd $PBS_O_WORKDIR # cd to the directory from which qsub is run
+echo PBS VERSION is $PBS_VERSION
+echo switch to pyt-gpu 
+conda activate pyt-gpu
+python -V
+echo  $pbs_account
+echo  $pbs_folders
+echo  $pbs_gpu
+
+
+echo program excution start: $(date)
+echo  datadir: ../../MLDatasets/chembl23_mini outdir: ../../experiments/mini-AdaSparseChem confg: ../yamls/chembl_mini_train.yaml
+
+layers=""
+echo "Number Layers: 5   Layer size: 700   Dropout: 0.8  Task LR: 0.001 "
+for ((i=0 ; i < 5 ; i +=1)); do
+    layers+=" 700 "
+done
+echo "Number Layers: 5   Layer size: $layers   Dropout: 0.8  Task LR: 0.001 "
+
+
+python                     ${program} \
+     --config              ../yamls/chembl_mini_train.yaml \
+     --exp_desc            ${JOBID} - Run with residiual layers  \
+     --warmup_epochs       100  \
+     --hidden_size         ${layers}  \
+     --tail_hidden_size     700  \
+     --first_dropout       0.8 \
+     --middle_dropout      0.8 \
+     --last_dropout        0.8 \
+     --seed_idx                    0  \
+     --batch_size                128  \
+     --task_lr                 0.001  \
+     --backbone_lr             0.001  \
+     --decay_lr_rate             0.3  \
+     --decay_lr_freq              10  \
+     --min_samples_class           2
+ 
+     
+echo Job $JOBID finished : $(date)
+
+#####--END
+program="../src/Adashare_Train_mini.py"
+JOBID=${PBS_JOBID:0:8}
+
+echo Job $JOBID start : $(date)
+source /user/leuven/326/vsc32647/.initconda
+cd $PBS_O_WORKDIR # cd to the directory from which qsub is run
+echo PBS VERSION is $PBS_VERSION
+echo switch to pyt-gpu 
+conda activate pyt-gpu
+python -V
+echo  $pbs_account
+echo  $pbs_folders
+echo  $pbs_gpu
+
+
+echo program excution start: $(date)
+echo  datadir: ../../MLDatasets/chembl23_mini outdir: ../../experiments/mini-AdaSparseChem confg: ../yamls/chembl_mini_train.yaml
+
+layers=""
+echo "Number Layers: 5   Layer size: 700   Dropout: 0.85  Task LR: 0.001 "
+for ((i=0 ; i < 5 ; i +=1)); do
+    layers+=" 700 "
+done
+echo "Number Layers: 5   Layer size: $layers   Dropout: 0.85  Task LR: 0.001 "
+
+
+python                     ${program} \
+     --config              ../yamls/chembl_mini_train.yaml \
+     --exp_desc            ${JOBID} - Run with residiual layers  \
+     --warmup_epochs       100  \
+     --hidden_size         ${layers}  \
+     --tail_hidden_size     700  \
+     --first_dropout       0.85 \
+     --middle_dropout      0.85 \
+     --last_dropout        0.85 \
+     --seed_idx                    0  \
+     --batch_size                128  \
+     --task_lr                 0.001  \
+     --backbone_lr             0.001  \
+     --decay_lr_rate             0.3  \
+     --decay_lr_freq              10  \
+     --min_samples_class           2
+ 
+     
+echo Job $JOBID finished : $(date)
+
+#####--END
+program="../src/Adashare_Train_mini.py"
+JOBID=${PBS_JOBID:0:8}
+
+echo Job $JOBID start : $(date)
+source /user/leuven/326/vsc32647/.initconda
+cd $PBS_O_WORKDIR # cd to the directory from which qsub is run
+echo PBS VERSION is $PBS_VERSION
+echo switch to pyt-gpu 
+conda activate pyt-gpu
+python -V
+echo  $pbs_account
+echo  $pbs_folders
+echo  $pbs_gpu
+
+
+echo program excution start: $(date)
+echo  datadir: ../../MLDatasets/chembl23_mini outdir: ../../experiments/mini-AdaSparseChem confg: ../yamls/chembl_mini_train.yaml
+
+layers=""
+echo "Number Layers: 5   Layer size: 700   Dropout: 0.9  Task LR: 0.001 "
+for ((i=0 ; i < 5 ; i +=1)); do
+    layers+=" 700 "
+done
+echo "Number Layers: 5   Layer size: $layers   Dropout: 0.9  Task LR: 0.001 "
+
+
+python                     ${program} \
+     --config              ../yamls/chembl_mini_train.yaml \
+     --exp_desc            ${JOBID} - Run with residiual layers  \
+     --warmup_epochs       100  \
+     --hidden_size         ${layers}  \
+     --tail_hidden_size     700  \
+     --first_dropout       0.9 \
+     --middle_dropout      0.9 \
+     --last_dropout        0.9 \
+     --seed_idx                    0  \
+     --batch_size                128  \
+     --task_lr                 0.001  \
+     --backbone_lr             0.001  \
+     --decay_lr_rate             0.3  \
+     --decay_lr_freq              10  \
+     --min_samples_class           2
+ 
+     
+echo Job $JOBID finished : $(date)
+
+#####--END
+program="../src/Adashare_Train_mini.py"
+JOBID=${PBS_JOBID:0:8}
+
+echo Job $JOBID start : $(date)
+source /user/leuven/326/vsc32647/.initconda
+cd $PBS_O_WORKDIR # cd to the directory from which qsub is run
+echo PBS VERSION is $PBS_VERSION
+echo switch to pyt-gpu 
+conda activate pyt-gpu
+python -V
+echo  $pbs_account
+echo  $pbs_folders
+echo  $pbs_gpu
+
+
+echo program excution start: $(date)
+echo  datadir: ../../MLDatasets/chembl23_mini outdir: ../../experiments/mini-AdaSparseChem confg: ../yamls/chembl_mini_train.yaml
+
+layers=""
+echo "Number Layers: 5   Layer size: 700   Dropout: 0.95  Task LR: 0.001 "
+for ((i=0 ; i < 5 ; i +=1)); do
+    layers+=" 700 "
+done
+echo "Number Layers: 5   Layer size: $layers   Dropout: 0.95  Task LR: 0.001 "
+
+
+python                     ${program} \
+     --config              ../yamls/chembl_mini_train.yaml \
+     --exp_desc            ${JOBID} - Run with residiual layers  \
+     --warmup_epochs       100  \
+     --hidden_size         ${layers}  \
+     --tail_hidden_size     700  \
+     --first_dropout       0.95 \
+     --middle_dropout      0.95 \
+     --last_dropout        0.95 \
+     --seed_idx                    0  \
+     --batch_size                128  \
+     --task_lr                 0.001  \
+     --backbone_lr             0.001  \
+     --decay_lr_rate             0.3  \
+     --decay_lr_freq              10  \
+     --min_samples_class           2
+ 
+     
+echo Job $JOBID finished : $(date)
+
+#####--END
