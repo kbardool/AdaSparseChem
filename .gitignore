@@ -25,3 +25,4 @@ pbs_jobs/worker-resid*
 pbs_output
 pbs_jobs/del_pbs.sh
 pbs_jobs/del_wandb.sh
+ 
