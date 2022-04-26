@@ -1,13 +1,14 @@
 project_name         : AdaSparseChem-Mini
 ## Leave empty to have date_time used 
 exp_id               :
+exp_name_pfx         :
 exp_name             : 
 exp_folder           : 
 exp_description      : brief description
 folder_sfx           :
 random_seed          : 
 seed_list            : [88, 45, 50, 100, 44, 48, 2048, 2222, 9999]
-
+config               :
 cpu:
 gpu_ids:
 
@@ -20,15 +21,8 @@ verbose              : False
 
 input_size_freq      : 
 input_size           : 32000
-# hidden_sizes         : [50, 50, 50, 50, 50, 50]
-# tail_hidden_size     : 50
-# hidden_sizes         : [75, 75, 75, 75, 75, 75]
-# tail_hidden_size     : 75
-# hidden_sizes         : [100, 100, 100, 100, 100, 100]
-# tail_hidden_size     : 100
-# hidden_sizes         : [150, 150, 150, 150, 150, 150]
-# tail_hidden_size     : 150
-
+hidden_sizes         : [100]
+tail_hidden_size     : [100]
 
 first_non_linearity  : "relu"
 middle_non_linearity : "relu"
@@ -46,6 +40,7 @@ policy               : True
 policy_model         : task-specific
 
 is_residual          : True
+skip_hidden          : False
 
 is_sparse            : True
 is_sharing           : True

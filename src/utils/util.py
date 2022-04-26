@@ -407,6 +407,7 @@ def get_command_line_args(input = None, display = True):
     parser.add_argument("--gpu_ids"          , type=int,   nargs='+', default=[0],  help="GPU Device Ids")
     # parser.add_argument("--policy"           , action="store_true",  help="Train policies")
     parser.add_argument("--no_residual"      , default=False, action="store_true",  help="Do not use residual layers")
+    parser.add_argument("--skip_hidden"      , default=False, action="store_true",  help="Skip all hidden layers")
     parser.add_argument("--resume"           , default=False, action="store_true",  help="Resume previous run")
     parser.add_argument("--cpu"              , default=False, action="store_true",  help="CPU instead of GPU")
     parser.add_argument("--min_samples_class", type=int,   help="Minimum number samples in each class and in each fold for AUC "\
@@ -455,6 +456,7 @@ def read_yaml(args = None, exp_name = None):
     opt['config']= args.config
 
     opt["exp_id"] = args.exp_id 
+
 
     if exp_name is not None:
         opt['exp_name_pfx'] = exp_name
@@ -520,6 +522,7 @@ def read_yaml(args = None, exp_name = None):
     if  opt['folder_sfx'] is not None:
         opt['exp_name']  += f"_{opt['folder_sfx']}"
   
+    opt['skip_hidden'] = args.skip_hidden
     opt['cpu'] = args.cpu
     opt['train']['resume'] = args.resume
     

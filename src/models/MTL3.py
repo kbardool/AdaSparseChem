@@ -45,13 +45,13 @@ class MTL3(nn.Module):
         self.init_neg_logits = init_neg_logits
         
         ## Build Network Backbone
-        self.backbone = SparseChem_Backbone(conf, block, layers, verbose = verbose)
+        self.backbone = SparseChem_Backbone(conf, block, layers, verbose = True)
         
         ## Build Task specific heads.
         for t_id, num_classes in enumerate(num_classes_tasks):
             ## TODO: Write SpraseChem_TaskHead which will allow a multi-layerd head
             ## setattr(self, 'task%d_fc1_c0' % (t_id + 1), SparseChem_TaskHead(conf['hidden_sizes'][-1], conf['head_layer_sizes'], num_classes))
-            setattr(self, 'task%d_fc1_c0' % (t_id + 1), SparseChem_Classification_Module(conf['hidden_sizes'][-1], num_classes))
+            setattr(self, 'task%d_fc1_c0' % (t_id + 1), SparseChem_Classification_Module(conf['tail_hidden_size'][-1], num_classes))
 
         
         ## initialize logits
