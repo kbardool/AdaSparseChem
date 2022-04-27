@@ -20,7 +20,7 @@ echo "Number Layers: $num_layers   Layer size: $layers   Dropout: $dropout  Task
 
 python                     ${program} \
      --config              ${config} \
-     --exp_desc            ${JOBID} - Run without residiual layers  \
+     --exp_desc            ${JOBID} - Run without hidden layers  \
      --warmup_epochs       ${epochs}  \
      --hidden_size         ${layers}  \
      --tail_hidden_size     ${layer}  \
@@ -34,6 +34,6 @@ python                     ${program} \
      --decay_lr_rate             0.3  \
      --decay_lr_freq              10  \
      --min_samples_class           2  \
-     --skip_residual
+     --skip_hidden
 
 echo Job $JOBID finished : $(date)

@@ -1,5 +1,5 @@
 #!/bin/bash
-# echo $1
+echo $1
 if [ -z $1 ]; then
     echo "ERROR:: input parameter must be provided (res | nores | both)"
     return 1
@@ -9,8 +9,8 @@ epochs=100
 lr=0.001
 
 num_layers=1
-layer=300     
-dropout=0.95
+layer=1000    
+dropout=0.00
 
 submit_job(){ 
     job_name="$2-${layer}x${num_layers}-${dropout}"
@@ -35,12 +35,16 @@ pbs_allocate="-l nodes=1:ppn=9:gpus=1,partition=gpu,walltime=06:00:00 "
 config="../yamls/chembl_mini_train.yaml"
 datadir="../../MLDatasets/chembl23_mini"
 outdir="../../experiments/mini-AdaSparseChem"
-echo  datadir: $datadir outdir: $outdir confg: $config
+# echo  datadir: $datadir outdir: $outdir confg: $config
 
 
 
 echo "Epochs: $epochs  Layers: $num_layers   Layer size: $layer   Dropout: $dropout  Task LR: $lr "
 
+if [ $1 == "nohidden" ]  
+then 
+    submit_job "AS_tr_nohidden.sh"  "ASR"
+fi
 
 # echo Its res! -- submit pbs_tr_resid 
 if [ $1 == "res" ] || [ $1 == "both" ] 

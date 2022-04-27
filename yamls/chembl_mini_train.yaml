@@ -39,7 +39,7 @@ regr_output_size     :
 policy               : True
 policy_model         : task-specific
 
-is_residual          : True
+skip_residual        : False
 skip_hidden          : False
 
 is_sparse            : True

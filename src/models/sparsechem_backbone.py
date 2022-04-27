@@ -114,12 +114,12 @@ class SparseChem_Backbone(torch.nn.Module):
             self.regr_output_size  = None
 
         self.layer_config = layers
-        self.residual_layers  = conf['is_residual']
+        self.skip_residual_layers  = conf['skip_residual']
         self.skip_hidden  = conf['skip_hidden']
         self.blocks = []
         self.residuals= []
         print_dbg(f" layer config   : {self.layer_config} \n", verbose = verbose)
-        print_dbg(f" residual layers: {self.residual_layers} \n", verbose = verbose)
+        print_dbg(f" residual layers: {self.skip_residual_layers} \n", verbose = verbose)
 
         ##----------------------------------------------------
         ## Input Net        
@@ -238,7 +238,7 @@ class SparseChem_Backbone(torch.nn.Module):
         # layers.append(block(input_sz, output_sz, non_linearity, dropout, bias, verbose = verbose))
         layers = block(input_sz, output_sz, non_linearity, dropout, bias, verbose = verbose)
 
-        if (self.residual_layers) and (input_sz != output_sz):
+        if (not self.skip_residual_layers) and (input_sz != output_sz):
             residual = nn.Sequential(block(input_sz, output_sz, non_linearity, dropout, bias, verbose = verbose))
 
         return layers, residual
@@ -261,11 +261,11 @@ class SparseChem_Backbone(torch.nn.Module):
                 if self.skip_hidden:
                     print_dbg('skip_hidden is true - return x', verbose = False)
                     pass
-                elif self.residual_layers:
+                elif self.skip_residual_layers:
+                    x = self.blocks[layer](x)
+                else:
                     residual = x  if self.residuals[layer] is None else self.residuals[layer](x)
                     x = F.relu(residual + self.blocks[layer](x))
-                else:
-                    x = self.blocks[layer](x)
                     
                 # x = residual + self.blocks[layer](x)
                 # x  =  self.blocks[segment][b](x)

@@ -406,7 +406,7 @@ def get_command_line_args(input = None, display = True):
     parser.add_argument("--lambda_sharing"   , type=float, help="Sharing Regularization - default read from config file")
     parser.add_argument("--gpu_ids"          , type=int,   nargs='+', default=[0],  help="GPU Device Ids")
     # parser.add_argument("--policy"           , action="store_true",  help="Train policies")
-    parser.add_argument("--no_residual"      , default=False, action="store_true",  help="Do not use residual layers")
+    parser.add_argument("--skip_residual"    , default=False, action="store_true",  help="Skip all residual layers")
     parser.add_argument("--skip_hidden"      , default=False, action="store_true",  help="Skip all hidden layers")
     parser.add_argument("--resume"           , default=False, action="store_true",  help="Resume previous run")
     parser.add_argument("--cpu"              , default=False, action="store_true",  help="CPU instead of GPU")
@@ -512,22 +512,31 @@ def read_yaml(args = None, exp_name = None):
 
     opt['gpu_ids'] = args.gpu_ids
     
-    if args.no_residual:
-        opt['is_residual'] = False
+    opt['skip_residual'] = args.skip_residual
+    if args.skip_residual:
         if  opt['folder_sfx'] is not None:
             opt['folder_sfx'] += "no_resid"
         else:
             opt['folder_sfx'] = "no_resid"
 
-    if  opt['folder_sfx'] is not None:
-        opt['exp_name']  += f"_{opt['folder_sfx']}"
   
     opt['skip_hidden'] = args.skip_hidden
+    if args.skip_hidden:
+        if  opt['folder_sfx'] is not None:
+            opt['folder_sfx'] += "skip_hidden"
+        else:
+            opt['folder_sfx'] = "skip_hidden"
+  
+  
+  
     opt['cpu'] = args.cpu
     opt['train']['resume'] = args.resume
     
     if args.min_samples_class is not None:
         opt['dataload']['min_samples_class'] = args.min_samples_class
+
+    if  opt['folder_sfx'] is not None:
+        opt['exp_name']  += f"_{opt['folder_sfx']}"
         
     opt['exp_folder'] = build_exp_folder_name(opt)
 
