@@ -36,48 +36,6 @@ np.set_printoptions(edgeitems=3, infstr='inf', linewidth=150, nanstr='nan')
 torch.set_printoptions(precision=6, linewidth=132)
 pd.options.display.width = 132
 
-# torch.set_printoptions(precision=None, threshold=None, edgeitems=None, linewidth=None, profile=None, sci_mode=None)
-# sys.path.insert(0, '/home/kbardool/kusanagi/AdaSparseChem/src')
-# print(sys.path)
-# os.environ["WANDB_NOTEBOOK_NAME"] = "Adashare_Training-Chembl_mini.ipynb"
-
-
-# display_gpu_info()
-
-
-# synthetic_1task_config = "../yamls/chembl_synt_train_1task.yaml"
-# synthetic_3task_config = "../yamls/chembl_synt_train_3task.yaml"
-# synthetic_5task_config = "../yamls/chembl_synt_train_5task.yaml"
-# synthetic_config = "../yamls/chembl_synt_train.yaml"
-# mini_config      = "../yamls/chembl_mini_train.yaml"
-##  For Initiating 
-##
-# input_args = f" --config  {mini_config} "              
-#               " --exp_name       0410_1947 "              
-#               " --exp_desc     weight 105 bch/ep policy 105 bch/ep "              
-#               " --warmup_epochs       100 "               
-#               " --hidden_size       40 40 "               
-#               " --tail_hidden_size     40 "               
-#               " --first_dropout       0.0 "               
-#               " --middle_dropout      0.0 "               
-#               " --last_dropout        0.0 "               
-#               " --seed_idx              0 "               
-#               " --batch_size          128 "               
-#               " --task_lr            0.01 "               
-#               " --backbone_lr        0.01 "               
-#               " --decay_lr_rate       0.3 "               
-#               " --decay_lr_freq        10 "               
-#               " --policy_lr         0.001 "               
-#               " --lambda_sparsity    0.02 "               
-#               " --lambda_sharing     0.01 "               
-#               " --folder_sfx       no_resid"               
-#               " --cpu "              
-#               " --no_residual "
-
-#              " --hidden_size   100 100 100 100 100 100" \
-#              " --tail_hidden_size  100 " \
-#              " --decay_lr_rate      0.75"  \
-#              " --decay_lr_freq       20"  \
 
 #-----------------------------------------------------------------
 # ### Parse Input Args, Read YAML config file, wandb initialization
@@ -130,6 +88,9 @@ print(f"Best Epoch :       {ns.best_epoch}\n"
 
 print()
 pp.pprint(environ.val_metrics['aggregated'])
+print()
+df = environ.val_metrics['task1']['classification']
+print(df[pd.notna(df.roc_auc_score)])
 
 ns.wandb_run.finish()
 

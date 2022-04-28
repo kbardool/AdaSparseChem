@@ -114,13 +114,13 @@ class SparseChem_Backbone(torch.nn.Module):
             self.regr_output_size  = None
 
         self.layer_config = layers
-        self.skip_residual_layers  = conf['skip_residual']
-        self.skip_hidden  = conf['skip_hidden']
+        self.skip_residual = conf['skip_residual']
+        self.skip_hidden   = conf['skip_hidden']
         self.blocks = []
         self.residuals= []
-        print_dbg(f" layer config   : {self.layer_config} \n", verbose = verbose)
-        print_dbg(f" residual layers: {self.skip_residual_layers} \n", verbose = verbose)
-
+        print_dbg(f" layer config        : {self.layer_config} ", verbose = verbose)
+        print_dbg(f" skip residual layers: {self.skip_residual}   skip hidden layers  : {self.skip_hidden}", verbose = verbose)
+ 
         ##----------------------------------------------------
         ## Input Net        
         ##----------------------------------------------------
@@ -238,7 +238,9 @@ class SparseChem_Backbone(torch.nn.Module):
         # layers.append(block(input_sz, output_sz, non_linearity, dropout, bias, verbose = verbose))
         layers = block(input_sz, output_sz, non_linearity, dropout, bias, verbose = verbose)
 
-        if (not self.skip_residual_layers) and (input_sz != output_sz):
+        if (self.skip_residual) :
+            pass
+        elif (input_sz != output_sz):
             residual = nn.Sequential(block(input_sz, output_sz, non_linearity, dropout, bias, verbose = verbose))
 
         return layers, residual
@@ -256,12 +258,10 @@ class SparseChem_Backbone(torch.nn.Module):
         if policy is None:
             # forward through the all blocks without dropping
             for layer, _ in enumerate(self.layer_config):
-                # apply the residual skip out of _make_layers_
- 
                 if self.skip_hidden:
-                    print_dbg('skip_hidden is true - return x', verbose = False)
+                    # print_dbg('skip_hidden is true - return x', verbose = False)
                     pass
-                elif self.skip_residual_layers:
+                elif self.skip_residual:
                     x = self.blocks[layer](x)
                 else:
                     residual = x  if self.residuals[layer] is None else self.residuals[layer](x)

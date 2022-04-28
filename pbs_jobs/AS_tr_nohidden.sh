@@ -3,7 +3,7 @@
 export JOBID=${PBS_JOBID:0:8}
 echo Job $JOBID start : $(date)
 source /user/leuven/326/vsc32647/.initconda
-cd $PBS_O_WORKDIR # cd to the directory from which qsub is run
+# cd $PBS_O_WORKDIR # cd to the directory from which qsub is run
 echo PBS VERSION is $PBS_VERSION
 echo config file is $config
 echo switch to pyt-gpu 
