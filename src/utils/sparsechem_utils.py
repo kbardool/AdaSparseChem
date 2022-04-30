@@ -295,16 +295,16 @@ def load_task_weights(filename, y, label, verbose = False):
         aggregation_weight
         task_type
     """
-    print_dbg(f"\t load_task_weights - filename: {filename} label: {label}", verbose = verbose)
+    print_dbg(f" load_task_weights() - filename: {filename} label: {label}", verbose = verbose)
     res = types.SimpleNamespace(training_weight=None, aggregation_weight=None, task_type=None, censored_weight=torch.FloatTensor())
 
     if y is None:
-        assert filename is None, f"\tWeights file {filename} provided for {label}, please add also --{label}"
+        assert filename is None, f" Weights file {filename} provided for {label}, please add also --{label}"
         res.training_weight = torch.ones(0)
         return res
 
     if filename is None:
-        print_dbg(f"\t load_task_weights - no weights file provided for {label}, training_weights for all  {y.shape[1]} classes set to 1 ", verbose = verbose)
+        print_dbg(f" load_task_weights() - no weights file provided for {label}, training_weights for all  {y.shape[1]} classes set to 1 ", verbose = verbose)
         res.training_weight = torch.ones(y.shape[1])
         return res
 
@@ -323,13 +323,12 @@ def load_task_weights(filename, y, label, verbose = False):
     for col in df.columns:
         assert col in cols, f"Unsupported colum '{col}' in task weight file. Supported columns: {cols}."
 
-    assert y.shape[1] == df.shape[0], f"task weights for '{label}' have different size ({df.shape[0]}) to {label} columns ({y.shape[1]})."
-    assert (0 <= df.training_weight).all(), f"task weights (for {label}) must not be negative"
-    assert (df.training_weight <= 1).all(), f"task weights (for {label}) must not be larger than 1.0"
-
-    assert df.task_id.unique().shape[0] == df.shape[0], f"task ids (for {label}) are not all unique"
-    assert (0 <= df.task_id).all(), f"task ids in task weights (for {label}) must not be negative"
+    assert y.shape[1] == df.shape[0]       , f" task weights for '{label}' have different size ({df.shape[0]}) to {label} columns ({y.shape[1]})."
+    assert (0 <= df.training_weight).all() , f" task weights (for {label}) must not be negative"
+    assert (df.training_weight <= 1).all() , f" task weights (for {label}) must not be larger than 1.0"
+    assert (0 <= df.task_id).all()         , f" task ids in task weights (for {label}) must not be negative"
     assert (df.task_id < df.shape[0]).all(), f"task ids in task weights (for {label}) must be below number of tasks"
+    assert df.task_id.unique().shape[0] == df.shape[0], f"task ids (for {label}) are not all unique"
 
     res.training_weight = torch.FloatTensor(df.training_weight.values)
 
