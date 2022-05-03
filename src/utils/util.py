@@ -466,8 +466,6 @@ def read_yaml(args = None, exp_name = None):
     
     opt['exp_name']   = opt['exp_name_pfx'] 
     
-    if args.folder_sfx is not None:
-        opt['folder_sfx'] = args.folder_sfx
 
     if args.exp_desc is not None:
         opt['exp_description'] = args.exp_desc 
@@ -514,6 +512,9 @@ def read_yaml(args = None, exp_name = None):
     opt['skip_residual'] = args.skip_residual
     opt['skip_hidden'] = args.skip_hidden
     
+    if args.folder_sfx is not None:
+        opt['folder_sfx'] = args.folder_sfx
+  
     if args.skip_residual:
         if  opt['folder_sfx'] is not None:
             opt['folder_sfx'] += "_no_resid"
@@ -536,9 +537,7 @@ def read_yaml(args = None, exp_name = None):
     if args.min_samples_class is not None:
         opt['dataload']['min_samples_class'] = args.min_samples_class
 
-    if  opt['folder_sfx'] is not None:
-        opt['exp_name']  += f"_{opt['folder_sfx']}"
-        
+
     opt['exp_folder'] = build_exp_folder_name(opt)
 
     # if args.seed_idx is not None:

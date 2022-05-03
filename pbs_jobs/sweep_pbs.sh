@@ -2,7 +2,7 @@
 echo $1
 # parm=$1
 if [ -z $1 ]; then
-    echo "ERROR:: input parameter must be provided (res | nores | both)"
+    echo "ERROR:: input parameter must be provided (res | nores | both | nohidden)"
     return 1
 fi
 
@@ -10,7 +10,7 @@ epochs=100
 lr_list=(0.001)
 
 num_layers_list=(1)
-layer_size_list=(1000) 
+layer_size_list=(1000 1500 2000) 
 dropout_list=(0.00 0.10 0.20 0.30 0.40 0.50 0.60 0.70 0.80 0.90 )
 
 # num_layers_list=( 0 )
@@ -24,7 +24,7 @@ dropout_list=(0.00 0.10 0.20 0.30 0.40 0.50 0.60 0.70 0.80 0.90 )
 # dropout_list=( 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95)
 # dropout_list=(0.00 0.05 0.10 0.15 0.40 0.45 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95)
 # dropout_list=(0.00 0.10 0.20 0.30 0.40 0.50 0.60 0.70 0.80 0.90 )
-dropout_list=(0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95)
+# dropout_list=(0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95)
 
 
 submit_list(){ 
@@ -50,6 +50,7 @@ submit_list(){
 pbs_account="-A lp_symbiosys "
 pbs_folders="-e ../pbs_output/  -o ../pbs_output/ "
 # pbs_allocate="-l nodes=1:ppn=4,walltime=01:00:00 "
+# pbs_allocate="-l nodes=1:ppn=9:gpus=1,partition=gpu,walltime=01:00:00 "
 pbs_allocate="-l nodes=1:ppn=9:gpus=1,partition=gpu,walltime=06:00:00 "
 config="../yamls/chembl_mini_train.yaml"
 datadir="../../MLDatasets/chembl23_mini"
@@ -59,6 +60,10 @@ echo  $pbs_account
 echo  $pbs_folders
 echo  $pbs_allocate
 
+if [ $1 == "nohidden" ]  
+then 
+    submit_list "AS_tr_nohidden.sh"  "NHD"
+fi
 
 if [ $1 == "res" ] || [ $1 == "both" ] 
 then echo Its res! -- submit pbs_tr_resid 

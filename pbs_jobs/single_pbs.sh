@@ -10,7 +10,7 @@ lr=0.001
 
 num_layers=1
 layer=1000    
-dropout=0.00
+dropout=0.40
 
 submit_job(){ 
     job_name="$2-${layer}x${num_layers}-${dropout}"
@@ -26,8 +26,9 @@ submit_job(){
 # PBS -l qos=debugging
 pbs_account="-A lp_symbiosys "
 pbs_folders="-e ../pbs_output/  -o ../pbs_output/ "
+pbs_allocate="-l nodes=1:ppn=9:gpus=1,partition=gpu,walltime=01:00:00 "
+# pbs_allocate="-l nodes=1:ppn=9:gpus=1,partition=gpu,walltime=06:00:00 "
 # pbs_allocate="-l nodes=1:ppn=4,walltime=01:00:00 "
-pbs_allocate="-l nodes=1:ppn=9:gpus=1,partition=gpu,walltime=06:00:00 "
 # echo  $pbs_account
 # echo  $pbs_folders
 # echo  $pbs_allocate
@@ -37,13 +38,11 @@ datadir="../../MLDatasets/chembl23_mini"
 outdir="../../experiments/mini-AdaSparseChem"
 # echo  datadir: $datadir outdir: $outdir confg: $config
 
-
-
 echo "Epochs: $epochs  Layers: $num_layers   Layer size: $layer   Dropout: $dropout  Task LR: $lr "
 
 if [ $1 == "nohidden" ]  
 then 
-    submit_job "AS_tr_nohidden.sh"  "ASR"
+    submit_job "AS_tr_nohidden.sh"  "NHD"
 fi
 
 # echo Its res! -- submit pbs_tr_resid 

@@ -3,7 +3,7 @@
 export JOBID=${PBS_JOBID:0:8}
 echo Job $JOBID start : $(date)
 source /user/leuven/326/vsc32647/.initconda
-# cd $PBS_O_WORKDIR # cd to the directory from which qsub is run
+cd $PBS_O_WORKDIR  # cd to the directory from which qsub is run
 echo PBS VERSION is $PBS_VERSION
 echo config file is $config
 echo switch to pyt-gpu 
@@ -11,6 +11,7 @@ conda activate pyt-gpu
 python -V
 export program="../src/Adashare_Train_mini.py"
 echo program excution start: $(date)
+
 layers=""
 echo "Number Layers: $num_layers   Layer size: $layer   Dropout: $dropout  Task LR: $lr "
 for ((i=0 ; i < $num_layers ; i +=1)); do
