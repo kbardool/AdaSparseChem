@@ -136,7 +136,7 @@ class SparseChemEnv(BaseEnv):
         self.cross_entropy_sparsity = nn.CrossEntropyLoss(ignore_index=255)
         self.cross_entropy2         = nn.CrossEntropyLoss(ignore_index=255, reduction='none')
         
-        if self.dataset == 'Chembl23_mini':
+        if self.dataset in ['Chembl23_mini', 'Chembl29']:
             self.loss_class     = torch.nn.BCEWithLogitsLoss(reduction="none")
             self.loss_class_sum = torch.nn.BCEWithLogitsLoss(reduction="sum")
             self.loss_class_mean = torch.nn.BCEWithLogitsLoss(reduction="mean")

@@ -9,8 +9,8 @@ echo config file is $config
 echo switch to pyt-gpu 
 conda activate pyt-gpu
 python -V
-export program="../src/Adashare_Train_mini.py"
-echo program excution start: $(date)
+program="../src/Adashare_Train.py"
+echo program $program excution start: $(date)
 layers=""
 echo "Number Layers: $num_layers   Layer size: $layer   Dropout: $dropout  Task LR: $lr "
 for ((i=0 ; i < $num_layers ; i +=1)); do
@@ -28,12 +28,13 @@ python                     ${program} \
      --middle_dropout      ${dropout} \
      --last_dropout        ${dropout} \
      --seed_idx                    0  \
-     --batch_size                128  \
+     --batch_size       ${batch_size} \
      --task_lr                 ${lr}  \
      --backbone_lr             ${lr}  \
      --decay_lr_rate             0.3  \
      --decay_lr_freq              10  \
      --min_samples_class           2  \
+     --gpu_ids                  ${dev}\
      --skip_residual
 
 echo Job $JOBID finished : $(date)

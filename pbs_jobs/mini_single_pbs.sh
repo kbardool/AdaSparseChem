@@ -9,8 +9,8 @@ epochs=100
 lr=0.001
 
 num_layers=1
-layer=1000    
-dropout=0.40
+layer=2000
+dropout=0.30
 
 submit_job(){ 
     job_name="$2-${layer}x${num_layers}-${dropout}"
