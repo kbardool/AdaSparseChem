@@ -172,9 +172,9 @@ def init_dataloaders_by_fold_id(opt, training_folds=None, validation_folds= None
     dldrs.trainset2 = dldrs.trainset0
 
 
-    dldrs.warmup_trn_loader = InfiniteDataLoader(dldrs.trainset0 , batch_size=opt['train']['batch_size'], num_workers = 2, pin_memory=True, collate_fn=dldrs.trainset0.collate, shuffle=True)
-    dldrs.weight_trn_loader = InfiniteDataLoader(dldrs.trainset1 , batch_size=opt['train']['batch_size'], num_workers = 2, pin_memory=True, collate_fn=dldrs.trainset1.collate, shuffle=True)
-    dldrs.policy_trn_loader = InfiniteDataLoader(dldrs.trainset2 , batch_size=opt['train']['batch_size'], num_workers = 2, pin_memory=True, collate_fn=dldrs.trainset2.collate, shuffle=True)
+    dldrs.warmup_trn_loader = InfiniteDataLoader(dldrs.trainset0 , batch_size=opt['train']['batch_size'], num_workers = 1, pin_memory=True, collate_fn=dldrs.trainset0.collate, shuffle=True)
+    dldrs.weight_trn_loader = InfiniteDataLoader(dldrs.trainset1 , batch_size=opt['train']['batch_size'], num_workers = 1, pin_memory=True, collate_fn=dldrs.trainset1.collate, shuffle=True)
+    dldrs.policy_trn_loader = InfiniteDataLoader(dldrs.trainset2 , batch_size=opt['train']['batch_size'], num_workers = 1, pin_memory=True, collate_fn=dldrs.trainset2.collate, shuffle=True)
     dldrs.val_loader        = InfiniteDataLoader(dldrs.valset    , batch_size=opt['train']['batch_size'], num_workers = 1, pin_memory=True, collate_fn=dldrs.valset.collate   , shuffle=True)
     
     # dldrs.test_loader       = InfiniteDataLoader(dldrs.testset   , batch_size=32                        , num_workers = 1, pin_memory=True, collate_fn=dldrs.testset.collate  , shuffle=True)
@@ -390,7 +390,7 @@ def retrain_prep(ns, opt, environ, dldrs, phase = 'update_w', epoch = 0, iter = 
 
 
 
-def warmup_phase(ns,opt, environ, dldrs, disable_tqdm = True, epochs = None, write_checkpoint = True):
+def warmup_phase(ns,opt, environ, dldrs, disable_tqdm = True, epochs = None, write_checkpoint = True, verbose = False):
     ns.write_checkpoint = write_checkpoint
     ns.phase = 'warmup'
     ns.flag  = 'update_weights'
@@ -425,7 +425,7 @@ def warmup_phase(ns,opt, environ, dldrs, disable_tqdm = True, epochs = None, wri
                 environ.optimize(opt['lambdas'], 
                                 is_policy=False, 
                                 flag='update_weights', 
-                                verbose = False)
+                                verbose = verbose)
             
                 t_warmup.set_postfix({'curr_iter':ns.current_iter, 
                                     'Loss': f"{environ.losses['total']['total'].item():.4f}"})

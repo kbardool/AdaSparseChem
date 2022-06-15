@@ -313,7 +313,7 @@ class MTL3(nn.Module):
             verbose = self.verbose
 
         if verbose:
-            print_heading(f" {timestring()} -  MTL3.forward() START - verbose: {verbose}", verbose = verbose)
+            print_dbg(f" {timestring()} - MTL3 network forward() start", verbose = verbose)
             print_dbg(f"   num_train_layers: {num_train_layers}    hard_sampling:{hard_sampling} "
                       f"   policy sampling mode:{policy_sampling_mode}    temperature:{temperature}  "
                       f"   is_policy:{is_policy}    self.skip_layer:{self.skip_layer}  "
@@ -416,7 +416,7 @@ class MTL3(nn.Module):
             output = sum(o)
             outputs.append(output)
 
-        print_heading(f" {timestring()} - MTL3 forward() END", verbose = verbose) 
+        print_dbg(f" {timestring()} - MTL3 network forward() end", verbose = verbose) 
         return outputs, self.policys, self.logits
 
     @property

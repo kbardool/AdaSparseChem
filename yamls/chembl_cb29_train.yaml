@@ -14,7 +14,7 @@ gpu_ids:
 
 backbone             : SparseChem
 tasks                : ["class"]
-tasks_num_class      : [100]
+tasks_num_class      : [3552]
 lambdas              : [1]
 verbose              : False
  
@@ -150,7 +150,7 @@ paths:
 
 dataload:
   dataset        : Chembl29
-  dataroot       : "../../MLDatasets/chembl29"
+  dataroot       : "/mnt/f/Chembl29"
   x              : "chembl_29_x.npy"
 
   ## Data split ratios: [Warmup, Weight Trn, Policy Trn, Validation]

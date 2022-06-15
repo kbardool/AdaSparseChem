@@ -325,7 +325,7 @@ class ClassRegrSparseDataset_v3(Dataset):
         ## Input transformation
         #------------------------------------------------------------------
         ecfp = fold_and_transform_inputs(ecfp, folding_size=opt['dataload']['fold_inputs'], 
-                                                         transform=opt['dataload']['input_transform'])
+                                               transform=opt['dataload']['input_transform'])
         print_dbg(f" X (ecfp[0]) file count non zero (post fold & transform) :{ecfp[0].count_nonzero()} \n", verbose = verbose)
 
 
@@ -388,11 +388,14 @@ class ClassRegrSparseDataset_v3(Dataset):
             else:
                 print_dbg(f"tasks_class.aggregation_weight WAS PASSED \n", verbose = verbose)
         
-                
-            print_dbg(f" task_weights.aggregation_weight shape: {weights_temp.aggregation_weight.shape} sum: {weights_temp.aggregation_weight.sum()}\n"
-                      f" {weights_temp.aggregation_weight}", verbose = verbose)
-            print_dbg(f"task_weights.training_weight shape    : {weights_temp.aggregation_weight.shape} sum: {weights_temp.training_weight.sum()}\n "
-                      f"{weights_temp.training_weight}", verbose = verbose)
+            if verbose:    
+                print_underline(f" task_weights.aggregation_weight: ", verbose = verbose)
+                print_dbg(f" fold_pos >= {n} and  fold_neg >= {n}", verbose = verbose)     
+                print_dbg(f" shape: {weights_temp.aggregation_weight.shape} sum: {weights_temp.aggregation_weight.sum()}\n"
+                        f" {weights_temp.aggregation_weight}", verbose = verbose)
+                print_underline(f" task_weights.training_weight: ", verbose = verbose)     
+                print_dbg(f" shape    : {weights_temp.aggregation_weight.shape} sum: {weights_temp.training_weight.sum()}\n "
+                        f"{weights_temp.training_weight}", verbose = verbose)
 
             ##-----------------------------------------------------------------------------------
             ## Regression task aggregation weights 
