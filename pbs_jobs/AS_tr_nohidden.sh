@@ -3,14 +3,15 @@
 export JOBID=${PBS_JOBID:0:8}
 echo Job $JOBID start : $(date)
 source /user/leuven/326/vsc32647/.initconda
-cd $PBS_O_WORKDIR # cd to the directory from which qsub is run
+cd $PBS_O_WORKDIR  # cd to the directory from which qsub is run
 echo PBS VERSION is $PBS_VERSION
 echo config file is $config
 echo switch to pyt-gpu 
 conda activate pyt-gpu
 python -V
 program="../src/Adashare_Train.py"
-echo program $program excution start: $(date)
+echo program $profram excution start: $(date)
+
 layers=""
 echo "Number Layers: $num_layers   Layer size: $layer   Dropout: $dropout  Task LR: $lr "
 for ((i=0 ; i < $num_layers ; i +=1)); do
@@ -20,7 +21,7 @@ echo "Number Layers: $num_layers   Layer size: $layers   Dropout: $dropout  Task
 
 python                     ${program} \
      --config              ${config} \
-     --exp_desc            ${JOBID} - Run without residiual layers  \
+     --exp_desc            ${JOBID} - Run without hidden layers  \
      --warmup_epochs       ${epochs}  \
      --hidden_size         ${layers}  \
      --tail_hidden_size     ${layer}  \
@@ -35,6 +36,6 @@ python                     ${program} \
      --decay_lr_freq              10  \
      --min_samples_class           2  \
      --gpu_ids                  ${dev}\
-     --skip_residual
+     --skip_hidden
 
 echo Job $JOBID finished : $(date)

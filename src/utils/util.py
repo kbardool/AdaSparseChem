@@ -406,8 +406,8 @@ def get_command_line_args(input = None, display = True):
     parser.add_argument("--lambda_sharing"   , type=float, help="Sharing Regularization - default read from config file")
     parser.add_argument("--gpu_ids"          , type=int,   nargs='+', default=[0],  help="GPU Device Ids")
     # parser.add_argument("--policy"           , action="store_true",  help="Train policies")
-    parser.add_argument("--no_residual"      , default=False, action="store_true",  help="Do not use residual layers")
-    parser.add_argument("--skip_hidden"      , default=False, action="store_true",  help="Skip all hidden layers")
+    parser.add_argument("--skip_residual"    , default=False, action="store_true",  help="Bypass all residual layers")
+    parser.add_argument("--skip_hidden"      , default=False, action="store_true",  help="Bypass all hidden layers")
     parser.add_argument("--resume"           , default=False, action="store_true",  help="Resume previous run")
     parser.add_argument("--cpu"              , default=False, action="store_true",  help="CPU instead of GPU")
     parser.add_argument("--min_samples_class", type=int,   help="Minimum number samples in each class and in each fold for AUC "\
@@ -422,9 +422,8 @@ def get_command_line_args(input = None, display = True):
         assert args.exp_id is not None and args.exp_name is not None, " exp_id & exp_name must be provided when specifying --resume"
     
     args.exp_desc = ' '.join(str(e) for e in args.exp_desc)
+    args.exp_id = wbutils.generate_id() if args.exp_id is None else args.exp_id
     
-    if args.exp_id is None:
-        args.exp_id = wbutils.generate_id()
     
     if display:
         print_underline(' command line parms : ', True)
@@ -467,8 +466,6 @@ def read_yaml(args = None, exp_name = None):
     
     opt['exp_name']   = opt['exp_name_pfx'] 
     
-    if args.folder_sfx is not None:
-        opt['folder_sfx'] = args.folder_sfx
 
     if args.exp_desc is not None:
         opt['exp_description'] = args.exp_desc 
@@ -511,24 +508,36 @@ def read_yaml(args = None, exp_name = None):
         opt['train']['lambda_sharing'] = args.lambda_sharing
 
     opt['gpu_ids'] = args.gpu_ids
+
+    opt['skip_residual'] = args.skip_residual
+    opt['skip_hidden'] = args.skip_hidden
     
-    if args.no_residual:
-        opt['is_residual'] = False
+    if args.folder_sfx is not None:
+        opt['folder_sfx'] = args.folder_sfx
+  
+    if args.skip_residual:
         if  opt['folder_sfx'] is not None:
-            opt['folder_sfx'] += "no_resid"
+            opt['folder_sfx'] += "_no_resid"
         else:
             opt['folder_sfx'] = "no_resid"
 
+    if args.skip_hidden:
+        if  opt['folder_sfx'] is not None:
+            opt['folder_sfx'] += "_skip_hdn"
+        else:
+            opt['folder_sfx'] = "skip_hdn"
+    
     if  opt['folder_sfx'] is not None:
         opt['exp_name']  += f"_{opt['folder_sfx']}"
   
-    opt['skip_hidden'] = args.skip_hidden
+
     opt['cpu'] = args.cpu
     opt['train']['resume'] = args.resume
     
     if args.min_samples_class is not None:
         opt['dataload']['min_samples_class'] = args.min_samples_class
-        
+
+
     opt['exp_folder'] = build_exp_folder_name(opt)
 
     # if args.seed_idx is not None:

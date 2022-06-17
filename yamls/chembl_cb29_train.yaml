@@ -1,4 +1,4 @@
-project_name         : AdaSparseChem-Mini
+project_name         : AdaSparseChem-cb29
 ## Leave empty to have date_time used 
 exp_id               :
 exp_name_pfx         :
@@ -14,7 +14,7 @@ gpu_ids:
 
 backbone             : SparseChem
 tasks                : ["class"]
-tasks_num_class      : [100]
+tasks_num_class      : [3552]
 lambdas              : [1]
 verbose              : False
  
@@ -144,14 +144,14 @@ train:
 ## Data & Folder parameters
 ##------------------------------------------------------
 paths:
-  log_dir        :     ../../experiments/mini-AdaSparseChem
-  result_dir     :     ../../experiments/mini-AdaSparseChem
-  checkpoint_dir :     ../../experiments/mini-AdaSparseChem
+  log_dir        :     ../../experiments/AdaSparseChem-cb29
+  result_dir     :     ../../experiments/AdaSparseChem-cb29
+  checkpoint_dir :     ../../experiments/AdaSparseChem-cb29
 
 dataload:
-  dataset        : Chembl23_mini
-  dataroot       : "../../MLDatasets/chembl23_mini"
-  x              : "chembl_23mini_x.npy"
+  dataset        : Chembl29
+  dataroot       : "/mnt/f/Chembl29"
+  x              : "chembl_29_x.npy"
 
   ## Data split ratios: [Warmup, Weight Trn, Policy Trn, Validation]
   # x_split_ratios : [0.2, 0.35, 0.35, 0.1]
@@ -160,10 +160,10 @@ dataload:
   x_split_ratios : [0.725, 0.225, 0.05]
 
 
-  y_tasks        : ["chembl_23mini_y.npy"]
-  # y_tasks        : ["chembl_23mini_adashare_y1_bin_sparse.npy", "chembl_23mini_adashare_y2_bin_sparse.npy", "chembl_23mini_adashare_y3_bin_sparse.npy"]
+  y_tasks        : ["chembl_29_thresh_y.npy"]
+  folding        : "chembl_29_folding.npy"  
+  # y_tasks      : ["chembl_23mini_adashare_y1_bin_sparse.npy", "chembl_23mini_adashare_y2_bin_sparse.npy", "chembl_23mini_adashare_y3_bin_sparse.npy"]
   y_censor       :
-  folding        : "chembl_23mini_folds.npy"  
   fold_inputs    : 32000
   input_transform: 
   weights_class  :  
