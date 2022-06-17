@@ -150,7 +150,7 @@ paths:
 
 dataload:
   dataset        : Chembl29
-  dataroot       : "/mnt/f/Chembl29"
+  dataroot       : "../../MLDatasets/chembl29"
   x              : "chembl_29_x.npy"
 
   ## Data split ratios: [Warmup, Weight Trn, Policy Trn, Validation]
