@@ -406,8 +406,8 @@ def get_command_line_args(input = None, display = True):
     parser.add_argument("--lambda_sharing"   , type=float, help="Sharing Regularization - default read from config file")
     parser.add_argument("--gpu_ids"          , type=int,   nargs='+', default=[0],  help="GPU Device Ids")
     # parser.add_argument("--policy"           , action="store_true",  help="Train policies")
-    parser.add_argument("--skip_residual"    , default=False, action="store_true",  help="Bypass all residual layers")
-    parser.add_argument("--skip_hidden"      , default=False, action="store_true",  help="Bypass all hidden layers")
+    parser.add_argument("--skip_residual"    , default='False', choices=('True','False'), help="Bypass all residual layers")
+    parser.add_argument("--skip_hidden"      , default='False', choices=('True','False'), help="Bypass all hidden layers")
     parser.add_argument("--resume"           , default=False, action="store_true",  help="Resume previous run")
     parser.add_argument("--cpu"              , default=False, action="store_true",  help="CPU instead of GPU")
     parser.add_argument("--min_samples_class", type=int,   help="Minimum number samples in each class and in each fold for AUC "\
@@ -509,19 +509,19 @@ def read_yaml(args = None, exp_name = None):
 
     opt['gpu_ids'] = args.gpu_ids
 
-    opt['skip_residual'] = args.skip_residual
-    opt['skip_hidden'] = args.skip_hidden
+    opt['skip_residual'] = (args.skip_residual == 'True')
+    opt['skip_hidden']   = (args.skip_hidden == 'True')
     
     if args.folder_sfx is not None:
         opt['folder_sfx'] = args.folder_sfx
   
-    if args.skip_residual:
+    if opt['skip_residual']:
         if  opt['folder_sfx'] is not None:
             opt['folder_sfx'] += "_no_resid"
         else:
             opt['folder_sfx'] = "no_resid"
 
-    if args.skip_hidden:
+    if opt['skip_hidden'] :
         if  opt['folder_sfx'] is not None:
             opt['folder_sfx'] += "_skip_hdn"
         else:

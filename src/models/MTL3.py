@@ -171,12 +171,12 @@ class MTL3(nn.Module):
             policy = F.gumbel_softmax(task_logits, temperature, hard=hard_sampling)
             policys.append(policy)
 
-            if verbose: 
-                print_underline(f"task{t_id+1}_logits", verbose= True)
-                print_dbg(f" {task_logits}", verbose = True)
-                print_dbg(f" sampled policy from  gumbel_softmax distribution (temp:{temperature}): \n {policy}", verbose = True)
+            # if verbose: 
+            #     print_underline(f"task{t_id+1}_logits", verbose= True)
+            #     print_dbg(f" {task_logits}", verbose = True)
+            #     print_dbg(f" sampled policy from  gumbel_softmax distribution (temp:{temperature}): \n {policy}", verbose = True)
     
-        print_dbg(f"  MTL3 train_sample_policy END", verbose = verbose)
+        # print_dbg(f"  MTL3 train_sample_policy END", verbose = verbose)
 
         return policys, logits
 
@@ -251,7 +251,7 @@ class MTL3(nn.Module):
         return policys, logits
 
     ##----------------------------------------------------
-    ##  ResNet  
+    ##  Residual Policy
     ##----------------------------------------------------
     def residual_policy(self,   verbose = False):
         """
@@ -277,12 +277,12 @@ class MTL3(nn.Module):
             logits.append(task_logits)
             policys.append(task_policy)
 
-            if verbose:
-                print_underline(f"task{t_id+1} logits", verbose = verbose )
-                print_dbg(f" {logits}", verbose =  verbose )
-                print_underline(f"task {t_id+1} sampled policy :", verbose = verbose)
-                print_dbg(f" {task_policy}", verbose = verbose )
-                print()         
+            # if verbose:
+            #     print_underline(f"task{t_id+1} logits", verbose = verbose )
+            #     print_dbg(f" {logits}", verbose =  verbose )
+            #     print_underline(f"task {t_id+1} sampled policy :", verbose = verbose)
+            #     print_dbg(f" {task_policy}", verbose = verbose )
+            #     print()         
             
 
         # print_dbg(f" MTL3 test_sample_policy() END -  hard sampling: {hard_sampling}", verbose= verbose)
@@ -309,15 +309,15 @@ class MTL3(nn.Module):
                               When hard_sampling == True , applies argmax(task logits) 
         
         '''
-        if verbose is None:
-            verbose = self.verbose
+        # if verbose is None:
+        #     verbose = self.verbose
 
-        if verbose:
-            print_dbg(f" {timestring()} - MTL3 network forward() start", verbose = verbose)
-            print_dbg(f"   num_train_layers: {num_train_layers}    hard_sampling:{hard_sampling} "
-                      f"   policy sampling mode:{policy_sampling_mode}    temperature:{temperature}  "
-                      f"   is_policy:{is_policy}    self.skip_layer:{self.skip_layer}  "
-                      f"   num_layers:{self.num_layers}", verbose)
+        # if verbose:
+        #     print_dbg(f" {timestring()} - MTL3 network forward() start", verbose = verbose)
+        #     print_dbg(f"   num_train_layers: {num_train_layers}    hard_sampling:{hard_sampling} "
+        #               f"   policy sampling mode:{policy_sampling_mode}    temperature:{temperature}  "
+        #               f"   is_policy:{is_policy}    self.skip_layer:{self.skip_layer}  "
+        #               f"   num_layers:{self.num_layers}", verbose)
         
         # print_dbg(f" MTL3.forward() self.layers: {self.num_layers}   self.skip_layer: {self.skip_layer}"
         #           f"    num_train_layers: {num_train_layers}", verbose = True)
@@ -333,10 +333,11 @@ class MTL3(nn.Module):
 
         logits = [None] * self.num_tasks
 
-        ##-----------------------------------------------------------------------------
-        ## if is_policy == True - we are in policy mode, use the appropriate sampling 
-        ## methofd based on policy_sampling_mode. 
-        ##-----------------------------------------------------------------------------
+        ##----------------------------------------------------------------------------------------
+        ## if is_policy == TRUE: 
+        ##
+        ## In policy mode, use the appropriate sampling method based on policy_sampling_mode. 
+        ##----------------------------------------------------------------------------------------
         if is_policy:
             if policy_sampling_mode   == 'train':
                 self.policys, self.logits = self.train_sample_policy(temperature, hard_sampling, verbose = verbose)
@@ -360,8 +361,8 @@ class MTL3(nn.Module):
             ## num_non_train_layers is the number of front layers that are not being trained.
             num_non_train_layers = self.num_layers - num_train_layers
              
-            print_dbg(f" MTL3.forward()  Non training layers - first {num_non_train_layers} layers "
-                      f"NOT included in policy training \n", verbose = verbose)
+            # print_dbg(f" MTL3.forward()  Non training layers - first {num_non_train_layers} layers "
+            #           f"NOT included in policy training \n", verbose = verbose)
             
 
             if cuda_device != -1:
@@ -391,10 +392,11 @@ class MTL3(nn.Module):
                 task_feats = self.backbone(input, task_policy, task_id = f"task_{t_id+1}")
                 feats.append(task_feats)
         
-        ##--------------------------------------------------------------
-        ## if IS_POLICY == False - simply pass img through backbones
-        ## for each task, a feature set is generated.
-        ##--------------------------------------------------------------
+        ##----------------------------------------------------------------------------
+        ## if IS_POLICY == FALSE:
+        ## 
+        ## simply pass input through backbone. A feature set is generated for each task
+        ##-----------------------------------------------------------------------------
         else:
             feats = [self.backbone(input)] * self.num_tasks
 
@@ -416,7 +418,7 @@ class MTL3(nn.Module):
             output = sum(o)
             outputs.append(output)
 
-        print_dbg(f" {timestring()} - MTL3 network forward() end", verbose = verbose) 
+        # print_dbg(f" {timestring()} - MTL3 network forward() end", verbose = verbose) 
         return outputs, self.policys, self.logits
 
     @property

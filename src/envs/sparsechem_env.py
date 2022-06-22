@@ -225,7 +225,7 @@ class SparseChemEnv(BaseEnv):
 
             self.schedulers['alphas'] = scheduler.ReduceLROnPlateau(self.optimizers['alphas'], 
                                                                      mode = 'min',
-                                                                     factor=self.opt['train']['policy_decay_lr_rate'],
+                                                                      factor=self.opt['train']['policy_decay_lr_rate'],
                                                                      patience=self.opt['train']['policy_decay_lr_freq'],   
                                                                      cooldown=self.opt['train']['policy_decay_lr_cooldown'],
                                                                      verbose = True)                                                                
@@ -238,7 +238,7 @@ class SparseChemEnv(BaseEnv):
 
             self.schedulers['weights'] = scheduler.ReduceLROnPlateau(self.optimizers['weights'], 
                                                                      mode = 'min',
-                                                                     factor=self.opt['train']['decay_lr_rate'],
+                                                                       factor=self.opt['train']['decay_lr_rate'],
                                                                      patience=self.opt['train']['decay_lr_freq'],   
                                                                      cooldown=self.opt['train']['decay_lr_cooldown'],
                                                                      verbose = True)
@@ -250,8 +250,8 @@ class SparseChemEnv(BaseEnv):
         """
         Computes task classification losses for processed batch 
         """
-        print_dbg(f" {timestring()} - SparseChem network compute task losses start "
-                      f" tasks_num_classes: {self.tasks_num_class} ", verbose = verbose)
+        # print_dbg(f" {timestring()} - SparseChem network compute task losses start "
+        #               f" tasks_num_classes: {self.tasks_num_class} ", verbose = verbose)
 
         self.y_hat  = {}
 
@@ -312,7 +312,7 @@ class SparseChemEnv(BaseEnv):
         # print_dbg(f"  task {t_id+1} "  
         #           f"  BCE Mean : {self.losses['task'][task_key]:.4f} = {loss_mean:.4f} * {self.task_lambdas[t_id]}" 
         #           f"  BCE Norm : {self.losses['task_mean'][task_key]:.4f} = {loss_sum:.4f}  * {self.task_lambdas[t_id]} / {norm} ", verbose = verbose)            
-        print_dbg(f" {timestring()} - SparseChem network compute task losses end ", verbose = verbose)
+        # print_dbg(f" {timestring()} - SparseChem network compute task losses end ", verbose = verbose)
 
         return
 
@@ -453,15 +453,16 @@ class SparseChemEnv(BaseEnv):
             self.losses['sparsity'][task_key] /= self.loss_normalizer
             self.losses['sparsity']['total'] += self.losses['sparsity'][task_key]
 
-        # print_underline(f" loss[sparsity][total]: {self.losses['sparsity']['total'] }", verbose = verbose)
         
+        # print_underline(f" loss[sparsity][total]: {self.losses['sparsity']['total'] }", verbose = verbose)
         # print_dbg(f" {timestring()} -  get_sparsity_loss END   num_train_layers: {num_train_layers}  ", verbose = verbose)
         return
 
 
     def compute_losses(self, num_train_layers = None, verbose = False):
-        ## Compute Task Losses
-        print_dbg(f" {timestring()} - SparseChem network compute_losses() start ", verbose = verbose)
+        # Compute Task Losses
+        # print_dbg(f" {timestring()} - SparseChem network compute_losses() start ", verbose = verbose)
+
         self.compute_task_losses(verbose=verbose) 
 
         if self.opt['is_sharing']:
@@ -826,41 +827,41 @@ class SparseChemEnv(BaseEnv):
                     #                 'row_ids': f"{batch['row_id'][0]} - {batch['row_id'][-1]}" ,
                     #                 'task_wght': f"{self.metrics[task_key]['yc_wghts_sum']}"})
 
-                    if verbose:                
-                        for t_id, _ in enumerate(self.tasks):
-                            task_key = f"task{t_id+1}"
+                    # if verbose:                
+                    #     for t_id, _ in enumerate(self.tasks):
+                    #         task_key = f"task{t_id+1}"
                             
-                            print_dbg(f"\n + Validation of one task complete - BATCH:{batch_idx} TASK: {t_id+1}  \n"
-                                      f"    loss[task{t_id+1}]     : {self.losses['task'][task_key]:.4f}"
-                                      f"    sum(err)               : {self.val_metrics['task'][task_key]:.4f}"
-                                      f"    sum(err)/batch_id      : {self.val_metrics['task'][task_key]/batch_idx:.4f} \n"
-                                      f"    loss_mean[task{t_id+1}]: {self.losses['task_mean'][task_key]:.4f}"
-                                      f"    sum(err_mean)          : {self.val_metrics['task_mean'][task_key]:.4f}"
-                                      f"    sum(err_mean)/batch_id : {self.val_metrics['task_mean'][task_key]/batch_idx:.4f} \n" 
-                                      f"    task.[yc_wghts_sum]    : {self.batch_data[task_key]['yc_wghts_sum']:.4f}  "
-                                      f"    task_weights[task_key] : {task_class_weights[task_key]}  ", verbose = True)
+                    #         print_dbg(f"\n + Validation of one task complete - BATCH:{batch_idx} TASK: {t_id+1}  \n"
+                    #                   f"    loss[task{t_id+1}]     : {self.losses['task'][task_key]:.4f}"
+                    #                   f"    sum(err)               : {self.val_metrics['task'][task_key]:.4f}"
+                    #                   f"    sum(err)/batch_id      : {self.val_metrics['task'][task_key]/batch_idx:.4f} \n"
+                    #                   f"    loss_mean[task{t_id+1}]: {self.losses['task_mean'][task_key]:.4f}"
+                    #                   f"    sum(err_mean)          : {self.val_metrics['task_mean'][task_key]:.4f}"
+                    #                   f"    sum(err_mean)/batch_id : {self.val_metrics['task_mean'][task_key]/batch_idx:.4f} \n" 
+                    #                   f"    task.[yc_wghts_sum]    : {self.batch_data[task_key]['yc_wghts_sum']:.4f}  "
+                    #                   f"    task_weights[task_key] : {task_class_weights[task_key]}  ", verbose = True)
                         
 
             ##-----------------------------------------------------------------------
             ## All Validation batches have been feed to network - calcualte metrics
             ##-----------------------------------------------------------------------
-            if verbose:
-                print_heading(f" + Validation Loops complete- batch_idx:{batch_idx}  eval_iters: {eval_iters}", verbose = True)
-                for t_id, _ in enumerate(self.tasks):
-                    task_key = f"task{t_id+1}"
-                    print_dbg(f"    task: {t_id+1:3d}     batch_idx       : {batch_idx} \n"     
-                              f"    sum(err)                              : {self.val_metrics['task']['total']:8.4f} "
-                              f"    sum(err)/batch_idx                    : {self.val_metrics['task']['total']/batch_idx:8.4f}\n"
-                              f"    sum(err_mean)                         : {self.val_metrics['task_mean']['total']:8.4f}  "
-                              f"    sum(err_mean)/batch_idx               : {self.val_metrics['task_mean']['total']/batch_idx:8.4f} \n"
-                              f"    sum(sparsity loss)                    : {self.val_metrics['sparsity']['total']:.4e}\n "
-                              f"    sum(sharing loss)                     : {self.val_metrics['sharing']['total']:.4e} \n"
-                              f"    self.metrics[task_key][yc_wghts_sum]  : {self.batch_data[task_key]['yc_wghts_sum']}\n"
-                              f"    task_weights[task_key]                : {task_class_weights[task_key]} \n"
-                              f"    task yc_aggr_weight                   : {agg_data[task_key]['yc_aggr_weights']}\n" 
-                              f"    task yc_trn_weight                    : {agg_data[task_key]['yc_trn_weights']}\n" 
-                              f"    all_tasks_class_weights               : {all_tasks_class_weights}\n"
-                              , verbose = True)
+            # if verbose:
+            #     print_heading(f" + Validation Loops complete- batch_idx:{batch_idx}  eval_iters: {eval_iters}", verbose = True)
+            #     for t_id, _ in enumerate(self.tasks):
+            #         task_key = f"task{t_id+1}"
+            #         print_dbg(f"    task: {t_id+1:3d}     batch_idx       : {batch_idx} \n"     
+            #                   f"    sum(err)                              : {self.val_metrics['task']['total']:8.4f} "
+            #                   f"    sum(err)/batch_idx                    : {self.val_metrics['task']['total']/batch_idx:8.4f}\n"
+            #                   f"    sum(err_mean)                         : {self.val_metrics['task_mean']['total']:8.4f}  "
+            #                   f"    sum(err_mean)/batch_idx               : {self.val_metrics['task_mean']['total']/batch_idx:8.4f} \n"
+            #                   f"    sum(sparsity loss)                    : {self.val_metrics['sparsity']['total']:.4e}\n "
+            #                   f"    sum(sharing loss)                     : {self.val_metrics['sharing']['total']:.4e} \n"
+            #                   f"    self.metrics[task_key][yc_wghts_sum]  : {self.batch_data[task_key]['yc_wghts_sum']}\n"
+            #                   f"    task_weights[task_key]                : {task_class_weights[task_key]} \n"
+            #                   f"    task yc_aggr_weight                   : {agg_data[task_key]['yc_aggr_weights']}\n" 
+            #                   f"    task yc_trn_weight                    : {agg_data[task_key]['yc_trn_weights']}\n" 
+            #                   f"    all_tasks_class_weights               : {all_tasks_class_weights}\n"
+            #                   , verbose = True)
             
 
             assert batch_idx == eval_iters , f"Error - batch_idx {batch_idx} doesn't match eval_iters {eval_iters}"

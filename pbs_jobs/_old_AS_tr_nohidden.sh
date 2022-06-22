@@ -10,7 +10,7 @@ echo switch to pyt-gpu
 conda activate pyt-gpu
 python -V
 program="../src/Adashare_Train.py"
-echo program $profram excution start: $(date)
+echo "option: [$option]  batch_size: $batch_size "
 
 layers=""
 echo "Number Layers: $num_layers   Layer size: $layer   Dropout: $dropout  Task LR: $lr "
@@ -18,6 +18,7 @@ for ((i=0 ; i < $num_layers ; i +=1)); do
     layers+=" $layer "
 done
 echo "Number Layers: $num_layers   Layer size: $layers   Dropout: $dropout  Task LR: $lr "
+echo "===> program $program  -- excution started: $(date)"
 
 python                     ${program} \
      --config              ${config} \
