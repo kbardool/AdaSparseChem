@@ -1,10 +1,18 @@
 #!/bin/bash 
 
-export JOBID=${PBS_JOBID:0:8}
-echo Job $JOBID start : $(date)
 source /user/leuven/326/vsc32647/.initconda
-cd $PBS_O_WORKDIR # cd to the directory from which qsub is run
-echo PBS VERSION is $PBS_VERSION
+if [[ -n "$PBS_JOBID" ]]
+ then
+    export JOBID=${PBS_JOBID:0:8}
+    echo "+++++++++++++++++++++++++++++++++++++++++++"
+    echo "[$PBS_JOBID] --> Job [$JOBID] start : $(date)"
+    echo " PBS VERSION is $PBS_VERSION"
+    echo " Switch to $PBS_O_WORKDIR"
+    echo "+++++++++++++++++++++++++++++++++++++++++++"
+    cd $PBS_O_WORKDIR # cd to the directory from which qsub is run
+  else
+    echo "PBS Not defined"
+fi
 echo config file is $config
 echo switch to pyt-gpu 
 conda activate pyt-gpu
