@@ -26,10 +26,10 @@ epochs=100
 lr_list=(0.0001)
 batch_size=4096
 
-num_layers_list=(6 5 4)
+num_layers_list=(6)
 # num_layers_list=(1 2 3)
 layer_size_list=(4000) 
-dropout_list=(0.80)
+dropout_list=(0.80 0.70 0.60)
 seed_idx=(0)
 # dropout_list=(0.40 0.50 0.60)
 # dropout_list=( 0.70  0.80  0.90)

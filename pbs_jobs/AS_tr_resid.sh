@@ -52,6 +52,7 @@ python                     ${program} \
      --decay_lr_rate              0.3 \
      --decay_lr_freq               10 \
      --gpu_ids                 ${dev} \
+     --pytorch_threads              2 \
      --min_samples_class            2  
  
      

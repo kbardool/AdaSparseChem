@@ -405,6 +405,7 @@ def get_command_line_args(input = None, display = True):
     parser.add_argument("--lambda_sparsity"  , type=float, help="Sparsity Regularization - default read from config file")
     parser.add_argument("--lambda_sharing"   , type=float, help="Sharing Regularization - default read from config file")
     parser.add_argument("--gpu_ids"          , type=int,   nargs='+', default=[0],  help="GPU Device Ids")
+    parser.add_argument("--pytorch_threads"  , type=int,   default=2,  help="Number of threads used by PyTorch for parallelizing CPU operations")
     # parser.add_argument("--policy"           , action="store_true",  help="Train policies")
     parser.add_argument("--skip_residual"    , default='False', choices=('True','False'), help="Bypass all residual layers")
     parser.add_argument("--skip_hidden"      , default='False', choices=('True','False'), help="Bypass all hidden layers")
@@ -455,6 +456,7 @@ def read_yaml(args = None, exp_name = None):
     opt['config']= args.config
 
     opt["exp_id"] = args.exp_id 
+    opt["pytorch_threads"] = args.pytorch_threads
 
 
     if exp_name is not None:

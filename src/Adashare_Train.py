@@ -2,10 +2,6 @@
 # coding: utf-8
 
 # ## Initialization  
-
-# In[1]:
-
-
 # get_ipython().run_line_magic('load_ext', 'autoreload')
 # get_ipython().run_line_magic('autoreload', '2')
 import os 
@@ -84,7 +80,8 @@ warmup_phase(ns,opt, environ, dldrs, write_checkpoint=False)
 
 print(f"Best Epoch :       {ns.best_epoch}\n"
       f"Best Iteration :   {ns.best_iter} \n"
-      f"Best Precision :   {ns.best_value:.5f}\n")
+      f"Best Precision :   {ns.best_value:.5f}\n"
+      f"Best ROC AUC   :   {ns.best_roc_auc:.5f}\n")
 
 print()
 pp.pprint(environ.val_metrics['aggregated'])

@@ -27,10 +27,13 @@ def initialize(input_args = None, build_folders = True):
     opt = read_yaml(ns.args)
     fix_random_seed(opt["random_seed"])
 
+    print(f" Pytorch thread count: {torch.get_num_threads()}")
+    print(f" Set Pytorch thread count to : {opt['pytorch_threads']}")
+    torch.set_num_threads(opt['pytorch_threads'])
+    print(f" Pytorch thread count set to : {torch.get_num_threads()}")
+
     init_wandb(ns, opt)
-    print(f" PROJECT NAME: {ns.wandb_run.project}\n"
-          f" RUN ID      : {ns.wandb_run.id} \n"
-          f" RUN NAME    : {ns.wandb_run.name}") 
+
         
     if build_folders:
         create_path(opt)    
@@ -57,10 +60,11 @@ def initialize(input_args = None, build_folders = True):
     return opt, ns
 
 
-def init_wandb(ns, opt, environment = None, resume = "allow" ):
+def init_wandb(ns, opt, environment = None, resume = "allow", verbose=False ):
 
     # opt['exp_id'] = wandb.util.generate_id()
-    print(opt['exp_id'], opt['exp_name'], opt['project_name']) # , opt['exp_instance'])
+    # print_dbg(f"{opt['exp_id']}, {opt['exp_name']}, {opt['project_name']}", verbose) 
+    
     ns.wandb_run = wandb.init(project=opt['project_name'], 
                                      entity="kbardool", 
                                      id = opt['exp_id'], 
@@ -76,9 +80,11 @@ def init_wandb(ns, opt, environment = None, resume = "allow" ):
     wandb.define_metric("best_iter", summary="last")
 
     # assert wandb.run is None, "Run is still running"
-    print(f" PROJECT NAME: {ns.wandb_run.project}\n"
+    print(f" WandB Initialization -----------------------------------------------------------\n"
+          f" PROJECT NAME: {ns.wandb_run.project}\n"
           f" RUN ID      : {ns.wandb_run.id} \n"
-          f" RUN NAME    : {ns.wandb_run.name}")     
+          f" RUN NAME    : {ns.wandb_run.name}\n"     
+          f" --------------------------------------------------------------------------------")
     return 
 
 def init_dataloaders(opt, verbose = False):
@@ -322,7 +328,8 @@ def training_prep(ns, opt, environ, dldrs, phase = 'update_w', epoch = 0, iter =
  
     ns.best_results   = {}
     ns.best_metrics   = None
-    ns.best_value     = 0 
+    ns.best_precision     = 0
+    ns.best_roc_auc   = 0  
     ns.best_iter      = 0
     ns.best_epoch     = 0
     ns.p_epoch        = 0
@@ -378,7 +385,8 @@ def retrain_prep(ns, opt, environ, dldrs, phase = 'update_w', epoch = 0, iter = 
     ns.current_iter   = iter
     ns.best_results   = {}
     ns.best_metrics   = None
-    ns.best_value     = 0 
+    ns.best_precision     = 0
+    ns.best_roc_auc   = 0       
     ns.best_iter      = 0
     ns.best_epoch     = 0 
     ns.check_for_improvment_wait  = 0
@@ -750,19 +758,23 @@ def check_for_improvement(ns,opt,environ):
     #----------------------------------------------------------------------- 
     ## ns.curriculum_epochs = (environ.num_layers * opt['curriculum_speed']) 
 
-    # if (ns.current_epoch - opt['train']['warmup_epochs']) >= ns.curriculum_epochs:    
     if (ns.current_epoch - ns.check_for_improvment_wait) >= ns.curriculum_epochs:    
 
-        if environ.val_metrics['aggregated']['avg_prec_score'] > ns.best_value:
-            print('Previous best_epoch: %5d   best iter: %5d,   best_value: %.5f' % (ns.best_epoch, ns.best_iter, ns.best_value))        
-            ns.best_value   = environ.val_metrics['aggregated']['avg_prec_score']
-            ns.best_metrics = environ.val_metrics
-            ns.best_iter    = ns.current_iter
-            ns.best_epoch   = ns.current_epoch
-            wandb.log({"best_accuracy": ns.best_value,
+        if environ.val_metrics['aggregated']['avg_prec_score'] > ns.best_precision:
+            print(f'Previous best_epoch: {ns.best_epoch:5d}   best iter: {ns.best_iter:5d}'
+                  f'   best_precision: {ns.best_precision:.5f}    best ROC auc: {ns.best_roc_auc:.5f}')        
+            ns.best_precision   = environ.val_metrics['aggregated']['avg_prec_score']
+            ns.best_roc_auc     = environ.val_metrics['aggregated']['roc_auc_score']
+            ns.best_metrics     = environ.val_metrics
+            ns.best_iter        = ns.current_iter
+            ns.best_epoch       = ns.current_epoch
+            wandb.log({"best_accuracy": ns.best_precision,
+                       "best_roc_auc" : ns.best_roc_auc,
                        "best_epoch"   : ns.best_epoch,
                        "best_iter"    : ns.best_iter})        
-            print('New      best_epoch: %5d   best iter: %5d,   best_value: %.5f' % (ns.best_epoch, ns.best_iter, ns.best_value))        
+
+            print(f'Previous best_epoch: {ns.best_epoch:5d}   best iter: {ns.best_iter:5d}'
+                  f'   best_precision: {ns.best_precision:.5f}    best ROC auc: {ns.best_roc_auc:.5f}')        
             
             # metrics_label = 'metrics_best_seed_%04d.pickle' % (opt['random_seed'])
             metrics_label = 'metrics_best_seed.pickle' 
