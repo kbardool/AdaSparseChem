@@ -4,38 +4,40 @@ if [ -z $1 ]; then
     echo "ERROR:: input parameter must be provided (res | nores | both | nohidden)"
     return 1
 fi
+
+# PBS Parameters =========================================================
 # PBS -M kevin.bardool@kuleuven.be
 # PBS -l pmem=5gb,
 # PBS -l qos=debugging
-# AS_NO_HIDDEN_LAYERS="AS_tr_nohidden.sh"    <-- obsoleted by AS_tr_resid
-# AS_NO_RES_LAYERS="AS_tr_nores.sh"          <-- obsoleted by AS_tr_resid
-ADASHARE_SCRIPT="AS_tr_resid.sh" 
 pbs_account="-A lp_symbiosys "
 pbs_folders="-e ../pbs_output/  -o ../pbs_output/ "
 pbs_allocate="-l nodes=1:ppn=9:gpus=1,partition=gpu,walltime=72:00:00 "
 # pbs_allocate="-l nodes=1:ppn=9:gpus=1,partition=gpu,walltime=24:00:00 "
 # pbs_allocate="-l nodes=1:ppn=9:gpus=1,partition=gpu,walltime=01:00:00 "
 # pbs_allocate="-l nodes=1:ppn=4,walltime=01:00:00 "
-config="../yamls/chembl_cb29_train.yaml"
-datadir="../../MLDatasets/chembl29"
-outdir="../../experiments/AdaSparseChem-cb29"
-#=========================================================================
+
+# Config Parameters ======================================================
+ADASHARE_SCRIPT="AS_tr_resid.sh" 
+config="../yamls/chembl_mini_train.yaml"
+datadir="../../MLDatasets/chembl23_mini"
+outdir="../../experiments/AdaSparseChem-mini"
+
+# Training Parms =========================================================
 dev=0
 epochs=100
-# lr_list=(0.001)
-lr_list=(0.0001)
-batch_size=4096
+lr_list=(0.001)
+# lr_list=(0.0001)
+batch_size=128
 
-num_layers_list=(6)
+num_layers_list=(1)
 # num_layers_list=(1 2 3)
-layer_size_list=(4000) 
-dropout_list=(0.80 0.70 0.60)
+layer_size_list=(400) 
+dropout_list=( 0.05 0.15 0.25 0.35 0.45 0.55 0.65 0.75 0.85  0.95)
 seed_idx=(0)
-# dropout_list=(0.40 0.50 0.60)
-# dropout_list=( 0.70  0.80  0.90)
+# dropout_list=(0.75 0.80 0.85 0.90 0.95)
+# dropout_list=(0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95)
 #=========================================================================
-# dropout_list=(0.10 0.20 0.30 0.40 0.50 0.60)
-# dropout_list=(0.90 0.80 0.70 )
+
 
 
 submit_list(){ 
@@ -98,12 +100,8 @@ then echo " Its nores! -- submit pbs_tr_nores"
     submit_list $ADASHARE_SCRIPT $job_prefix $opt $hdn_opt "$desc"
 fi
  
+ 
 
-# num_layers_list=( 0 )
-# layer_size_list=(1000) 
 # layer_size_list=( 50 100 200 300 400  )
-# dropout_list=(0.75 0.80 0.85 0.90 0.95)
-# dropout_list=(0.00 0.10 0.20 0.30 0.40 0.50 0.60 0.70 0.80 0.90)
-# dropout_list=(0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95)
-# dropout_list=(0.05 0.15 0.25 0.35 0.45 0.55 0.65 0.75 0.85 0.95)
-# dropout_list=(0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95)
+# dropout_list=( 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95)
+# dropout_list=(0.00 0.05 0.10 0.15 0.40 0.45 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95)

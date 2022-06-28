@@ -15,9 +15,8 @@ import copy, pprint
 from time import sleep
 from datetime import datetime
 import numpy  as np
-import torch  
-import wandb
-from pynvml import *
+# import wandb
+from   pynvml import *
 import pandas as pd
 from utils.notebook_modules import (initialize, init_dataloaders, init_environment, init_wandb, 
                                    training_prep, disp_dataloader_info,disp_info_1, 
@@ -29,14 +28,25 @@ from utils import (print_separator, print_heading, timestring, print_loss, load_
 
 pp = pprint.PrettyPrinter(indent=4)
 np.set_printoptions(edgeitems=3, infstr='inf', linewidth=150, nanstr='nan')
-torch.set_printoptions(precision=6, linewidth=132)
 pd.options.display.width = 132
+
+ns = types.SimpleNamespace()
+    
+# input_args = input_args.split() if input_args is not None else input_args
+
+ns.args = get_command_line_args(None, display = True)
+
+print(f" cuda_devices : {ns.args.cuda_devices}")
+os.environ["CUDA_VISIBLE_DEVICES"]=ns.args.cuda_devices
+
+import torch  
+torch.set_printoptions(precision=6, linewidth=132)
 
 
 #-----------------------------------------------------------------
 # ### Parse Input Args, Read YAML config file, wandb initialization
 #-----------------------------------------------------------------
-opt, ns = initialize(None, build_folders = True)
+opt = initialize(ns, build_folders = True)
 
 
 #-----------------------------------------------------------------
@@ -80,7 +90,7 @@ warmup_phase(ns,opt, environ, dldrs, write_checkpoint=False)
 
 print(f"Best Epoch :       {ns.best_epoch}\n"
       f"Best Iteration :   {ns.best_iter} \n"
-      f"Best Precision :   {ns.best_value:.5f}\n"
+      f"Best Accuracy  :   {ns.best_accuracy:.5f}\n"
       f"Best ROC AUC   :   {ns.best_roc_auc:.5f}\n")
 
 print()

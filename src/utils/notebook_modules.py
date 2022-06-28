@@ -15,31 +15,27 @@ from utils       import ( makedir, print_separator, create_path, print_yaml, pri
 
 # DISABLE_TQDM = True
 
-def initialize(input_args = None, build_folders = True):
-    ns = types.SimpleNamespace()
-    
-    input_args = input_args.split() if input_args is not None else input_args
-
-    ns.args = get_command_line_args(input_args, display = True)
+def initialize(ns, build_folders = True):
          
     print_separator('READ YAML')
-
     opt = read_yaml(ns.args)
     fix_random_seed(opt["random_seed"])
 
+
+    # print(f" cuda_devices : {ns.args.cuda_devices}")
+    # os.environ["CUDA_VISIBLE_DEVICES"]=ns.args.cuda_devices
+
+    # torch.set_device(opt['pytorch_threads'])
     print(f" Pytorch thread count: {torch.get_num_threads()}")
     print(f" Set Pytorch thread count to : {opt['pytorch_threads']}")
     torch.set_num_threads(opt['pytorch_threads'])
     print(f" Pytorch thread count set to : {torch.get_num_threads()}")
 
     init_wandb(ns, opt)
-
         
     if build_folders:
         create_path(opt)    
      
-
-
     print_heading(f" experiment name       : {opt['exp_name']} \n"
                 f" experiment id         : {opt['exp_id']} \n"
                 f" folder_name           : {opt['exp_folder']} \n"
@@ -57,7 +53,7 @@ def initialize(input_args = None, build_folders = True):
     write_config_report(opt, filename = ns.config_filename)    
     display_config(opt)
 
-    return opt, ns
+    return opt
 
 
 def init_wandb(ns, opt, environment = None, resume = "allow", verbose=False ):
@@ -328,7 +324,7 @@ def training_prep(ns, opt, environ, dldrs, phase = 'update_w', epoch = 0, iter =
  
     ns.best_results   = {}
     ns.best_metrics   = None
-    ns.best_precision     = 0
+    ns.best_accuracy  = 0
     ns.best_roc_auc   = 0  
     ns.best_iter      = 0
     ns.best_epoch     = 0
@@ -385,7 +381,7 @@ def retrain_prep(ns, opt, environ, dldrs, phase = 'update_w', epoch = 0, iter = 
     ns.current_iter   = iter
     ns.best_results   = {}
     ns.best_metrics   = None
-    ns.best_precision     = 0
+    ns.best_accuracy  = 0
     ns.best_roc_auc   = 0       
     ns.best_iter      = 0
     ns.best_epoch     = 0 
@@ -760,21 +756,22 @@ def check_for_improvement(ns,opt,environ):
 
     if (ns.current_epoch - ns.check_for_improvment_wait) >= ns.curriculum_epochs:    
 
-        if environ.val_metrics['aggregated']['avg_prec_score'] > ns.best_precision:
+        # if environ.val_metrics['aggregated']['avg_prec_score'] > ns.best_accuracy:
+        if environ.val_metrics['aggregated']['roc_auc_score'] > ns.best_roc_auc:
             print(f'Previous best_epoch: {ns.best_epoch:5d}   best iter: {ns.best_iter:5d}'
-                  f'   best_precision: {ns.best_precision:.5f}    best ROC auc: {ns.best_roc_auc:.5f}')        
-            ns.best_precision   = environ.val_metrics['aggregated']['avg_prec_score']
+                  f'   best_accuracy: {ns.best_accuracy:.5f}    best ROC auc: {ns.best_roc_auc:.5f}')        
+            ns.best_accuracy   = environ.val_metrics['aggregated']['avg_prec_score']
             ns.best_roc_auc     = environ.val_metrics['aggregated']['roc_auc_score']
             ns.best_metrics     = environ.val_metrics
             ns.best_iter        = ns.current_iter
             ns.best_epoch       = ns.current_epoch
-            wandb.log({"best_accuracy": ns.best_precision,
-                       "best_roc_auc" : ns.best_roc_auc,
-                       "best_epoch"   : ns.best_epoch,
-                       "best_iter"    : ns.best_iter})        
+            wandb.log({"best_roc_auc"  : ns.best_roc_auc,
+                       "best_accuracy": ns.best_accuracy,
+                       "best_epoch"    : ns.best_epoch,
+                       "best_iter"     : ns.best_iter})        
 
             print(f'Previous best_epoch: {ns.best_epoch:5d}   best iter: {ns.best_iter:5d}'
-                  f'   best_precision: {ns.best_precision:.5f}    best ROC auc: {ns.best_roc_auc:.5f}')        
+                  f'   best_accuracy: {ns.best_accuracy:.5f}    best ROC auc: {ns.best_roc_auc:.5f}')        
             
             # metrics_label = 'metrics_best_seed_%04d.pickle' % (opt['random_seed'])
             metrics_label = 'metrics_best_seed.pickle' 
@@ -826,12 +823,12 @@ def disp_info_1(ns, opt, environ):
  
 
 def disp_gpu_device_info():
-    from GPUtil import showUtilization as gpu_usage
- 
+    
+    print_underline('GPU Device Info ', verbose=True)
     for i in range(torch.cuda.device_count()):
         print(f" Device : cuda:{i}")
-        print('   name:       ', torch.cuda.get_device_name())
-        print('   capability: ', torch.cuda.get_device_capability())
+        print('   name:       ', torch.cuda.get_device_name(i))
+        print('   capability: ', torch.cuda.get_device_capability(i))
         print('   properties: ', torch.cuda.get_device_properties(i))
         ## current GPU memory usage by tensors in bytes for a given device
         print('   Allocated : ', torch.cuda.memory_allocated(i) ) 
@@ -840,39 +837,50 @@ def disp_gpu_device_info():
         print('   Reserved  : ', torch.cuda.memory_reserved(i) )   
         print()
 
-    gpu_usage()                             
+                        
 
 def display_gpu_info():
+    from GPUtil import showUtilization as gpu_usage
     from pynvml import nvmlInit, nvmlDeviceGetHandleByIndex ,nvmlDeviceGetMemoryInfo   
 
     if torch.cuda.is_available():
-        print('cuda is available')
-        print(' CUDA device count  : ', torch.cuda.device_count())
-        print(' CUDA current device: ', torch.cuda.current_device())
-        print(' GPU Processes      : \n', torch.cuda.list_gpu_processes())
+        torch_gpu_id = torch.cuda.current_device()
+        print_underline('CUDA Device(s) available', verbose=True)
+        print(' CUDA device count   : ', torch.cuda.device_count())
+        print(' CUDA current device : ', torch_gpu_id, '  name: ', torch.cuda.get_device_name(torch_gpu_id))
+        print(' GPU Processes       : ', torch.cuda.list_gpu_processes())
+        print()
+
+
         disp_gpu_device_info()
         nvmlInit()
 
-        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        print(device)
+        print_underline('GPU Usage Stats ', verbose=True)
+        gpu_usage()     
+        print()
+        # print_underline('torch.device() : ', verbose=True)
+        # device = torch.device(torch.cuda.current_device() if torch.cuda.is_available() else "cpu")
+        # print(device)
         # torch.cuda package supports CUDA tensor types but works with GPU computations. Hence, if GPU is used, it is common to use CUDA. 
-        torch.cuda.current_device()
-        torch.cuda.device_count()
-        torch.cuda.get_device_name(0)
+        # torch.cuda.device_count()
+        # torch.cuda.current_device()
+        # torch.cuda.get_device_name(0)
 
-        torch_gpu_id = torch.cuda.current_device()
-        print(torch_gpu_id)
+        print(' torch.cuda.current-device(): ', torch_gpu_id)
         if "CUDA_VISIBLE_DEVICES" in os.environ:
             ids = list(map(int, os.environ.get("CUDA_VISIBLE_DEVICES", "").split(",")))
             print(' ids : ', ids)
             nvml_gpu_id = ids[torch_gpu_id] # remap
         else:
             nvml_gpu_id = torch_gpu_id
-            print('nvml_gpu_id: ', nvml_gpu_id)
-            nvml_handle = nvmlDeviceGetHandleByIndex(nvml_gpu_id)
-            print(nvml_handle)
-
+        
+        print()
+        print_underline(f"nvml_gpu_id: {nvml_gpu_id}", verbose=True)
+        nvml_handle = nvmlDeviceGetHandleByIndex(nvml_gpu_id)
+        print(f" nvml handle: {nvml_handle}")
         info = nvmlDeviceGetMemoryInfo(nvml_handle)
+        print_underline(f"nvml Device Memory Info", verbose=True)
         print(info)
+        
     else :
-        print('No CUDA devices found ')
+        print_underline(' No CUDA devices found ',verbose=True)

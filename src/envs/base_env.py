@@ -33,7 +33,7 @@ class BaseEnv():
         self.is_train = is_train
         self.tasks_num_class = tasks_num_class
         # self.device = device
-        # self.device  = 'cpu' if self.opt['cpu'] else 'gpu'
+        # self.device = 'cpu' if self.opt['cpu'] else 'gpu'
         self.dataset = self.opt['dataload']['dataset']
         self.tasks = self.opt['tasks']
         self.loss_csv_file = os.path.join(self.log_dir, 'loss_seed_%04d.csv'%self.opt['random_seed'])

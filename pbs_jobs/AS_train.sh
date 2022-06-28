@@ -3,7 +3,7 @@
 source /user/leuven/326/vsc32647/.initconda
 if [[ -n "$PBS_JOBID" ]]
  then
-    export JOBID=${PBS_JOBID:0:8}
+    JOBID=${PBS_JOBID:0:8}
     echo "+++++++++++++++++++++++++++++++++++++++++++"
     echo "[$PBS_JOBID] --> Job [$JOBID] start : $(date)"
     echo " PBS VERSION is $PBS_VERSION"
@@ -11,6 +11,7 @@ if [[ -n "$PBS_JOBID" ]]
     echo "+++++++++++++++++++++++++++++++++++++++++++"
     cd $PBS_O_WORKDIR # cd to the directory from which qsub is run
   else
+    JOBID=${job_dt}
     echo "PBS Not defined"
 fi
 echo config file is $config
@@ -19,6 +20,8 @@ conda activate pyt-gpu
 python -V
 program="../src/Adashare_Train.py"
 layers=""
+# export CUDA_VISIBLE_DEVICES=${gpu_id}
+# echo "gpu_id:  $gpu_id    CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES"
 echo "Res option: [$res_opt]   hidden option: [$hdn_opt] desc: [$desc]   batch_size: $batch_size "
 
 echo  " Num Layers  :     $num_layers   Layer size: $layer   Dropout: $dropout  Task LR: $lr "
@@ -51,8 +54,9 @@ python                     ${program} \
      --backbone_lr              ${lr} \
      --decay_lr_rate              0.3 \
      --decay_lr_freq               10 \
+     --cuda_devices   ${cuda_device_id} \
      --gpu_ids                 ${dev} \
-     --pytorch_threads              2 \
+     --pytorch_threads  ${py_threads} \
      --min_samples_class            2  
  
      

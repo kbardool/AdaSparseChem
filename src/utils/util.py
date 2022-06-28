@@ -404,6 +404,7 @@ def get_command_line_args(input = None, display = True):
     parser.add_argument("--decay_lr_freq"    , type=float, help="LR Decay Frequency Override - default read from config file")
     parser.add_argument("--lambda_sparsity"  , type=float, help="Sparsity Regularization - default read from config file")
     parser.add_argument("--lambda_sharing"   , type=float, help="Sharing Regularization - default read from config file")
+    parser.add_argument("--cuda_devices"     , type=str,   help="CUDA GPU Device Id")
     parser.add_argument("--gpu_ids"          , type=int,   nargs='+', default=[0],  help="GPU Device Ids")
     parser.add_argument("--pytorch_threads"  , type=int,   default=2,  help="Number of threads used by PyTorch for parallelizing CPU operations")
     # parser.add_argument("--policy"           , action="store_true",  help="Train policies")
@@ -509,6 +510,7 @@ def read_yaml(args = None, exp_name = None):
     if args.lambda_sharing  is not None:
         opt['train']['lambda_sharing'] = args.lambda_sharing
 
+    # opt['gpu_ids'] = [f"cuda:{i}" for i in args.gpu_ids]
     opt['gpu_ids'] = args.gpu_ids
 
     opt['skip_residual'] = (args.skip_residual == 'True')
@@ -533,7 +535,7 @@ def read_yaml(args = None, exp_name = None):
         opt['exp_name']  += f"_{opt['folder_sfx']}"
   
 
-    opt['cpu'] = args.cpu
+    # opt['cpu'] = args.cpu
     opt['train']['resume'] = args.resume
     
     if args.min_samples_class is not None:
