@@ -13,23 +13,25 @@ for ((x=1;x<=${#*};x+=1))
         printf " Parm $x      : ${!x} \n"
     done
 printf "=================================================\n" 
-printf " ADASHARE_SCRIPT: $ADASHARE_SCRIPT \n"
-printf " submit type    : $submit_type\n"
-printf " Program        : $1 \n"
-printf " job_prefix     : $2 \n"
-# printf " Skip Residual: $res_opt \n"
-# printf " Skip Hidden  : $hdn_opt \n"
-# printf " exp_desc     : $desc \n"
-# printf " pbs_account  : $pbs_account \n"
-# printf " pbs_allocate : $pbs_allocate\n"
-# printf " pbs_folders  : $pbs_folders \n"        
-# printf " batch_size   : $batch_size  \n"
-# printf " learning rt  : $lr  \n"
-# printf " datadir      : $datadir \n"
-# printf " outdir       : $outdir \n"
-# printf " config       : $config \n"        
-# printf " job date     : $job_dt \n"        
-# echo "=================================================" 
+printf " ADASHARE_SCRIPT                   : $ADASHARE_SCRIPT \n"
+printf " arch_type (Residual/Hidden Layer) : $1 \n"
+printf " submit type (Local/PBS CLuster)   : $2\n"
+# printf " pbs_account    : $pbs_account \n"
+# printf " pbs_allocate   : $pbs_allocate\n"
+# printf " pbs_folders    : $pbs_folders \n"        
+# printf " batch_size     : $batch_size  \n"
+# printf " num_layers     : [${num_layers_list[*]}] \n"
+# printf " layer_size     : [${layer_size_list[*]}]  \n"
+# printf " dropouts       : [${dropout_list[*]}]  \n"
+# printf " learning rt    : [${lr_list[*]}]  \n"
+# printf " datadir        : $datadir \n"
+# printf " outdir         : $outdir \n"
+# printf " config         : $config \n"        
+# printf " seed_idx       : $seed_idx \n"        
+# printf " cuda_device_id : $cuda_device_id \n"        
+# printf " py_threads     : $py_threads \n"        
+# printf " dev            : $dev \n"
+echo "=================================================" 
 printf "\n"
 
 
@@ -38,21 +40,43 @@ submit_list(){
     for layer in ${layer_size_list[@]}; do                   
     for lr in ${lr_list[@]} ; do
     for dropout in  ${dropout_list[@]}; do
+        job_dt=`date +%m%d.%H%M%S`
         # printf "\n"
         # printf "* seed: $seed_idx  output: $output_file \n"   
         # printf "* Epochs: $epochs  Lyrs: $num_layers  Lyr sz: $layer  Dropout: $dropout  Task LR: $lr  device: $dev \n"
-        
+        # printf "=================================================\n" 
+        # printf " ADASHARE_SCRIPT: $ADASHARE_SCRIPT \n"
+        # printf " submit type    : $submit_type\n"
+        # printf " arch_type      : $1 \n"
+        # printf " job_prefix     : $2 \n"
+        # printf " Skip Residual  : $res_opt \n"
+        # printf " Skip Hidden    : $hdn_opt \n"
+        # printf " exp_desc       : $desc \n"
+        # printf " pbs_account    : $pbs_account \n"
+        # printf " pbs_allocate   : $pbs_allocate\n"
+        # printf " pbs_folders    : $pbs_folders \n"        
+        # printf " batch_size     : $batch_size  \n"
+        # printf " num_layers     : [${num_layers_list[*]}] \n"
+        # printf " layer_size     : [${layer_size_list[*]}]  \n"
+        # printf " dropouts       : [${dropout_list[*]}]  \n"
+        # printf " learning rt    : [${lr_list[*]}]  \n"
+        # printf " datadir        : $datadir \n"
+        # printf " outdir         : $outdir \n"
+        # printf " config         : $config \n"        
+        # printf " seed_idx       : $seed_idx \n"        
+        # printf " cuda_device_id : $cuda_device_id \n"        
+        # printf " py_threads     : $py_threads \n"        
+        # printf " dev            : $dev \n"
+        # printf " job date       : $job_dt \n"        
+        # echo "=================================================" 
         if [[ $submit_type == "PBS" ]]; then
             job_name="$229-${layer}x${num_layers}-${dropout}"
-            printf " JobName      : $job_name  Epochs: $epochs   LR: $lr   dev: $dev ---> "
-            # . submit_pbs_job.sh $ADASHARE_SCRIPT $job_name  "$pbs_account"  "$pbs_allocate"  "$pbs_folders"\
-            #             $epochs $batch_size $num_layers $layer $lr $dev $dropout $datadir $outdir $config $seed_idx $res_opt $hdn_opt "$desc"  
-            # qsub $1 -N $job_name  $pbs_account  $pbs_allocate  $pbs_folders\
-            # -v epochs=$epochs,batch_size=$batch_size,num_layers=$num_layers,layer=$layer,lr=$lr,dev=$dev,dropout=$dropout,datadir=$datadir,outdir=$outdir,config=$config,seed_idx=$seed_idx,res_opt=$3,hdn_opt=$4,desc="$5"
-            printf " PBS job $job_name Submitted in background \n"     
+            printf "JobName : $job_name  Epochs: $epochs   LR: $lr   dev: $dev ---> "
+            qsub -N $job_name  $pbs_account  $pbs_allocate  $pbs_folders\
+            -v epochs=$epochs,batch_size=$batch_size,num_layers=$num_layers,layer=$layer,lr=$lr,dropout=$dropout,datadir=$datadir,outdir=$outdir,config=$config,seed_idx=$seed_idx,res_opt=$3,hdn_opt=$4,desc="$5",cuda_device_id=$cuda_device_id,py_threads=$py_threads,dev=$dev,job_dt=$job_dt\
+            $1
 
         elif [[ $submit_type == "LOCAL" ]]; then
-            job_dt=`date +%m%d.%H%M%S`
             job_name="$job_dt-$229-${layer}x${num_layers}-${dropout}"
             output_file="../pbs_output/${job_name}.out" 
             profile_file="../pbs_output/${job_name}.stats" 
@@ -69,7 +93,7 @@ submit_list(){
 }
 
 
-echo "Epochs: $epochs  Layers: [${num_layers_list[@]}]   Layer size: [${layer_size_list[@]}]   Dropout: [${dropout_list[@]}]  Task LR: ${lr_list[@]} "
+printf "Epochs: $epochs  Layers: [${num_layers_list[*]}]   Layer size: [${layer_size_list[*]}]   Dropout: [${dropout_list[*]}]  Task LR: ${lr_list[*]} \n"
 
 if [ $1 == "res" ] || [ $1 == "both" ] 
 then  
@@ -78,7 +102,7 @@ then
     hdn_opt="False"
     desc="Run with residiual layers"
     echo "Run type:   $desc"
-    submit_list $ADASHARE_SCRIPT $job_prefix $opt $hdn_opt "$desc"
+    submit_list $ADASHARE_SCRIPT $job_prefix $res_opt $hdn_opt "$desc"
 fi
 
 if [ $1 == "nores" ] || [ $1 == "both" ] 
@@ -88,7 +112,7 @@ then
     hdn_opt="False"
     desc="Run without residiual layers"
     echo "Run type:   $desc"
-    submit_list $ADASHARE_SCRIPT $job_prefix $opt $hdn_opt "$desc"
+    submit_list $ADASHARE_SCRIPT $job_prefix $res_opt $hdn_opt "$desc"
 fi
  
 if [ $1 == "nohidden" ]  
@@ -98,6 +122,6 @@ then
     hdn_opt="True"
     desc="Run without hidden layers"
     echo "Run type:   $desc"
-    submit_list $ADASHARE_SCRIPT $job_prefix $opt $hdn_opt "$desc"
+    submit_list $ADASHARE_SCRIPT $job_prefix $res_opt $hdn_opt "$desc"
 fi
 

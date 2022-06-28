@@ -31,15 +31,16 @@ batch_size=4096
 num_layers_list=(6)
 # num_layers_list=(1 2 3)
 layer_size_list=(4000) 
-dropout_list=(0.80 0.70 0.60)
+dropout_list=(0.50)
 
 epochs=100
 seed_idx=0
+## Kusanagi: 0 --> 1, 1 --> 2; 2 --> 0
+cuda_device_id=1
 py_threads=1
 dev=0
 # dropout_list=(0.40 0.50 0.60)
 # dropout_list=( 0.70  0.80  0.90)
 #=========================================================================
-
 
 . submit_training_job.sh $arch_type $submit_type

@@ -1,41 +1,55 @@
 #!/bin/bash 
+divider="========================================================================\n"
+program="../src/Adashare_Train.py"
+layers=""
+printf "===> program $program  -- excution started: $(date) \n"
+printf $divider
+printf " program        : $program \n"
+printf " epochs         : $epochs  \n"
+printf " skip residual  : $res_opt \n"
+printf " skip hidden    : $hdn_opt \n"
+printf " exp_desc       : $desc    \n"
+printf " batch_size     : $batch_size  \n"
+printf " num_layers     : ${num_layers} \n"
+printf " layer_size     : ${layer}  \n"
+printf " dropouts       : ${dropout}  \n"
+printf " learning rate  : ${lr}  \n"
+printf " datadir        : $datadir \n"
+printf " outdir         : $outdir \n"
+printf " config         : $config \n"        
+printf " seed_idx       : $seed_idx \n"        
+printf " cuda_device_id : $cuda_device_id \n"        
+printf " py_threads     : $py_threads \n"        
+printf " device         : $dev \n"
+printf " job date       : $job_dt \n"        
+printf $divider 
 
-source /user/leuven/326/vsc32647/.initconda
 if [[ -n "$PBS_JOBID" ]]
  then
     JOBID=${PBS_JOBID:0:8}
-    echo "+++++++++++++++++++++++++++++++++++++++++++"
-    echo "[$PBS_JOBID] --> Job [$JOBID] start : $(date)"
-    echo " PBS VERSION is $PBS_VERSION"
-    echo " Switch to $PBS_O_WORKDIR"
-    echo "+++++++++++++++++++++++++++++++++++++++++++"
+    printf " PBS JOBID  : $PBS_JOBID  \n"
+    printf " PBS VERSION: $PBS_VERSION   \n"
+    printf " PBS WORKDIR: $PBS_O_WORKDIR \n"
     cd $PBS_O_WORKDIR # cd to the directory from which qsub is run
   else
     JOBID=${job_dt}
-    echo "PBS Not defined"
+    printf " PBS Not defined   \n"
+    printf " JOBID  : [$JOBID] \n"
 fi
-echo config file is $config
-echo switch to pyt-gpu 
-conda activate pyt-gpu
-python -V
-program="../src/Adashare_Train.py"
-layers=""
-# export CUDA_VISIBLE_DEVICES=${gpu_id}
-# echo "gpu_id:  $gpu_id    CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES"
-echo "Res option: [$res_opt]   hidden option: [$hdn_opt] desc: [$desc]   batch_size: $batch_size "
-
-echo  " Num Layers  :     $num_layers   Layer size: $layer   Dropout: $dropout  Task LR: $lr "
-echo  " config      :     $config"
-echo  " datadir     :     $datadir"
-echo  " outdir      :     $outdir"
-
+printf $divider
+# printf "=================================================\n" 
 for ((i=0 ; i < $num_layers ; i +=1)); do
     layers+=" $layer "
 done
-echo  "Number Layers:     $num_layers   Layer size: $layers   Dropout: $dropout  Task LR: $lr "
+source /user/leuven/326/vsc32647/.initconda
+# echo switch to pyt-gpu 
+conda activate pyt-gpu
+# python -V
+# export CUDA_VISIBLE_DEVICES=${gpu_id}
+# echo "gpu_id:  $gpu_id    CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES"
+# printf "Number Layers:     $num_layers   Layer size: $layers   Dropout: $dropout  Task LR: $lr \n"
 
-
-echo "===> program $program  -- excution started: $(date)"
+printf $divider
 
 python                     ${program} \
      --config               ${config} \
@@ -59,6 +73,6 @@ python                     ${program} \
      --pytorch_threads  ${py_threads} \
      --min_samples_class            2  
  
-     
-echo "===> program $program  -- excution ended: $(date)"
-echo "===> Job $JOBID "
+printf $divider     
+printf "===> program $program  -- excution ended: $(date)\n"
+printf "===> Job $JOBID Terminated Normally\n"
