@@ -1,1251 +1,0 @@
-
-Due to MODULEPATH changes, the following have been reloaded:
-  1) GCCcore/6.4.0
-  2) binutils/2.28-GCCcore-6.4.0
-  3) icc/2018.1.163-GCC-6.4.0-2.28
-  4) iccifort/2018.1.163-GCC-6.4.0-2.28
-  5) ifort/2018.1.163-GCC-6.4.0-2.28
-  6) iimpi/2018a
-  7) imkl/2018.1.163-iimpi-2018a
-  8) impi/2018.1.163-iccifort-2018.1.163-GCC-6.4.0-2.28
-  9) intel/2018a
-
-
-Due to MODULEPATH changes, the following have been reloaded:
-  1) GCCcore/6.4.0
-  2) binutils/2.28-GCCcore-6.4.0
-  3) icc/2018.1.163-GCC-6.4.0-2.28
-  4) iccifort/2018.1.163-GCC-6.4.0-2.28
-  5) ifort/2018.1.163-GCC-6.4.0-2.28
-  6) iimpi/2018a
-  7) imkl/2018.1.163-iimpi-2018a
-  8) impi/2018.1.163-iccifort-2018.1.163-GCC-6.4.0-2.28
-  9) intel/2018a
-
-
-Due to MODULEPATH changes, the following have been reloaded:
-  1) GCCcore/6.4.0
-  2) binutils/2.28-GCCcore-6.4.0
-  3) icc/2018.1.163-GCC-6.4.0-2.28
-  4) iccifort/2018.1.163-GCC-6.4.0-2.28
-  5) ifort/2018.1.163-GCC-6.4.0-2.28
-  6) iimpi/2018a
-  7) imkl/2018.1.163-iimpi-2018a
-  8) impi/2018.1.163-iccifort-2018.1.163-GCC-6.4.0-2.28
-  9) intel/2018a
-
-
-Due to MODULEPATH changes, the following have been reloaded:
-  1) GCCcore/6.4.0
-  2) binutils/2.28-GCCcore-6.4.0
-  3) icc/2018.1.163-GCC-6.4.0-2.28
-  4) iccifort/2018.1.163-GCC-6.4.0-2.28
-  5) ifort/2018.1.163-GCC-6.4.0-2.28
-  6) iimpi/2018a
-  7) imkl/2018.1.163-iimpi-2018a
-  8) impi/2018.1.163-iccifort-2018.1.163-GCC-6.4.0-2.28
-  9) intel/2018a
-
-
-Due to MODULEPATH changes, the following have been reloaded:
-  1) GCCcore/6.4.0
-  2) binutils/2.28-GCCcore-6.4.0
-  3) icc/2018.1.163-GCC-6.4.0-2.28
-  4) iccifort/2018.1.163-GCC-6.4.0-2.28
-  5) ifort/2018.1.163-GCC-6.4.0-2.28
-  6) iimpi/2018a
-  7) imkl/2018.1.163-iimpi-2018a
-  8) impi/2018.1.163-iccifort-2018.1.163-GCC-6.4.0-2.28
-  9) intel/2018a
-
-
-Due to MODULEPATH changes, the following have been reloaded:
-  1) GCCcore/6.4.0
-  2) binutils/2.28-GCCcore-6.4.0
-  3) icc/2018.1.163-GCC-6.4.0-2.28
-  4) iccifort/2018.1.163-GCC-6.4.0-2.28
-  5) ifort/2018.1.163-GCC-6.4.0-2.28
-  6) iimpi/2018a
-  7) imkl/2018.1.163-iimpi-2018a
-  8) impi/2018.1.163-iccifort-2018.1.163-GCC-6.4.0-2.28
-  9) intel/2018a
-
-
-Due to MODULEPATH changes, the following have been reloaded:
-  1) GCCcore/6.4.0
-  2) binutils/2.28-GCCcore-6.4.0
-  3) icc/2018.1.163-GCC-6.4.0-2.28
-  4) iccifort/2018.1.163-GCC-6.4.0-2.28
-  5) ifort/2018.1.163-GCC-6.4.0-2.28
-  6) iimpi/2018a
-  7) imkl/2018.1.163-iimpi-2018a
-  8) impi/2018.1.163-iccifort-2018.1.163-GCC-6.4.0-2.28
-  9) intel/2018a
-
-
-Due to MODULEPATH changes, the following have been reloaded:
-  1) GCCcore/6.4.0
-  2) binutils/2.28-GCCcore-6.4.0
-  3) icc/2018.1.163-GCC-6.4.0-2.28
-  4) iccifort/2018.1.163-GCC-6.4.0-2.28
-  5) ifort/2018.1.163-GCC-6.4.0-2.28
-  6) iimpi/2018a
-  7) imkl/2018.1.163-iimpi-2018a
-  8) impi/2018.1.163-iccifort-2018.1.163-GCC-6.4.0-2.28
-  9) intel/2018a
-
-wandb: Currently logged in as: kbardool (use `wandb login --relogin` to force relogin)
-wandb: Currently logged in as: kbardool (use `wandb login --relogin` to force relogin)
-wandb: Currently logged in as: kbardool (use `wandb login --relogin` to force relogin)
-wandb: Currently logged in as: kbardool (use `wandb login --relogin` to force relogin)
-wandb: Currently logged in as: kbardool (use `wandb login --relogin` to force relogin)
-wandb: Currently logged in as: kbardool (use `wandb login --relogin` to force relogin)
-wandb: Currently logged in as: kbardool (use `wandb login --relogin` to force relogin)
-wandb: Currently logged in as: kbardool (use `wandb login --relogin` to force relogin)
-wandb: Tracking run with wandb version 0.12.14
-wandb: Run data is saved locally in /vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/wandb/run-20220420_110935-10iwaiei
-wandb: Run `wandb offline` to turn off syncing.
-wandb: Syncing run 0420_1109
-wandb: ⭐️ View project at https://wandb.ai/kbardool/AdaSparseChem-Mini
-wandb: 🚀 View run at https://wandb.ai/kbardool/AdaSparseChem-Mini/runs/10iwaiei
-wandb: Tracking run with wandb version 0.12.14
-wandb: Run data is saved locally in /vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/wandb/run-20220420_110935-23rcco5n
-wandb: Run `wandb offline` to turn off syncing.
-wandb: Syncing run 0420_1109
-wandb: ⭐️ View project at https://wandb.ai/kbardool/AdaSparseChem-Mini
-wandb: 🚀 View run at https://wandb.ai/kbardool/AdaSparseChem-Mini/runs/23rcco5n
-wandb: Tracking run with wandb version 0.12.14
-wandb: Run data is saved locally in /vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/wandb/run-20220420_110935-733bjh4l
-wandb: Run `wandb offline` to turn off syncing.
-wandb: Tracking run with wandb version 0.12.14
-wandb: Run data is saved locally in /vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/wandb/run-20220420_110935-3l19mge3
-wandb: Run `wandb offline` to turn off syncing.
-wandb: Syncing run 0420_1109
-wandb: ⭐️ View project at https://wandb.ai/kbardool/AdaSparseChem-Mini
-wandb: 🚀 View run at https://wandb.ai/kbardool/AdaSparseChem-Mini/runs/733bjh4l
-wandb: Syncing run 0420_1109
-wandb: ⭐️ View project at https://wandb.ai/kbardool/AdaSparseChem-Mini
-wandb: 🚀 View run at https://wandb.ai/kbardool/AdaSparseChem-Mini/runs/3l19mge3
-wandb: Tracking run with wandb version 0.12.14
-wandb: Run data is saved locally in /vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/wandb/run-20220420_110935-c4umf8gu
-wandb: Run `wandb offline` to turn off syncing.
-wandb: Tracking run with wandb version 0.12.14
-wandb: Run data is saved locally in /vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/wandb/run-20220420_110935-1ww49ont
-wandb: Run `wandb offline` to turn off syncing.
-wandb: Syncing run 0420_1109
-wandb: ⭐️ View project at https://wandb.ai/kbardool/AdaSparseChem-Mini
-wandb: 🚀 View run at https://wandb.ai/kbardool/AdaSparseChem-Mini/runs/c4umf8gu
-wandb: Syncing run 0420_1109
-wandb: ⭐️ View project at https://wandb.ai/kbardool/AdaSparseChem-Mini
-wandb: 🚀 View run at https://wandb.ai/kbardool/AdaSparseChem-Mini/runs/1ww49ont
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-wandb: Tracking run with wandb version 0.12.14
-wandb: Run data is saved locally in /vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/wandb/run-20220420_110935-11yudqda
-wandb: Run `wandb offline` to turn off syncing.
-wandb: Syncing run 0420_1109
-wandb: ⭐️ View project at https://wandb.ai/kbardool/AdaSparseChem-Mini
-wandb: 🚀 View run at https://wandb.ai/kbardool/AdaSparseChem-Mini/runs/11yudqda
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-THCudaCheck FAIL file=/opt/conda/conda-bld/pytorch_1634272068185/work/aten/src/THC/THCCachingHostAllocator.cpp line=280 error=46 : all CUDA-capable devices are busy or unavailable
-THCudaCheck FAIL file=/opt/conda/conda-bld/pytorch_1634272068185/work/aten/src/THC/THCCachingHostAllocator.cpp line=280 error=46 : all CUDA-capable devices are busy or unavailable
-THCudaCheck FAIL file=/opt/conda/conda-bld/pytorch_1634272068185/work/aten/src/THC/THCCachingHostAllocator.cpp line=280 error=46 : all CUDA-capable devices are busy or unavailable
-THCudaCheck FAIL file=/opt/conda/conda-bld/pytorch_1634272068185/work/aten/src/THC/THCCachingHostAllocator.cpp line=280 error=46 : all CUDA-capable devices are busy or unavailable
-THCudaCheck FAIL file=/opt/conda/conda-bld/pytorch_1634272068185/work/aten/src/THC/THCCachingHostAllocator.cpp line=280 error=46 : all CUDA-capable devices are busy or unavailable
-THCudaCheck FAIL file=/opt/conda/conda-bld/pytorch_1634272068185/work/aten/src/THC/THCCachingHostAllocator.cpp line=280 error=46 : all CUDA-capable devices are busy or unavailable
-Traceback (most recent call last):
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/Adashare_Train_mini.py", line 110, in <module>
-    training_prep(ns, opt, environ, dldrs)
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/utils/notebook_modules.py", line 245, in training_prep
-    environ.cuda(opt['gpu_ids'])
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/envs/sparsechem_env.py", line 1232, in cuda
-    super(SparseChemEnv, self).cuda(gpu_ids)
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/envs/base_env.py", line 641, in cuda
-    v.to(self.device)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 899, in to
-    return self._apply(convert)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 593, in _apply
-    param_applied = fn(param)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 897, in convert
-    return t.to(device, dtype if t.is_floating_point() or t.is_complex() else None, non_blocking)
-RuntimeError: CUDA error: all CUDA-capable devices are busy or unavailable
-CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
-For debugging consider passing CUDA_LAUNCH_BLOCKING=1.
-Traceback (most recent call last):
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/Adashare_Train_mini.py", line 110, in <module>
-    training_prep(ns, opt, environ, dldrs)
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/utils/notebook_modules.py", line 245, in training_prep
-    environ.cuda(opt['gpu_ids'])
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/envs/sparsechem_env.py", line 1232, in cuda
-    super(SparseChemEnv, self).cuda(gpu_ids)
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/envs/base_env.py", line 641, in cuda
-    v.to(self.device)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 899, in to
-    return self._apply(convert)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 593, in _apply
-    param_applied = fn(param)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 897, in convert
-    return t.to(device, dtype if t.is_floating_point() or t.is_complex() else None, non_blocking)
-RuntimeError: CUDA error: all CUDA-capable devices are busy or unavailable
-CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
-For debugging consider passing CUDA_LAUNCH_BLOCKING=1.
-Traceback (most recent call last):
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/Adashare_Train_mini.py", line 110, in <module>
-    training_prep(ns, opt, environ, dldrs)
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/utils/notebook_modules.py", line 245, in training_prep
-    environ.cuda(opt['gpu_ids'])
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/envs/sparsechem_env.py", line 1232, in cuda
-    super(SparseChemEnv, self).cuda(gpu_ids)
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/envs/base_env.py", line 641, in cuda
-    v.to(self.device)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 899, in to
-    return self._apply(convert)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 593, in _apply
-    param_applied = fn(param)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 897, in convert
-    return t.to(device, dtype if t.is_floating_point() or t.is_complex() else None, non_blocking)
-RuntimeError: CUDA error: all CUDA-capable devices are busy or unavailable
-CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
-For debugging consider passing CUDA_LAUNCH_BLOCKING=1.
-Traceback (most recent call last):
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/Adashare_Train_mini.py", line 110, in <module>
-    training_prep(ns, opt, environ, dldrs)
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/utils/notebook_modules.py", line 245, in training_prep
-    environ.cuda(opt['gpu_ids'])
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/envs/sparsechem_env.py", line 1232, in cuda
-    super(SparseChemEnv, self).cuda(gpu_ids)
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/envs/base_env.py", line 641, in cuda
-    v.to(self.device)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 899, in to
-    return self._apply(convert)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 593, in _apply
-    param_applied = fn(param)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 897, in convert
-    return t.to(device, dtype if t.is_floating_point() or t.is_complex() else None, non_blocking)
-RuntimeError: CUDA error: all CUDA-capable devices are busy or unavailable
-CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
-For debugging consider passing CUDA_LAUNCH_BLOCKING=1.
-Traceback (most recent call last):
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/Adashare_Train_mini.py", line 110, in <module>
-    training_prep(ns, opt, environ, dldrs)
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/utils/notebook_modules.py", line 245, in training_prep
-    environ.cuda(opt['gpu_ids'])
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/envs/sparsechem_env.py", line 1232, in cuda
-    super(SparseChemEnv, self).cuda(gpu_ids)
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/envs/base_env.py", line 641, in cuda
-    v.to(self.device)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 899, in to
-    return self._apply(convert)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 593, in _apply
-    param_applied = fn(param)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 897, in convert
-    return t.to(device, dtype if t.is_floating_point() or t.is_complex() else None, non_blocking)
-RuntimeError: CUDA error: all CUDA-capable devices are busy or unavailable
-CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
-For debugging consider passing CUDA_LAUNCH_BLOCKING=1.
-Traceback (most recent call last):
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/Adashare_Train_mini.py", line 110, in <module>
-    training_prep(ns, opt, environ, dldrs)
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/utils/notebook_modules.py", line 245, in training_prep
-    environ.cuda(opt['gpu_ids'])
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/envs/sparsechem_env.py", line 1232, in cuda
-    super(SparseChemEnv, self).cuda(gpu_ids)
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/envs/base_env.py", line 641, in cuda
-    v.to(self.device)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 899, in to
-    return self._apply(convert)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 593, in _apply
-    param_applied = fn(param)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 897, in convert
-    return t.to(device, dtype if t.is_floating_point() or t.is_complex() else None, non_blocking)
-RuntimeError: CUDA error: all CUDA-capable devices are busy or unavailable
-CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
-For debugging consider passing CUDA_LAUNCH_BLOCKING=1.
-wandb: Tracking run with wandb version 0.12.14
-wandb: Run data is saved locally in /vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/wandb/run-20220420_110935-1p08kybe
-wandb: Run `wandb offline` to turn off syncing.
-wandb: Syncing run 0420_1109
-wandb: ⭐️ View project at https://wandb.ai/kbardool/AdaSparseChem-Mini
-wandb: 🚀 View run at https://wandb.ai/kbardool/AdaSparseChem-Mini/runs/1p08kybe
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-wandb: Waiting for W&B process to finish... (failed 1). Press Control-C to abort syncing.
-wandb: - 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: Waiting for W&B process to finish... (failed 1). Press Control-C to abort syncing.
-wandb: - 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: Waiting for W&B process to finish... (failed 1). Press Control-C to abort syncing.
-wandb: Waiting for W&B process to finish... (failed 1). Press Control-C to abort syncing.
-wandb: - 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: - 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: \ 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: \ 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: \ 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: \ 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: | 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: Waiting for W&B process to finish... (failed 1). Press Control-C to abort syncing.
-wandb: | 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: - 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: | 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)THCudaCheck FAIL file=/opt/conda/conda-bld/pytorch_1634272068185/work/aten/src/THC/THCCachingHostAllocator.cpp line=280 error=46 : all CUDA-capable devices are busy or unavailable
-wandb: Waiting for W&B process to finish... (failed 1). Press Control-C to abort syncing.
-wandb: - 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: \ 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)Traceback (most recent call last):
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/Adashare_Train_mini.py", line 110, in <module>
-    training_prep(ns, opt, environ, dldrs)
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/utils/notebook_modules.py", line 245, in training_prep
-    environ.cuda(opt['gpu_ids'])
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/envs/sparsechem_env.py", line 1232, in cuda
-    super(SparseChemEnv, self).cuda(gpu_ids)
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/envs/base_env.py", line 641, in cuda
-    v.to(self.device)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 899, in to
-    return self._apply(convert)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 593, in _apply
-    param_applied = fn(param)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 897, in convert
-    return t.to(device, dtype if t.is_floating_point() or t.is_complex() else None, non_blocking)
-RuntimeError: CUDA error: all CUDA-capable devices are busy or unavailable
-CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
-For debugging consider passing CUDA_LAUNCH_BLOCKING=1.
-wandb: / 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: / 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.014 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.021 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.026 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.026 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.026 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.024 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.024 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.024 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.024 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.024 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.024 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.024 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.024 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb:                                                                                
-wandb: \ 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb:                                                                                
-wandb: / 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb:                                                                                
-wandb: \ 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb:                                                                                
-wandb: | 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb:                                                                                
-wandb: Waiting for W&B process to finish... (failed 1). Press Control-C to abort syncing.
-wandb: - 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: / 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: - 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb:                                                                                
-wandb: | 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: Synced 0420_1109: https://wandb.ai/kbardool/AdaSparseChem-Mini/runs/10iwaiei
-wandb: Synced 6 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
-wandb: Find logs at: ./wandb/run-20220420_110935-10iwaiei/logs
-wandb: Synced 0420_1109: https://wandb.ai/kbardool/AdaSparseChem-Mini/runs/23rcco5n
-wandb: Synced 6 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
-wandb: Find logs at: ./wandb/run-20220420_110935-23rcco5n/logs
-wandb: / 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: Synced 0420_1109: https://wandb.ai/kbardool/AdaSparseChem-Mini/runs/733bjh4l
-wandb: Synced 6 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
-wandb: Find logs at: ./wandb/run-20220420_110935-733bjh4l/logs
-wandb: \ 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: Synced 0420_1109: https://wandb.ai/kbardool/AdaSparseChem-Mini/runs/3l19mge3
-wandb: Synced 6 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
-wandb: Find logs at: ./wandb/run-20220420_110935-3l19mge3/logs
-wandb: | 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: Synced 0420_1109: https://wandb.ai/kbardool/AdaSparseChem-Mini/runs/1ww49ont
-wandb: Synced 6 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
-wandb: Find logs at: ./wandb/run-20220420_110935-1ww49ont/logs
-wandb: / 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: Synced 0420_1109: https://wandb.ai/kbardool/AdaSparseChem-Mini/runs/11yudqda
-wandb: Synced 6 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
-wandb: Find logs at: ./wandb/run-20220420_110935-11yudqda/logs
-wandb: \ 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb:                                                                                
-wandb: Synced 0420_1109: https://wandb.ai/kbardool/AdaSparseChem-Mini/runs/1p08kybe
-wandb: Synced 6 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
-wandb: Find logs at: ./wandb/run-20220420_110935-1p08kybe/logs
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-
-Due to MODULEPATH changes, the following have been reloaded:
-  1) GCCcore/6.4.0
-  2) binutils/2.28-GCCcore-6.4.0
-  3) icc/2018.1.163-GCC-6.4.0-2.28
-  4) iccifort/2018.1.163-GCC-6.4.0-2.28
-  5) ifort/2018.1.163-GCC-6.4.0-2.28
-  6) iimpi/2018a
-  7) imkl/2018.1.163-iimpi-2018a
-  8) impi/2018.1.163-iccifort-2018.1.163-GCC-6.4.0-2.28
-  9) intel/2018a
-
-
-Due to MODULEPATH changes, the following have been reloaded:
-  1) GCCcore/6.4.0
-  2) binutils/2.28-GCCcore-6.4.0
-  3) icc/2018.1.163-GCC-6.4.0-2.28
-  4) iccifort/2018.1.163-GCC-6.4.0-2.28
-  5) ifort/2018.1.163-GCC-6.4.0-2.28
-  6) iimpi/2018a
-  7) imkl/2018.1.163-iimpi-2018a
-  8) impi/2018.1.163-iccifort-2018.1.163-GCC-6.4.0-2.28
-  9) intel/2018a
-
-
-Due to MODULEPATH changes, the following have been reloaded:
-  1) GCCcore/6.4.0
-  2) binutils/2.28-GCCcore-6.4.0
-  3) icc/2018.1.163-GCC-6.4.0-2.28
-  4) iccifort/2018.1.163-GCC-6.4.0-2.28
-  5) ifort/2018.1.163-GCC-6.4.0-2.28
-  6) iimpi/2018a
-  7) imkl/2018.1.163-iimpi-2018a
-  8) impi/2018.1.163-iccifort-2018.1.163-GCC-6.4.0-2.28
-  9) intel/2018a
-
-
-Due to MODULEPATH changes, the following have been reloaded:
-  1) GCCcore/6.4.0
-  2) binutils/2.28-GCCcore-6.4.0
-  3) icc/2018.1.163-GCC-6.4.0-2.28
-  4) iccifort/2018.1.163-GCC-6.4.0-2.28
-  5) ifort/2018.1.163-GCC-6.4.0-2.28
-  6) iimpi/2018a
-  7) imkl/2018.1.163-iimpi-2018a
-  8) impi/2018.1.163-iccifort-2018.1.163-GCC-6.4.0-2.28
-  9) intel/2018a
-
-
-Due to MODULEPATH changes, the following have been reloaded:
-  1) GCCcore/6.4.0
-  2) binutils/2.28-GCCcore-6.4.0
-  3) icc/2018.1.163-GCC-6.4.0-2.28
-  4) iccifort/2018.1.163-GCC-6.4.0-2.28
-  5) ifort/2018.1.163-GCC-6.4.0-2.28
-  6) iimpi/2018a
-  7) imkl/2018.1.163-iimpi-2018a
-  8) impi/2018.1.163-iccifort-2018.1.163-GCC-6.4.0-2.28
-  9) intel/2018a
-
-
-Due to MODULEPATH changes, the following have been reloaded:
-  1) GCCcore/6.4.0
-  2) binutils/2.28-GCCcore-6.4.0
-  3) icc/2018.1.163-GCC-6.4.0-2.28
-  4) iccifort/2018.1.163-GCC-6.4.0-2.28
-  5) ifort/2018.1.163-GCC-6.4.0-2.28
-  6) iimpi/2018a
-  7) imkl/2018.1.163-iimpi-2018a
-  8) impi/2018.1.163-iccifort-2018.1.163-GCC-6.4.0-2.28
-  9) intel/2018a
-
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-
-Due to MODULEPATH changes, the following have been reloaded:
-  1) GCCcore/6.4.0
-  2) binutils/2.28-GCCcore-6.4.0
-  3) icc/2018.1.163-GCC-6.4.0-2.28
-  4) iccifort/2018.1.163-GCC-6.4.0-2.28
-  5) ifort/2018.1.163-GCC-6.4.0-2.28
-  6) iimpi/2018a
-  7) imkl/2018.1.163-iimpi-2018a
-  8) impi/2018.1.163-iccifort-2018.1.163-GCC-6.4.0-2.28
-  9) intel/2018a
-
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-wandb: Currently logged in as: kbardool (use `wandb login --relogin` to force relogin)
-wandb: Currently logged in as: kbardool (use `wandb login --relogin` to force relogin)
-wandb: Currently logged in as: kbardool (use `wandb login --relogin` to force relogin)
-wandb: Currently logged in as: kbardool (use `wandb login --relogin` to force relogin)
-wandb: Currently logged in as: kbardool (use `wandb login --relogin` to force relogin)
-wandb: Currently logged in as: kbardool (use `wandb login --relogin` to force relogin)
-wandb: Currently logged in as: kbardool (use `wandb login --relogin` to force relogin)
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-wandb: Tracking run with wandb version 0.12.14
-wandb: Run data is saved locally in /vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/wandb/run-20220420_111032-2yj13ru3
-wandb: Run `wandb offline` to turn off syncing.
-wandb: Syncing run 0420_1110
-wandb: ⭐️ View project at https://wandb.ai/kbardool/AdaSparseChem-Mini
-wandb: 🚀 View run at https://wandb.ai/kbardool/AdaSparseChem-Mini/runs/2yj13ru3
-wandb: Tracking run with wandb version 0.12.14
-wandb: Run data is saved locally in /vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/wandb/run-20220420_111032-2wjmjpzb
-wandb: Run `wandb offline` to turn off syncing.
-wandb: Syncing run 0420_1110
-wandb: ⭐️ View project at https://wandb.ai/kbardool/AdaSparseChem-Mini
-wandb: 🚀 View run at https://wandb.ai/kbardool/AdaSparseChem-Mini/runs/2wjmjpzb
-wandb: Tracking run with wandb version 0.12.14
-wandb: Run data is saved locally in /vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/wandb/run-20220420_111032-17qp420c
-wandb: Run `wandb offline` to turn off syncing.
-wandb: Syncing run 0420_1110
-wandb: ⭐️ View project at https://wandb.ai/kbardool/AdaSparseChem-Mini
-wandb: 🚀 View run at https://wandb.ai/kbardool/AdaSparseChem-Mini/runs/17qp420c
-wandb: Tracking run with wandb version 0.12.14
-wandb: Run data is saved locally in /vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/wandb/run-20220420_111032-3k8x35wq
-wandb: Run `wandb offline` to turn off syncing.
-wandb: Syncing run 0420_1110
-wandb: ⭐️ View project at https://wandb.ai/kbardool/AdaSparseChem-Mini
-wandb: 🚀 View run at https://wandb.ai/kbardool/AdaSparseChem-Mini/runs/3k8x35wq
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-wandb: Tracking run with wandb version 0.12.14
-wandb: Run data is saved locally in /vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/wandb/run-20220420_111033-j6bks0iq
-wandb: Run `wandb offline` to turn off syncing.
-wandb: Syncing run 0420_1110
-wandb: ⭐️ View project at https://wandb.ai/kbardool/AdaSparseChem-Mini
-wandb: 🚀 View run at https://wandb.ai/kbardool/AdaSparseChem-Mini/runs/j6bks0iq
-wandb: Tracking run with wandb version 0.12.14
-wandb: Run data is saved locally in /vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/wandb/run-20220420_111033-1segrhtj
-wandb: Run `wandb offline` to turn off syncing.
-wandb: Syncing run 0420_1110
-wandb: ⭐️ View project at https://wandb.ai/kbardool/AdaSparseChem-Mini
-wandb: 🚀 View run at https://wandb.ai/kbardool/AdaSparseChem-Mini/runs/1segrhtj
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-wandb: Tracking run with wandb version 0.12.14
-wandb: Run data is saved locally in /vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/wandb/run-20220420_111033-8jqdbd1o
-wandb: Run `wandb offline` to turn off syncing.
-wandb: Syncing run 0420_1110
-wandb: ⭐️ View project at https://wandb.ai/kbardool/AdaSparseChem-Mini
-wandb: 🚀 View run at https://wandb.ai/kbardool/AdaSparseChem-Mini/runs/8jqdbd1o
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-THCudaCheck FAIL file=/opt/conda/conda-bld/pytorch_1634272068185/work/aten/src/THC/THCCachingHostAllocator.cpp line=280 error=46 : all CUDA-capable devices are busy or unavailable
-THCudaCheck FAIL file=/opt/conda/conda-bld/pytorch_1634272068185/work/aten/src/THC/THCCachingHostAllocator.cpp line=280 error=46 : all CUDA-capable devices are busy or unavailable
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-THCudaCheck FAIL file=/opt/conda/conda-bld/pytorch_1634272068185/work/aten/src/THC/THCCachingHostAllocator.cpp line=280 error=46 : all CUDA-capable devices are busy or unavailable
-THCudaCheck FAIL file=/opt/conda/conda-bld/pytorch_1634272068185/work/aten/src/THC/THCCachingHostAllocator.cpp line=280 error=46 : all CUDA-capable devices are busy or unavailable
-Traceback (most recent call last):
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/Adashare_Train_mini.py", line 110, in <module>
-    training_prep(ns, opt, environ, dldrs)
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/utils/notebook_modules.py", line 245, in training_prep
-    environ.cuda(opt['gpu_ids'])
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/envs/sparsechem_env.py", line 1232, in cuda
-    super(SparseChemEnv, self).cuda(gpu_ids)
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/envs/base_env.py", line 641, in cuda
-    v.to(self.device)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 899, in to
-    return self._apply(convert)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 593, in _apply
-    param_applied = fn(param)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 897, in convert
-    return t.to(device, dtype if t.is_floating_point() or t.is_complex() else None, non_blocking)
-RuntimeError: CUDA error: all CUDA-capable devices are busy or unavailable
-CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
-For debugging consider passing CUDA_LAUNCH_BLOCKING=1.
-THCudaCheck FAIL file=/opt/conda/conda-bld/pytorch_1634272068185/work/aten/src/THC/THCCachingHostAllocator.cpp line=280 error=46 : all CUDA-capable devices are busy or unavailable
-THCudaCheck FAIL file=/opt/conda/conda-bld/pytorch_1634272068185/work/aten/src/THC/THCCachingHostAllocator.cpp line=280 error=46 : all CUDA-capable devices are busy or unavailable
-Traceback (most recent call last):
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/Adashare_Train_mini.py", line 110, in <module>
-    training_prep(ns, opt, environ, dldrs)
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/utils/notebook_modules.py", line 245, in training_prep
-    environ.cuda(opt['gpu_ids'])
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/envs/sparsechem_env.py", line 1232, in cuda
-    super(SparseChemEnv, self).cuda(gpu_ids)
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/envs/base_env.py", line 641, in cuda
-    v.to(self.device)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 899, in to
-    return self._apply(convert)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 593, in _apply
-    param_applied = fn(param)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 897, in convert
-    return t.to(device, dtype if t.is_floating_point() or t.is_complex() else None, non_blocking)
-RuntimeError: CUDA error: all CUDA-capable devices are busy or unavailable
-CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
-For debugging consider passing CUDA_LAUNCH_BLOCKING=1.
-THCudaCheck FAIL file=/opt/conda/conda-bld/pytorch_1634272068185/work/aten/src/THC/THCCachingHostAllocator.cpp line=280 error=46 : all CUDA-capable devices are busy or unavailable
-Traceback (most recent call last):
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/Adashare_Train_mini.py", line 110, in <module>
-    training_prep(ns, opt, environ, dldrs)
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/utils/notebook_modules.py", line 245, in training_prep
-    environ.cuda(opt['gpu_ids'])
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/envs/sparsechem_env.py", line 1232, in cuda
-    super(SparseChemEnv, self).cuda(gpu_ids)
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/envs/base_env.py", line 641, in cuda
-    v.to(self.device)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 899, in to
-    return self._apply(convert)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 593, in _apply
-    param_applied = fn(param)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 897, in convert
-    return t.to(device, dtype if t.is_floating_point() or t.is_complex() else None, non_blocking)
-RuntimeError: CUDA error: all CUDA-capable devices are busy or unavailable
-CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
-For debugging consider passing CUDA_LAUNCH_BLOCKING=1.
-Traceback (most recent call last):
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/Adashare_Train_mini.py", line 110, in <module>
-    training_prep(ns, opt, environ, dldrs)
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/utils/notebook_modules.py", line 245, in training_prep
-    environ.cuda(opt['gpu_ids'])
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/envs/sparsechem_env.py", line 1232, in cuda
-    super(SparseChemEnv, self).cuda(gpu_ids)
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/envs/base_env.py", line 641, in cuda
-    v.to(self.device)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 899, in to
-    return self._apply(convert)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 593, in _apply
-    param_applied = fn(param)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 897, in convert
-    return t.to(device, dtype if t.is_floating_point() or t.is_complex() else None, non_blocking)
-RuntimeError: CUDA error: all CUDA-capable devices are busy or unavailable
-CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
-For debugging consider passing CUDA_LAUNCH_BLOCKING=1.
-Traceback (most recent call last):
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/Adashare_Train_mini.py", line 110, in <module>
-    training_prep(ns, opt, environ, dldrs)
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/utils/notebook_modules.py", line 245, in training_prep
-    environ.cuda(opt['gpu_ids'])
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/envs/sparsechem_env.py", line 1232, in cuda
-    super(SparseChemEnv, self).cuda(gpu_ids)
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/envs/base_env.py", line 641, in cuda
-    v.to(self.device)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 899, in to
-    return self._apply(convert)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 593, in _apply
-    param_applied = fn(param)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 897, in convert
-    return t.to(device, dtype if t.is_floating_point() or t.is_complex() else None, non_blocking)
-RuntimeError: CUDA error: all CUDA-capable devices are busy or unavailable
-CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
-For debugging consider passing CUDA_LAUNCH_BLOCKING=1.
-Traceback (most recent call last):
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/Adashare_Train_mini.py", line 110, in <module>
-    training_prep(ns, opt, environ, dldrs)
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/utils/notebook_modules.py", line 245, in training_prep
-    environ.cuda(opt['gpu_ids'])
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/envs/sparsechem_env.py", line 1232, in cuda
-    super(SparseChemEnv, self).cuda(gpu_ids)
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/envs/base_env.py", line 641, in cuda
-    v.to(self.device)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 899, in to
-    return self._apply(convert)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 593, in _apply
-    param_applied = fn(param)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 897, in convert
-    return t.to(device, dtype if t.is_floating_point() or t.is_complex() else None, non_blocking)
-RuntimeError: CUDA error: all CUDA-capable devices are busy or unavailable
-CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
-For debugging consider passing CUDA_LAUNCH_BLOCKING=1.
-Traceback (most recent call last):
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/Adashare_Train_mini.py", line 110, in <module>
-    training_prep(ns, opt, environ, dldrs)
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/utils/notebook_modules.py", line 245, in training_prep
-    environ.cuda(opt['gpu_ids'])
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/envs/sparsechem_env.py", line 1232, in cuda
-    super(SparseChemEnv, self).cuda(gpu_ids)
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/envs/base_env.py", line 641, in cuda
-    v.to(self.device)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 899, in to
-    return self._apply(convert)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 593, in _apply
-    param_applied = fn(param)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 897, in convert
-    return t.to(device, dtype if t.is_floating_point() or t.is_complex() else None, non_blocking)
-RuntimeError: CUDA error: all CUDA-capable devices are busy or unavailable
-CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
-For debugging consider passing CUDA_LAUNCH_BLOCKING=1.
-wandb: Waiting for W&B process to finish... (failed 1). Press Control-C to abort syncing.
-wandb: - 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: \ 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: Waiting for W&B process to finish... (failed 1). Press Control-C to abort syncing.
-wandb: - 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: | 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: Waiting for W&B process to finish... (failed 1). Press Control-C to abort syncing.
-wandb: - 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: \ 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: / 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: Waiting for W&B process to finish... (failed 1). Press Control-C to abort syncing.
-wandb: - 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: \ 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: - 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: \ 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: | 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: / 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: Waiting for W&B process to finish... (failed 1). Press Control-C to abort syncing.
-wandb: - 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: - 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: Waiting for W&B process to finish... (failed 1). Press Control-C to abort syncing.
-wandb: - 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: \ 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: Waiting for W&B process to finish... (failed 1). Press Control-C to abort syncing.
-wandb: - 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: / 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: | 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: / 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: - 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.006 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.006 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb:                                                                                
-wandb: - 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.006 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.006 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-wandb: \ 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb:                                                                                
-wandb: | 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb:                                                                                
-wandb: - 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: Synced 0420_1110: https://wandb.ai/kbardool/AdaSparseChem-Mini/runs/2wjmjpzb
-wandb: Synced 6 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
-wandb: Find logs at: ./wandb/run-20220420_111032-2wjmjpzb/logs
-wandb: \ 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb:                                                                                
-wandb: - 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb:                                                                                
-wandb: - 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb:                                                                                
-wandb: \ 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb:                                                                                
-wandb: Synced 0420_1110: https://wandb.ai/kbardool/AdaSparseChem-Mini/runs/2yj13ru3
-wandb: Synced 6 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
-wandb: Find logs at: ./wandb/run-20220420_111032-2yj13ru3/logs
-wandb: Synced 0420_1110: https://wandb.ai/kbardool/AdaSparseChem-Mini/runs/17qp420c
-wandb: Synced 6 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
-wandb: Find logs at: ./wandb/run-20220420_111032-17qp420c/logs
-wandb: Synced 0420_1110: https://wandb.ai/kbardool/AdaSparseChem-Mini/runs/1segrhtj
-wandb: Synced 6 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
-wandb: Find logs at: ./wandb/run-20220420_111033-1segrhtj/logs
-wandb: Synced 0420_1110: https://wandb.ai/kbardool/AdaSparseChem-Mini/runs/j6bks0iq
-wandb: Synced 6 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
-wandb: Find logs at: ./wandb/run-20220420_111033-j6bks0iq/logs
-wandb: Synced 0420_1110: https://wandb.ai/kbardool/AdaSparseChem-Mini/runs/8jqdbd1o
-wandb: Synced 6 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
-wandb: Find logs at: ./wandb/run-20220420_111033-8jqdbd1o/logs
-wandb: Synced 0420_1110: https://wandb.ai/kbardool/AdaSparseChem-Mini/runs/3k8x35wq
-wandb: Synced 6 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
-wandb: Find logs at: ./wandb/run-20220420_111032-3k8x35wq/logs
-
-Due to MODULEPATH changes, the following have been reloaded:
-  1) GCCcore/6.4.0
-  2) binutils/2.28-GCCcore-6.4.0
-  3) icc/2018.1.163-GCC-6.4.0-2.28
-  4) iccifort/2018.1.163-GCC-6.4.0-2.28
-  5) ifort/2018.1.163-GCC-6.4.0-2.28
-  6) iimpi/2018a
-  7) imkl/2018.1.163-iimpi-2018a
-  8) impi/2018.1.163-iccifort-2018.1.163-GCC-6.4.0-2.28
-  9) intel/2018a
-
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-
-Due to MODULEPATH changes, the following have been reloaded:
-  1) GCCcore/6.4.0
-  2) binutils/2.28-GCCcore-6.4.0
-  3) icc/2018.1.163-GCC-6.4.0-2.28
-  4) iccifort/2018.1.163-GCC-6.4.0-2.28
-  5) ifort/2018.1.163-GCC-6.4.0-2.28
-  6) iimpi/2018a
-  7) imkl/2018.1.163-iimpi-2018a
-  8) impi/2018.1.163-iccifort-2018.1.163-GCC-6.4.0-2.28
-  9) intel/2018a
-
-
-Due to MODULEPATH changes, the following have been reloaded:
-  1) GCCcore/6.4.0
-  2) binutils/2.28-GCCcore-6.4.0
-  3) icc/2018.1.163-GCC-6.4.0-2.28
-  4) iccifort/2018.1.163-GCC-6.4.0-2.28
-  5) ifort/2018.1.163-GCC-6.4.0-2.28
-  6) iimpi/2018a
-  7) imkl/2018.1.163-iimpi-2018a
-  8) impi/2018.1.163-iccifort-2018.1.163-GCC-6.4.0-2.28
-  9) intel/2018a
-
-
-Due to MODULEPATH changes, the following have been reloaded:
-  1) GCCcore/6.4.0
-  2) binutils/2.28-GCCcore-6.4.0
-  3) icc/2018.1.163-GCC-6.4.0-2.28
-  4) iccifort/2018.1.163-GCC-6.4.0-2.28
-  5) ifort/2018.1.163-GCC-6.4.0-2.28
-  6) iimpi/2018a
-  7) imkl/2018.1.163-iimpi-2018a
-  8) impi/2018.1.163-iccifort-2018.1.163-GCC-6.4.0-2.28
-  9) intel/2018a
-
-
-Due to MODULEPATH changes, the following have been reloaded:
-  1) GCCcore/6.4.0
-  2) binutils/2.28-GCCcore-6.4.0
-  3) icc/2018.1.163-GCC-6.4.0-2.28
-  4) iccifort/2018.1.163-GCC-6.4.0-2.28
-  5) ifort/2018.1.163-GCC-6.4.0-2.28
-  6) iimpi/2018a
-  7) imkl/2018.1.163-iimpi-2018a
-  8) impi/2018.1.163-iccifort-2018.1.163-GCC-6.4.0-2.28
-  9) intel/2018a
-
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-wandb: Currently logged in as: kbardool (use `wandb login --relogin` to force relogin)
-wandb: Currently logged in as: kbardool (use `wandb login --relogin` to force relogin)
-wandb: Currently logged in as: kbardool (use `wandb login --relogin` to force relogin)
-wandb: Currently logged in as: kbardool (use `wandb login --relogin` to force relogin)
-wandb: Currently logged in as: kbardool (use `wandb login --relogin` to force relogin)
-wandb: Tracking run with wandb version 0.12.14
-wandb: Run data is saved locally in /vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/wandb/run-20220420_111115-1jwadk8s
-wandb: Run `wandb offline` to turn off syncing.
-wandb: Syncing run 0420_1111
-wandb: ⭐️ View project at https://wandb.ai/kbardool/AdaSparseChem-Mini
-wandb: 🚀 View run at https://wandb.ai/kbardool/AdaSparseChem-Mini/runs/1jwadk8s
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-THCudaCheck FAIL file=/opt/conda/conda-bld/pytorch_1634272068185/work/aten/src/THC/THCCachingHostAllocator.cpp line=280 error=46 : all CUDA-capable devices are busy or unavailable
-Traceback (most recent call last):
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/Adashare_Train_mini.py", line 110, in <module>
-    training_prep(ns, opt, environ, dldrs)
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/utils/notebook_modules.py", line 245, in training_prep
-    environ.cuda(opt['gpu_ids'])
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/envs/sparsechem_env.py", line 1232, in cuda
-    super(SparseChemEnv, self).cuda(gpu_ids)
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/envs/base_env.py", line 641, in cuda
-    v.to(self.device)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 899, in to
-    return self._apply(convert)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 593, in _apply
-    param_applied = fn(param)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 897, in convert
-    return t.to(device, dtype if t.is_floating_point() or t.is_complex() else None, non_blocking)
-RuntimeError: CUDA error: all CUDA-capable devices are busy or unavailable
-CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
-For debugging consider passing CUDA_LAUNCH_BLOCKING=1.
-wandb: Tracking run with wandb version 0.12.14
-wandb: Run data is saved locally in /vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/wandb/run-20220420_111119-36j3ziff
-wandb: Run `wandb offline` to turn off syncing.
-wandb: Syncing run 0420_1111
-wandb: ⭐️ View project at https://wandb.ai/kbardool/AdaSparseChem-Mini
-wandb: 🚀 View run at https://wandb.ai/kbardool/AdaSparseChem-Mini/runs/36j3ziff
-wandb: Tracking run with wandb version 0.12.14
-wandb: Run data is saved locally in /vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/wandb/run-20220420_111120-23b66ch5
-wandb: Run `wandb offline` to turn off syncing.
-wandb: Syncing run 0420_1111
-wandb: ⭐️ View project at https://wandb.ai/kbardool/AdaSparseChem-Mini
-wandb: 🚀 View run at https://wandb.ai/kbardool/AdaSparseChem-Mini/runs/23b66ch5
-wandb: Tracking run with wandb version 0.12.14
-wandb: Run data is saved locally in /vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/wandb/run-20220420_111120-2iwdtgiu
-wandb: Run `wandb offline` to turn off syncing.
-wandb: Syncing run 0420_1111
-wandb: ⭐️ View project at https://wandb.ai/kbardool/AdaSparseChem-Mini
-wandb: 🚀 View run at https://wandb.ai/kbardool/AdaSparseChem-Mini/runs/2iwdtgiu
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-THCudaCheck FAIL file=/opt/conda/conda-bld/pytorch_1634272068185/work/aten/src/THC/THCCachingHostAllocator.cpp line=280 error=46 : all CUDA-capable devices are busy or unavailable
-wandb: Waiting for W&B process to finish... (failed 1). Press Control-C to abort syncing.
-wandb: - 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)THCudaCheck FAIL file=/opt/conda/conda-bld/pytorch_1634272068185/work/aten/src/THC/THCCachingHostAllocator.cpp line=280 error=46 : all CUDA-capable devices are busy or unavailable
-wandb: \ 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)THCudaCheck FAIL file=/opt/conda/conda-bld/pytorch_1634272068185/work/aten/src/THC/THCCachingHostAllocator.cpp line=280 error=46 : all CUDA-capable devices are busy or unavailable
-wandb: | 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)Traceback (most recent call last):
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/Adashare_Train_mini.py", line 110, in <module>
-    training_prep(ns, opt, environ, dldrs)
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/utils/notebook_modules.py", line 245, in training_prep
-    environ.cuda(opt['gpu_ids'])
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/envs/sparsechem_env.py", line 1232, in cuda
-    super(SparseChemEnv, self).cuda(gpu_ids)
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/envs/base_env.py", line 641, in cuda
-    v.to(self.device)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 899, in to
-    return self._apply(convert)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 593, in _apply
-    param_applied = fn(param)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 897, in convert
-    return t.to(device, dtype if t.is_floating_point() or t.is_complex() else None, non_blocking)
-RuntimeError: CUDA error: all CUDA-capable devices are busy or unavailable
-CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
-For debugging consider passing CUDA_LAUNCH_BLOCKING=1.
-wandb: Tracking run with wandb version 0.12.14
-wandb: Run data is saved locally in /vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/wandb/run-20220420_111121-28v7vask
-wandb: Run `wandb offline` to turn off syncing.
-wandb: Syncing run 0420_1111
-wandb: ⭐️ View project at https://wandb.ai/kbardool/AdaSparseChem-Mini
-wandb: 🚀 View run at https://wandb.ai/kbardool/AdaSparseChem-Mini/runs/28v7vask
-wandb: / 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)Traceback (most recent call last):
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/Adashare_Train_mini.py", line 110, in <module>
-    training_prep(ns, opt, environ, dldrs)
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/utils/notebook_modules.py", line 245, in training_prep
-    environ.cuda(opt['gpu_ids'])
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/envs/sparsechem_env.py", line 1232, in cuda
-    super(SparseChemEnv, self).cuda(gpu_ids)
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/envs/base_env.py", line 641, in cuda
-    v.to(self.device)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 899, in to
-    return self._apply(convert)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 593, in _apply
-    param_applied = fn(param)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 897, in convert
-    return t.to(device, dtype if t.is_floating_point() or t.is_complex() else None, non_blocking)
-RuntimeError: CUDA error: all CUDA-capable devices are busy or unavailable
-CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
-For debugging consider passing CUDA_LAUNCH_BLOCKING=1.
-wandb: - 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-wandb: \ 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)Traceback (most recent call last):
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/Adashare_Train_mini.py", line 110, in <module>
-    training_prep(ns, opt, environ, dldrs)
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/utils/notebook_modules.py", line 245, in training_prep
-    environ.cuda(opt['gpu_ids'])
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/envs/sparsechem_env.py", line 1232, in cuda
-    super(SparseChemEnv, self).cuda(gpu_ids)
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/envs/base_env.py", line 641, in cuda
-    v.to(self.device)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 899, in to
-    return self._apply(convert)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 593, in _apply
-    param_applied = fn(param)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 897, in convert
-    return t.to(device, dtype if t.is_floating_point() or t.is_complex() else None, non_blocking)
-RuntimeError: CUDA error: all CUDA-capable devices are busy or unavailable
-CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
-For debugging consider passing CUDA_LAUNCH_BLOCKING=1.
-wandb: | 0.017 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.017 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.017 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.017 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.017 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.017 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.017 MB of 0.029 MB uploaded (0.000 MB deduped)THCudaCheck FAIL file=/opt/conda/conda-bld/pytorch_1634272068185/work/aten/src/THC/THCCachingHostAllocator.cpp line=280 error=46 : all CUDA-capable devices are busy or unavailable
-wandb: \ 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)Traceback (most recent call last):
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/Adashare_Train_mini.py", line 110, in <module>
-    training_prep(ns, opt, environ, dldrs)
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/utils/notebook_modules.py", line 245, in training_prep
-    environ.cuda(opt['gpu_ids'])
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/envs/sparsechem_env.py", line 1232, in cuda
-    super(SparseChemEnv, self).cuda(gpu_ids)
-  File "/vsc-hard-mounts/leuven-data/326/vsc32647/projs/AdaSparseChem/pbs_jobs/../src/envs/base_env.py", line 641, in cuda
-    v.to(self.device)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 899, in to
-    return self._apply(convert)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 570, in _apply
-    module._apply(fn)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 593, in _apply
-    param_applied = fn(param)
-  File "/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/nn/modules/module.py", line 897, in convert
-    return t.to(device, dtype if t.is_floating_point() or t.is_complex() else None, non_blocking)
-RuntimeError: CUDA error: all CUDA-capable devices are busy or unavailable
-CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
-For debugging consider passing CUDA_LAUNCH_BLOCKING=1.
-wandb: | 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: Waiting for W&B process to finish... (failed 1). Press Control-C to abort syncing.
-wandb: - 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: Waiting for W&B process to finish... (failed 1). Press Control-C to abort syncing.
-wandb: - 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: \ 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: Waiting for W&B process to finish... (failed 1). Press Control-C to abort syncing.
-wandb: / 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb:                                                                                
-wandb: - 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: \ 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: | 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: / 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: / 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.002 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.006 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: Synced 0420_1111: https://wandb.ai/kbardool/AdaSparseChem-Mini/runs/1jwadk8s
-wandb: Synced 6 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
-wandb: Find logs at: ./wandb/run-20220420_111115-1jwadk8s/logs
-wandb: | 0.026 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.026 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: Waiting for W&B process to finish... (failed 1). Press Control-C to abort syncing.
-wandb: - 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: - 0.026 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb:                                                                                
-wandb: \ 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: \ 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: | 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: / 0.002 MB of 0.027 MB uploaded (0.000 MB deduped)wandb: - 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: - 0.002 MB of 0.027 MB uploaded (0.000 MB deduped)wandb: \ 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: \ 0.002 MB of 0.027 MB uploaded (0.000 MB deduped)wandb: | 0.006 MB of 0.027 MB uploaded (0.000 MB deduped)wandb: | 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb: / 0.024 MB of 0.027 MB uploaded (0.000 MB deduped)/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-wandb: - 0.024 MB of 0.027 MB uploaded (0.000 MB deduped)wandb: \ 0.027 MB of 0.027 MB uploaded (0.000 MB deduped)wandb: | 0.027 MB of 0.027 MB uploaded (0.000 MB deduped)wandb: / 0.002 MB of 0.026 MB uploaded (0.000 MB deduped)wandb: / 0.029 MB of 0.029 MB uploaded (0.000 MB deduped)wandb:                                                                                
-wandb: / 0.027 MB of 0.027 MB uploaded (0.000 MB deduped)wandb: Synced 0420_1111: https://wandb.ai/kbardool/AdaSparseChem-Mini/runs/2iwdtgiu
-wandb: Synced 6 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
-wandb: Find logs at: ./wandb/run-20220420_111120-2iwdtgiu/logs
-wandb: - 0.002 MB of 0.026 MB uploaded (0.000 MB deduped)wandb: - 0.027 MB of 0.027 MB uploaded (0.000 MB deduped)wandb: \ 0.002 MB of 0.026 MB uploaded (0.000 MB deduped)wandb: \ 0.027 MB of 0.027 MB uploaded (0.000 MB deduped)wandb: | 0.026 MB of 0.026 MB uploaded (0.000 MB deduped)wandb: / 0.026 MB of 0.026 MB uploaded (0.000 MB deduped)wandb: | 0.027 MB of 0.027 MB uploaded (0.000 MB deduped)wandb: - 0.026 MB of 0.026 MB uploaded (0.000 MB deduped)wandb: \ 0.026 MB of 0.026 MB uploaded (0.000 MB deduped)wandb: | 0.026 MB of 0.026 MB uploaded (0.000 MB deduped)wandb: / 0.026 MB of 0.026 MB uploaded (0.000 MB deduped)wandb: / 0.027 MB of 0.027 MB uploaded (0.000 MB deduped)wandb:                                                                                
-wandb: Synced 0420_1111: https://wandb.ai/kbardool/AdaSparseChem-Mini/runs/36j3ziff
-wandb: Synced 6 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
-wandb: Find logs at: ./wandb/run-20220420_111119-36j3ziff/logs
-wandb: - 0.026 MB of 0.026 MB uploaded (0.000 MB deduped)wandb: \ 0.026 MB of 0.026 MB uploaded (0.000 MB deduped)wandb:                                                                                
-wandb: Synced 0420_1111: https://wandb.ai/kbardool/AdaSparseChem-Mini/runs/23b66ch5
-wandb: Synced 6 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
-wandb: Find logs at: ./wandb/run-20220420_111120-23b66ch5/logs
-wandb: Synced 0420_1111: https://wandb.ai/kbardool/AdaSparseChem-Mini/runs/28v7vask
-wandb: Synced 6 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
-wandb: Find logs at: ./wandb/run-20220420_111121-28v7vask/logs
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-/data/leuven/326/vsc32647/miniconda3/envs/pyt-gpu/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
-  warnings.warn(_create_warning_msg(
-wandb: Waiting for W&B process to finish... (success).
-wandb: - 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: \ 0.002 MB of 0.002 MB uploaded (0.000 MB deduped)wandb: | 0.002 MB of 0.152 MB uploaded (0.000 MB deduped)wandb: / 0.002 MB of 0.152 MB uploaded (0.000 MB deduped)wandb: - 0.002 MB of 0.152 MB uploaded (0.000 MB deduped)wandb: \ 0.005 MB of 0.152 MB uploaded (0.000 MB deduped)wandb: | 0.152 MB of 0.152 MB uploaded (0.000 MB deduped)wandb: / 0.152 MB of 0.152 MB uploaded (0.000 MB deduped)wandb: - 0.152 MB of 0.152 MB uploaded (0.000 MB deduped)wandb: \ 0.152 MB of 0.152 MB uploaded (0.000 MB deduped)wandb: | 0.152 MB of 0.152 MB uploaded (0.000 MB deduped)wandb: / 0.152 MB of 0.152 MB uploaded (0.000 MB deduped)wandb: - 0.152 MB of 0.152 MB uploaded (0.000 MB deduped)wandb: \ 0.152 MB of 0.152 MB uploaded (0.000 MB deduped)wandb:                                                                                
-wandb: 
-wandb: Run history:
-wandb:          auc_pr ▄▁▃█▆▅██▅▆▅▅▅▄▄▃▃▄▆▆▅▄▃▃▃▅▄▄▄▃▃▂▃▂▃▂▄▄▄▄
-wandb:  avg_prec_score ▄▁▃█▅▄██▄▅▄▅▅▄▄▃▂▄▅▅▅▃▃▂▃▅▄▃▃▂▂▂▂▂▂▂▃▃▃▄
-wandb:         bceloss ▁▃▃▂▇▅▄▃▄▅▅▇███▇▆█▆▇▆▆▅▆▆▇▇▇▇▇▇▆▇▇▇▇▆▇▇▆
-wandb:   best_accuracy ▁▂██
-wandb:      best_epoch ▁▁▃█
-wandb:       best_iter ▁▁▃█
-wandb:           epoch ▁▁▁▁▂▂▂▂▂▃▃▃▃▃▃▄▄▄▄▄▅▅▅▅▅▅▆▆▆▆▆▇▇▇▇▇▇███
-wandb:          f1_max ▇▃▃▆▂▃█▇▅▄▄▂▃▃▄▃▃▄▅▃▂▂▃▂▁▄▄▃▄▄▄▄▄▄▄▄▄▄▄▄
-wandb:     gumbel_temp ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
-wandb:           kappa ▁▃▄▇▅▅██▆▄▇▇▆▆▇▅▆▅▆▆▅▅▅▆▆▆▇▅▅▆▇███▆▇▇▄▅▅
-wandb:       kappa_max ▅▃▁▃▁▃█▆▅▃▃▄▅▅▅▄▄▄▄▄▄▄▄▃▃▄▄▄▅▄▄▄▄▄▃▃▅▄▅▅
-wandb:  lambda_sharing ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
-wandb: lambda_sparsity ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
-wandb:    lambda_tasks ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
-wandb:         logloss ▁▂▃▂▇▃▂▁▃▃▄▅▆▆▆▅▆▆▅▆▅▆▅▅▅▆▆▇▇▇▆▅▇██▇▆▆▇▆
-wandb:            lr_0 ███████████▃▃▃▃▃▃▃▃▃▃▃▃▃▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
-wandb:            lr_1 ███████████▃▃▃▃▃▃▃▃▃▃▃▃▃▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
-wandb:        p_f1_max ▆▄▁▂█▄▅▁▄▅▄▃▃▇▄▂▃▄▃▄▃█▆▅▅▆▇▇▇▇▅▆▄▅▅▅▇█▇▇
-wandb:     p_kappa_max ▃▃▃▃▆▄▃▃▄▅▄▃▁▃▂▂▂▁▁▄▃▆▆▄▆▆▆▅▆▅▆▄▄▅▅▄▆█▅▇
-wandb:          policy ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
-wandb:       policy_lr ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
-wandb:   roc_auc_score ▆▄▂▄▄▄██▇▆▂▂▃▃▄▂▁▄▃▆▃▂▂▃▃▃▂▂▂▂▁▁▂▁▂▁▃▃▂▂
-wandb:         sc_loss ▁▂▃▂▇▃▂▁▃▃▄▅▆▆▆▅▆▆▅▆▅▆▅▅▅▆▆▇▇▇▆▅▇██▇▆▆▇▆
-wandb:            task ▁▂▃▂▇▃▂▁▃▃▄▅▆▆▆▅▆▆▅▆▅▆▅▅▅▆▆▇▇▇▆▅▇██▇▆▆▇▆
-wandb:           task1 ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
-wandb:           total ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
-wandb:      total_mean ▁▁▂▂▅▃▂▁▂▂▃▃▅▄▄▄▅▄▄▄▃▄▃▄▄▄▄▄▅▅▅▄▆█▇▆▅▅▅▄
-wandb:    train_layers ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
-wandb: 
-wandb: Run summary:
-wandb:          auc_pr 0.92085
-wandb:  avg_prec_score 0.92643
-wandb:         bceloss 0.697
-wandb:           epoch 100
-wandb:          f1_max 0.92672
-wandb:     gumbel_temp 4
-wandb:           kappa 0.50621
-wandb:       kappa_max 0.77363
-wandb:  lambda_sharing 0.01
-wandb: lambda_sparsity 0.02
-wandb:    lambda_tasks 1
-wandb:         logloss 4e-05
-wandb:            lr_0 3e-05
-wandb:            lr_1 3e-05
-wandb:        p_f1_max 0.68164
-wandb:     p_kappa_max 0.83257
-wandb:          policy 0.00012
-wandb:       policy_lr 0.001
-wandb:   roc_auc_score 0.85846
-wandb:         sc_loss 0.00549
-wandb:            task 0.16468
-wandb:           task1 0.00012
-wandb:           total 0.00012
-wandb:      total_mean 0.00123
-wandb:    train_layers 0
-wandb: 
-wandb: Synced 0420_1109: https://wandb.ai/kbardool/AdaSparseChem-Mini/runs/c4umf8gu
-wandb: Synced 6 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
-wandb: Find logs at: ./wandb/run-20220420_110935-c4umf8gu/logs

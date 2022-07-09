@@ -18,7 +18,7 @@ submit_type="LOCAL"
 # pbs_allocate="-l nodes=1:ppn=4,walltime=01:00:00 "
 
 # Config Parameters ======================================================
-ADASHARE_SCRIPT="AS_profiler.sh" 
+TRAINING_SCRIPT="AS_profiler.sh" 
 config="../yamls/chembl_cb29_train.yaml"
 datadir="../../MLDatasets/chembl29"
 outdir="../../experiments/AdaSparseChem-cb29"
@@ -90,7 +90,7 @@ dev=2
 #     hdn_opt="False"
 #     desc="Run with residiual layers"
 #     echo " desc:   $desc"
-#     submit_job $ADASHARE_SCRIPT $job_prefix $opt $hdn_opt "$desc"
+#     submit_job $TRAINING_SCRIPT $job_prefix $opt $hdn_opt "$desc"
 # fi
 
 # if [ $1 == "nores" ] || [ $1 == "both" ] 
@@ -100,7 +100,7 @@ dev=2
 #     hdn_opt="False"
 #     desc="Run without residiual layers"
 #     echo " desc:   $desc"
-#     submit_job $ADASHARE_SCRIPT $job_prefix $opt $hdn_opt "$desc"
+#     submit_job $TRAINING_SCRIPT $job_prefix $opt $hdn_opt "$desc"
 # fi
 
 # if [ $1 == "nohidden" ]  
@@ -109,5 +109,5 @@ dev=2
 #     res_opt="False"
 #     hdn_opt="True"
 #     desc="Run without hidden layers"
-#     submit_job $ADASHARE_SCRIPT $job_prefix $opt $hdn_opt "$desc"
+#     submit_job $TRAINING_SCRIPT $job_prefix $opt $hdn_opt "$desc"
 # fi

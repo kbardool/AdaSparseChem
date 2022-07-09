@@ -1,1 +1,0 @@
-wandb sweep --update kbardool/AdaSparseChem-Mini/mgwsugsm wandb_sweep.yaml

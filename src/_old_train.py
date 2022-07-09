@@ -23,7 +23,6 @@ from utils.notebook_modules import initialize, init_dataloaders, init_environmen
                                    warmup_phase, weight_policy_training, disp_gpu_info
 
 from utils.util import (print_separator, print_heading, timestring, print_loss, load_from_pickle) 
-#  print_underline, load_from_pickle, print_dbg, get_command_line_args ) 
 
 pp = pprint.PrettyPrinter(indent=4)
 np.set_printoptions(edgeitems=3, infstr='inf', linewidth=150, nanstr='nan')
@@ -79,9 +78,10 @@ if opt['train']['resume']:
     print_separator('Resume training')
     loaded_iter, loaded_epoch = environ.load_checkpoint(RESUME_MODEL_CKPT, path = opt['paths']['checkpoint_dir'], verbose = True)
     print(loaded_iter, loaded_epoch)    
+    
 #     current_iter = environ.load_checkpoint(opt['train']['which_iter'])
     environ.networks['mtl-net'].reset_logits()
-    val_metrics = load_from_pickle(opt['paths']['checkpoint_dir'], RESUME_METRICS_CKPT)
+    val_metrics = load_from_pickle(path=opt['paths']['checkpoint_dir'], filename=RESUME_METRICS_CKPT)
     # training_prep(ns, opt, environ, dldrs, epoch = loaded_epoch, iter = loaded_iter )
 
 else:

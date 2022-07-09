@@ -18,20 +18,20 @@ submit_type="LOCAL"
 # pbs_allocate="-l nodes=1:ppn=4,walltime=01:00:00 "
 
 # Config Parameters ======================================================
-ADASHARE_SCRIPT="AS_train.sh" 
+TRAINING_SCRIPT="AS_train.sh" 
 config="../yamls/chembl_cb29_train.yaml"
 datadir="../../MLDatasets/chembl29"
 outdir="../../experiments/AdaSparseChem-cb29"
 
 # Training Parms =========================================================
 # lr_list=(0.001)
-lr_list=(0.0001)
+lr_list=(0.001)
 batch_size=4096
 
+layer_size_list=(2000) 
 num_layers_list=(6)
 # num_layers_list=(1 2 3)
-layer_size_list=(4000) 
-dropout_list=(0.80)
+dropout_list=(0.80 0.70)
  
 epochs=100
 seed_idx=1

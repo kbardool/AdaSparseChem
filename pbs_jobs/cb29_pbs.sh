@@ -18,7 +18,7 @@ pbs_allocate="-l nodes=1:ppn=9:gpus=1,partition=gpu,walltime=72:00:00 "
 # pbs_allocate="-l nodes=1:ppn=4,walltime=01:00:00 "
 
 # Config Parameters ======================================================
-ADASHARE_SCRIPT="AS_train.sh" 
+TRAINING_SCRIPT="AS_train.sh" 
 config="../yamls/chembl_cb29_train.yaml"
 datadir="../../MLDatasets/chembl29"
 outdir="../../experiments/AdaSparseChem-cb29"

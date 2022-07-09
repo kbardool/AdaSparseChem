@@ -17,7 +17,7 @@ pbs_allocate="-l nodes=1:ppn=9:gpus=1,partition=gpu,walltime=72:00:00 "
 # pbs_allocate="-l nodes=1:ppn=4,walltime=01:00:00 "
 
 # Config Parameters ======================================================
-ADASHARE_SCRIPT="AS_tr_resid.sh" 
+TRAINING_SCRIPT="AS_tr_resid.sh" 
 config="../yamls/chembl_mini_train.yaml"
 datadir="../../MLDatasets/chembl23_mini"
 outdir="../../experiments/AdaSparseChem-mini"
@@ -77,7 +77,7 @@ then echo " Its nohidden -- submit with --skip_hidden"
     hdn_opt="True"
     desc="Run without hidden layers"
     job_prefix="NH"
-    submit_list $ADASHARE_SCRIPT $job_prefix $opt $hdn_opt "$desc"
+    submit_list $TRAINING_SCRIPT $job_prefix $opt $hdn_opt "$desc"
 fi
 
 if [ $1 == "res" ] || [ $1 == "both" ] 
@@ -87,7 +87,7 @@ then echo " Its res! -- submit pbs_tr_resid"
     desc="Run with residiual layers"
     job_prefix="AS"
     echo " desc:   $desc"
-    submit_list $ADASHARE_SCRIPT $job_prefix $opt $hdn_opt "$desc"
+    submit_list $TRAINING_SCRIPT $job_prefix $opt $hdn_opt "$desc"
 fi
 
 if [ $1 == "nores" ] || [ $1 == "both" ] 
@@ -97,7 +97,7 @@ then echo " Its nores! -- submit pbs_tr_nores"
     desc="Run without residiual layers"
     job_prefix="NR"
     echo " desc:   $desc"
-    submit_list $ADASHARE_SCRIPT $job_prefix $opt $hdn_opt "$desc"
+    submit_list $TRAINING_SCRIPT $job_prefix $opt $hdn_opt "$desc"
 fi
  
  

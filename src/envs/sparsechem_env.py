@@ -19,8 +19,7 @@ from torch.autograd import Variable
 
 from models            import MTL3
 from envs.base_env     import BaseEnv
-from utils             import (timestring, print_heading, print_dbg, print_underline, debug_on, debug_off, 
-                                write_loss_csv_heading, is_notebook)
+from utils             import (timestring, print_heading, print_dbg, print_underline, debug_on, debug_off)
 from utils             import censored_mse_loss, censored_mae_loss, aggregate_results, compute_metrics
 from models            import SparseChemBlock
 # if is_notebook():
@@ -86,7 +85,7 @@ class SparseChemEnv(BaseEnv):
                 f" num_tasks      :  {self.num_tasks} \n"
                 f" policys        :  {self.networks['mtl-net'].policys}")
         
-        write_loss_csv_heading(self.loss_csv_file, self.initialize_loss_metrics())
+        # write_loss_csv_heading(self.loss_csv_file, self.initialize_loss_metrics())
 
         print_heading(f"* {self.name} environment successfully created", verbose = True)
 
@@ -362,7 +361,7 @@ class SparseChemEnv(BaseEnv):
                     assert (num_policy_layers == logits_j.shape[0])
 
                 task_i_j_loss = torch.sum(loss_weights * torch.abs(logits_i[:, 0] - logits_j[:, 0]))
-                task_i_loss += task_i_j_loss
+                task_i_loss  += task_i_j_loss
                 total_sharing_loss  +=  task_i_j_loss
                 
                 # print_underline(f" between tasks {t_id+1} and {t_j+1} : ",verbose=verbose)
@@ -479,7 +478,7 @@ class SparseChemEnv(BaseEnv):
 
         # print_dbg(f" {timestring()} - SparseChem network compute_losses() end ", verbose = verbose)
 
-    def optimize(self, task_lambdas, is_policy=False, flag='update_w', num_train_layers=None, 
+    def optimize(self, task_lambdas, is_policy=False, flag='update_weights', num_train_layers=None, 
                 policy_sampling_mode = "train", 
                 hard_sampling=False, verbose = False):
         """

@@ -13,7 +13,7 @@ for ((x=1;x<=${#*};x+=1))
         printf " Parm $x      : ${!x} \n"
     done
 printf "=================================================\n" 
-printf " ADASHARE_SCRIPT                   : $ADASHARE_SCRIPT \n"
+printf " TRAINING_SCRIPT                   : $TRAINING_SCRIPT \n"
 printf " arch_type (Residual/Hidden Layer) : $1 \n"
 printf " submit type (Local/PBS CLuster)   : $2\n"
 # printf " pbs_account    : $pbs_account \n"
@@ -45,7 +45,7 @@ submit_list(){
         # printf "* seed: $seed_idx  output: $output_file \n"   
         # printf "* Epochs: $epochs  Lyrs: $num_layers  Lyr sz: $layer  Dropout: $dropout  Task LR: $lr  device: $dev \n"
         # printf "=================================================\n" 
-        # printf " ADASHARE_SCRIPT: $ADASHARE_SCRIPT \n"
+        # printf " TRAINING_SCRIPT: $TRAINING_SCRIPT \n"
         # printf " submit type    : $submit_type\n"
         # printf " arch_type      : $1 \n"
         # printf " job_prefix     : $2 \n"
@@ -102,7 +102,7 @@ then
     hdn_opt="False"
     desc="Run with residiual layers"
     echo "Run type:   $desc"
-    submit_list $ADASHARE_SCRIPT $job_prefix $res_opt $hdn_opt "$desc"
+    submit_list $TRAINING_SCRIPT $job_prefix $res_opt $hdn_opt "$desc"
 fi
 
 if [ $1 == "nores" ] || [ $1 == "both" ] 
@@ -112,7 +112,7 @@ then
     hdn_opt="False"
     desc="Run without residiual layers"
     echo "Run type:   $desc"
-    submit_list $ADASHARE_SCRIPT $job_prefix $res_opt $hdn_opt "$desc"
+    submit_list $TRAINING_SCRIPT $job_prefix $res_opt $hdn_opt "$desc"
 fi
  
 if [ $1 == "nohidden" ]  
@@ -122,6 +122,6 @@ then
     hdn_opt="True"
     desc="Run without hidden layers"
     echo "Run type:   $desc"
-    submit_list $ADASHARE_SCRIPT $job_prefix $res_opt $hdn_opt "$desc"
+    submit_list $TRAINING_SCRIPT $job_prefix $res_opt $hdn_opt "$desc"
 fi
 
