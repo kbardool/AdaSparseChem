@@ -18,8 +18,8 @@ import numpy  as np
 # import wandb
 from   pynvml import *
 import pandas as pd
-from utils.notebook_modules import (initialize, init_dataloaders, init_environment, init_wandb, 
-                                   training_prep, disp_dataloader_info,disp_info_1, 
+from utils.notebook_modules import (initialize, init_environment, check_for_resume_training, model_initializations, 
+                                   training_initializations, disp_dataloader_info,disp_info_1, 
                                    warmup_phase, weight_policy_training, display_gpu_info,
                                    init_dataloaders_by_fold_id)                                    
 
@@ -60,18 +60,17 @@ disp_dataloader_info(dldrs)
 # ### Setup Model Environment  
 #-----------------------------------------------------------------
 environ = init_environment(ns, opt, is_train = True, policy_learning = False, display_cfg = True)
-# environ.define_optimizer(policy_learning=False)
-# environ.define_scheduler(policy_learning=False)
 
 #-----------------------------------------------------------------
 # ### Initiate / Resume Training Prep
 #-----------------------------------------------------------------
-# check_for_resume_training(ns, opt, environ)
+check_for_resume_training(ns, opt, environ, epoch = 0 , iter = 0)
 
 #-----------------------------------------------------------------
 # ### Training Preparation
 #-----------------------------------------------------------------
-training_prep(ns, opt, environ, dldrs)
+model_initializations(ns, opt, environ, phase = 'update_w', policy_learning = False)
+training_initializations(ns, opt, environ, dldrs)
 # print('-'*80)
 # disp_info_1(ns, opt, environ)
 print('-'*80)

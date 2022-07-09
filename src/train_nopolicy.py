@@ -26,7 +26,6 @@ from utils.notebook_modules import (initialize, init_dataloaders, init_environme
                                     
 
 from utils.util import (print_separator, print_heading, timestring, print_loss, load_from_pickle) 
-#  print_underline, load_from_pickle, print_dbg, get_command_line_args ) 
 
 pp = pprint.PrettyPrinter(indent=4)
 np.set_printoptions(edgeitems=3, infstr='inf', linewidth=150, nanstr='nan')

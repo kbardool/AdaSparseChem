@@ -171,57 +171,9 @@ def listopt(opt, f=None):
         print('-------------- End ----------------')
 
 
-def write_metrics_txt(log_name, epoch, iteration, elapsed, losses):
-    sorted_keys = sorted( [ 'task', 'task_mean','parms', 'sharing', 'sparsity', 'total'])
-    
-    for key in sorted_keys:
-        if key not in losses:
-            continue
-        message = 'epoch: %4d   iter: %4d, timestamp: %s wall clock time: %7.3f  %12s :' % (epoch, iteration, timestring(), elapsed, key)
-        if isinstance(losses[key], dict):
-            for subkey, value  in losses[key].values():
-                message += ' %s: %s ' % (subkey, str(value))
-        elif (isinstance(losses[key], float)):
-            message += ' %s: %.3f ' % (key, losses[key])
-
-    with open(log_name, 'a') as log_file:
-        log_file.write('%s \n' % message)
 
 
-def write_loss_csv_heading(log_name,  losses):
-    message = ' epoch, iteration, timestamp,elapsed,' 
-    sorted_keys = sorted(['task', 'task_mean', 'parms', 'sharing', 'sparsity', 'total'])
-    
-    for key in sorted_keys:
-        if key not in losses:
-            continue
 
-        if isinstance(losses[key], dict):
-            for subkey in sorted(losses[key].keys()):
-                message += f"{key:s}.{subkey:s}," 
-        elif (isinstance(losses[key], float)):
-                message += f"{key:s}.{key},"
-    
-    with open(log_name, 'a') as log_file:
-        log_file.write('%s \n' % message.rstrip(" ,"))
-
-
-def write_metrics_csv(log_name, epoch, iteration, elapsed, losses):
-    message = '%4d,%4d,%26s,%6.3f,' % (epoch, iteration, timestring(), elapsed)
-    sorted_keys = sorted([ 'task', 'task_mean', 'parms', 'sharing', 'sparsity', 'total'])
-    
-    for key in sorted_keys:
-        if key not in losses:
-            continue
-
-        if isinstance(losses[key], dict):
-            for subkey in sorted(losses[key].keys()):
-                message += f"{losses[key][subkey]}," 
-        elif (isinstance(losses[key], float)):
-                message += f"{losses[key]},"
-    
-    with open(log_name, 'a') as log_file:
-        log_file.write('%s \n' % message.rstrip(" ,"))
 
 
 def save_to_pickle(data, path, filename, verbose = False):
@@ -383,7 +335,7 @@ def write_config_report(opt, output = None, filename = 'run_params.txt', mode = 
 def get_command_line_args(input = None, display = True):
     """ get and parse command line arguments """
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config"           , required=True, help="Path for the config file")
+    parser.add_argument("--config"           , type=str,   required=True, help="Path for the config file")
     parser.add_argument("--exp_id"           , type=str,   help="experiment unqiue id, used by wandb - defaults to wandb.util.generate_id()")
     parser.add_argument("--exp_name"         , type=str,   help="experiment name, used as folder prefix and wandb name, defaults to mmdd_hhmm")
     parser.add_argument("--folder_sfx"       , type=str,   help="experiment folder suffix, defaults to None")
@@ -404,13 +356,16 @@ def get_command_line_args(input = None, display = True):
     parser.add_argument("--decay_lr_freq"    , type=float, help="LR Decay Frequency Override - default read from config file")
     parser.add_argument("--lambda_sparsity"  , type=float, help="Sparsity Regularization - default read from config file")
     parser.add_argument("--lambda_sharing"   , type=float, help="Sharing Regularization - default read from config file")
-    parser.add_argument("--cuda_devices"     , type=str,   help="CUDA GPU Device Id")
+    parser.add_argument("--cuda_devices"     , type=str,   required=True, help="CUDA GPU Device Id")
     parser.add_argument("--gpu_ids"          , type=int,   nargs='+', default=[0],  help="GPU Device Ids")
     parser.add_argument("--pytorch_threads"  , type=int,   default=2,  help="Number of threads used by PyTorch for parallelizing CPU operations")
     # parser.add_argument("--policy"           , action="store_true",  help="Train policies")
     parser.add_argument("--skip_residual"    , default='False', choices=('True','False'), help="Bypass all residual layers")
     parser.add_argument("--skip_hidden"      , default='False', choices=('True','False'), help="Bypass all hidden layers")
     parser.add_argument("--resume"           , default=False, action="store_true",  help="Resume previous run")
+    parser.add_argument("--resume_path"      , type=str,  help="Folder to resume previous run from")
+    parser.add_argument("--resume_ckpt"      , type=str,  help="Ckpt filename to use in resume from prior run")
+    parser.add_argument("--resume_metrics"   , type=str,  help="Metric filename to use in resume from prior run")
     parser.add_argument("--cpu"              , default=False, action="store_true",  help="CPU instead of GPU")
     parser.add_argument("--min_samples_class", type=int,   help="Minimum number samples in each class and in each fold for AUC "\
                                                "calculation (only used if aggregation_weight is not provided in --weights_class)")    
@@ -421,9 +376,15 @@ def get_command_line_args(input = None, display = True):
         args = parser.parse_args(input)
     
     if args.resume:
-        assert args.exp_id is not None and args.exp_name is not None, " exp_id & exp_name must be provided when specifying --resume"
+        # assert args.exp_id is not None, " exp_id  must be provided when specifying --resume"
+        assert args.exp_name is not None, "exp_name must be provided when specifying --resume"
+        assert args.resume_path is not None, " Resume path must be specificed when using --resume option"
+        assert args.resume_ckpt is not None, " Resume checkpoint filename must be specificed when using --resume option"
+        assert args.resume_metrics is not None, " Resume metric filename must be specificed when using --resume option"
     
+    # concatenate blank-separated words in exp_desc
     args.exp_desc = ' '.join(str(e) for e in args.exp_desc)
+    
     args.exp_id = wbutils.generate_id() if args.exp_id is None else args.exp_id
     
     
@@ -483,6 +444,11 @@ def read_yaml(args = None, exp_name = None):
     if args.training_epochs is not None:
         opt['train']['training_epochs'] = args.training_epochs
 
+    # if args.seed_idx is not None:
+    #     opt["random_seed"] = opt["seed_list"][args.seed_idx]
+    # else:    
+    #     opt["random_seed"] = opt["seed_list"][0]
+    opt['seed_idx']=args.seed_idx
     opt["random_seed"] = opt["seed_list"][args.seed_idx]
     
     if args.batch_size is not None:
@@ -537,17 +503,16 @@ def read_yaml(args = None, exp_name = None):
 
     # opt['cpu'] = args.cpu
     opt['train']['resume'] = args.resume
-    
+    opt['resume_path'] = args.resume_path
+    opt['resume_ckpt'] = args.resume_ckpt
+    opt['resume_metrics'] = args.resume_metrics
     if args.min_samples_class is not None:
         opt['dataload']['min_samples_class'] = args.min_samples_class
 
 
     opt['exp_folder'] = build_exp_folder_name(opt)
 
-    # if args.seed_idx is not None:
-    #     opt["random_seed"] = opt["seed_list"][args.seed_idx]
-    # else:    
-    #     opt["random_seed"] = opt["seed_list"][0]
+
     return opt
 
 
@@ -590,8 +555,6 @@ def create_path(opt):
 def makedir(folder):
     if not os.path.isdir(folder):
         os.makedirs(folder)
-
-
 
 
 def should(current_freq, freq):

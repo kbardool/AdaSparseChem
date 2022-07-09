@@ -7,7 +7,7 @@ from torch import nn
 import torch.nn.functional as F
 from torch.utils.tensorboard import SummaryWriter
 # from torch.utitensorboardX import SummaryWriter
-from utils  import  write_metrics_txt, print_heading, print_dbg, print_underline, print_loss, write_metrics_csv
+from utils  import print_heading, print_dbg, print_underline, print_loss, timestring
 # from data_utils.image_decoder import inv_preprocess, decode_labels2
 
 
@@ -63,9 +63,9 @@ class BaseEnv():
 
         
         if is_train:
-            # define optimizer
-            self.define_optimizer()
-            self.define_scheduler()
+            # define optimizer MUST BE DONE AFTER MODEL LOAD
+            # self.define_optimizer()
+            # self.define_scheduler()
             # define summary writer
             self.writer = SummaryWriter(log_dir=self.log_dir)
             self.write_run_info()
@@ -390,10 +390,10 @@ class BaseEnv():
             print_loss(iter, title, self.loss)
         
         if to_csv:
-            write_metrics_csv(self.loss_csv_file, epoch, iter, elapsed_time, self.losses )
+            self.write_metrics_csv(self.loss_csv_file, epoch, iter, elapsed_time, self.losses )
         
         if to_text:
-            write_metrics_txt(self.log_file, epoch, iter, elapsed_time, self.losses)
+            self.write_metrics_txt(self.log_file, epoch, iter, elapsed_time, self.losses)
 
         if to_tb:
             for key in ['parms']:
@@ -456,7 +456,60 @@ class BaseEnv():
             # print_current_errors(os.path.join(self.log_dir, 'loss.txt'), current_iter,key, loss[key], time.time() - start_time)
 
 
+    def write_metrics_csv_heading(self, csv_file = None, losses = None):
+        message = ' epoch, iteration, timestamp,elapsed,' 
+        sorted_keys = sorted(['task', 'task_mean', 'parms', 'sharing', 'sparsity', 'total'])
+        
+        losses = self.initialize_loss_metrics() if losses is None else losses
+        csv_file = self.loss_csv_file if csv_file is None else csv_file
 
+        for key in sorted_keys:
+            if key not in losses:
+                continue
+
+            if isinstance(losses[key], dict):
+                for subkey in sorted(losses[key].keys()):
+                    message += f"{key:s}.{subkey:s}," 
+            elif (isinstance(losses[key], float)):
+                    message += f"{key:s}.{key},"
+        
+        with open(csv_file, 'a') as f:
+            f.write('%s \n' % message.rstrip(" ,"))
+
+
+    def write_metrics_csv(self, log_name, epoch, iteration, elapsed, losses):
+        message = '%4d,%4d,%26s,%6.3f,' % (epoch, iteration, timestring(), elapsed)
+        sorted_keys = sorted([ 'task', 'task_mean', 'parms', 'sharing', 'sparsity', 'total'])
+        
+        for key in sorted_keys:
+            if key not in losses:
+                continue
+
+            if isinstance(losses[key], dict):
+                for subkey in sorted(losses[key].keys()):
+                    message += f"{losses[key][subkey]}," 
+            elif (isinstance(losses[key], float)):
+                    message += f"{losses[key]},"
+        
+        with open(log_name, 'a') as log_file:
+            log_file.write('%s \n' % message.rstrip(" ,"))
+
+
+    def write_metrics_txt(self, log_name, epoch, iteration, elapsed, losses):
+        sorted_keys = sorted( [ 'task', 'task_mean','parms', 'sharing', 'sparsity', 'total'])
+        
+        for key in sorted_keys:
+            if key not in losses:
+                continue
+            message = 'epoch: %4d   iter: %4d, timestamp: %s wall clock time: %7.3f  %12s :' % (epoch, iteration, timestring(), elapsed, key)
+            if isinstance(losses[key], dict):
+                for subkey, value  in losses[key].values():
+                    message += ' %s: %s ' % (subkey, str(value))
+            elif (isinstance(losses[key], float)):
+                message += ' %s: %.3f ' % (key, losses[key])
+
+        with open(log_name, 'a') as log_file:
+            log_file.write('%s \n' % message)
 
 
     def get_current_state(self, current_iter, current_epoch= -1):
@@ -476,7 +529,6 @@ class BaseEnv():
         current_state['iter'] = current_iter
         current_state['epoch'] = current_epoch
         return current_state
-
 
 
     def load_snapshot(self, snapshot, verbose = False):
@@ -537,6 +589,7 @@ class BaseEnv():
 
         if os.path.isfile(save_path):
             print('=> loading snapshot from {}'.format(save_path))
+            print('=> loading snapshot to   {}'.format(self.device))
             if self.device == 'cpu':
                 print(f'   Loading to CPU')
                 snapshot = torch.load(save_path, map_location='cpu')

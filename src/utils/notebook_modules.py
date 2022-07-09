@@ -37,17 +37,17 @@ def initialize(ns, build_folders = True):
         create_path(opt)    
      
     print_heading(f" experiment name       : {opt['exp_name']} \n"
-                f" experiment id         : {opt['exp_id']} \n"
-                f" folder_name           : {opt['exp_folder']} \n"
-                f" experiment description: {opt['exp_description']}\n"
-                f" Random seeds          : {opt['seed_list']}\n"
-                f" Random  seed used     : {opt['random_seed']} \n"
-                f" log folder            : {opt['paths']['log_dir']}\n"
-                f" checkpoint folder     : {opt['paths']['checkpoint_dir']}\n"
-                f" Gpu ids               : {opt['gpu_ids']}\n"
-                f" Seed index            : {ns.args.seed_idx}\n"
-                f" policy_iter           : {opt['train']['policy_iter']}\n"
-                f" Data Split ratios     : {opt['dataload']['x_split_ratios']}", verbose = True)
+                  f" experiment id         : {opt['exp_id']} \n"
+                  f" folder_name           : {opt['exp_folder']} \n"
+                  f" experiment description: {opt['exp_description']}\n"
+                  f" Random seeds          : {opt['seed_list']}\n"
+                  f" Random  seed used     : {opt['random_seed']} \n"
+                  f" log folder            : {opt['paths']['log_dir']}\n"
+                  f" checkpoint folder     : {opt['paths']['checkpoint_dir']}\n"
+                  f" Gpu ids               : {opt['gpu_ids']}\n"
+                  f" Seed index            : {ns.args.seed_idx}\n"
+                  f" policy_iter           : {opt['train']['policy_iter']}\n"
+                  f" Data Split ratios     : {opt['dataload']['x_split_ratios']}", verbose = True)
 
     ns.config_filename = 'run_config_seed_%04d.txt' % (opt['random_seed'])
     write_config_report(opt, filename = ns.config_filename)    
@@ -56,7 +56,10 @@ def initialize(ns, build_folders = True):
     return opt
 
 
-def init_wandb(ns, opt, environment = None, resume = "allow", verbose=False ):
+def init_wandb(ns, opt, resume = "allow", verbose=False ):
+    if wandb.run is not None:
+        print(f" End in-flight wandb run . . .")
+        wandb.finish()
 
     # opt['exp_id'] = wandb.util.generate_id()
     # print_dbg(f"{opt['exp_id']}, {opt['exp_name']}, {opt['project_name']}", verbose) 
@@ -192,24 +195,30 @@ def disp_dataloader_info(dldrs):
     print(f"\n trainset.y_class                                   :  {[ i.shape  for i in dldrs.trainset0.y_class_list]}",
           f"\n trainset1.y_class                                  :  {[ i.shape  for i in dldrs.trainset1.y_class_list]}",
           f"\n trainset2.y_class                                  :  {[ i.shape  for i in dldrs.trainset2.y_class_list]}",
-          f"\n valset.y_class                                     :  {[ i.shape  for i in dldrs.valset.y_class_list  ]} ",
+          f"\n valset.y_class                                     :  {[ i.shape  for i in dldrs.valset.y_class_list  ]}  \n\n",
+          f"                               Total                :  {len(dldrs.trainset0)+len(dldrs.trainset1)+len(dldrs.trainset2)+len(dldrs.valset)} \n")
         #   f"\n testset.y_class                                    :  {[ i.shape  for i in dldrs.testset.y_class_list  ]} ",
-          f"\n                                ",
-          f'\n size of training set 0 (warm up)                   :  {len(dldrs.trainset0)}',
-          f'\n size of training set 1 (network parms)             :  {len(dldrs.trainset1)}',
-          f'\n size of training set 2 (policy weights)            :  {len(dldrs.trainset2)}',
-          f'\n size of validation set                             :  {len(dldrs.valset)}',
-          f'\n                               Total                :  {len(dldrs.trainset0)+len(dldrs.trainset1)+len(dldrs.trainset2)+len(dldrs.valset)}',
         #   f'\n size of test set                                   :  {len(dldrs.testset)}',
         #   f'\n                               Total                :  {len(dldrs.trainset0)+len(dldrs.trainset1)+len(dldrs.trainset2)+len(dldrs.valset)+ len(dldrs.testset)}',
-          f"\n                                ",
-          f"\n Number of batches in training 0 (warm up)          :  {len(dldrs.warmup_trn_loader)}",
-          f"\n Number of batches in training 1 (network parms)    :  {len(dldrs.weight_trn_loader)}",
-          f"\n Number of batches in training 2 (policy weights)   :  {len(dldrs.policy_trn_loader)}",
-          f"\n Number of batches in validation dataset            :  {len(dldrs.val_loader)}",
         #   f"\n lenght (# batches) in test dataset                 :  {len(dldrs.test_loader)}",
-          f"\n                                ")
-                
+
+    print_underline(f"Training dataset :", verbose=True)
+    print(f"  Size of training set 0 (warm up)                   :  {len(dldrs.trainset0)} \n"
+          f"  Number of batches in training 0 (warm up)          :  {len(dldrs.warmup_trn_loader)} \n"
+          f"  Size of training set 1 (network parms)             :  {len(dldrs.trainset1)} \n"
+          f"  Number of batches in training 1 (network parms)    :  {len(dldrs.weight_trn_loader)} \n"
+          f"  Size of training set 2 (policy weights)            :  {len(dldrs.trainset2)} \n"
+          f"  Number of batches in training 2 (policy weights)   :  {len(dldrs.policy_trn_loader)} \n"
+          f"  training set num of positive                       :  {dldrs.trainset0.num_pos.sum()} \n"
+          f"  training set num of negative                       :  {dldrs.trainset0.num_neg.sum()} \n"
+          f"  task_weights_list[0].aggregation_weight sum        :  {dldrs.trainset0.tasks_weights_list[0].aggregation_weight.sum()}\n")
+
+    print_underline(f"Validation dataset :",verbose=True) 
+    print(f"  Rows in dataset                                    : {len(dldrs.valset)}\n"
+          f"  Number of batches in dataset                       : {len(dldrs.val_loader)}\n"
+          f"  validation set num of positive                     : {dldrs.valset.num_pos.sum()}\n"
+          f"  validation set num of negative                     : {dldrs.valset.num_neg.sum()}\n"
+          f"  task_weights_list[0].aggregation_weight sum        : {dldrs.valset.tasks_weights_list[0].aggregation_weight.sum()}\n")
 
 def init_environment(ns, opt, is_train = True, policy_learning = False, display_cfg = False, verbose = False):
     # ********************************************************************
@@ -243,12 +252,6 @@ def wandb_watch(item = None, log = 'all', log_freq = 10):
         wandb.watch(item, log='all', log_freq= log_freq)     ###  Weights and Biases Initialization         
 
 def wandb_log_metrics(val_metrics):
-    # wandb.log(val_metrics['aggregated'])
-    # wandb.log(val_metrics['total'])
-    # wandb.log(val_metrics['parms'])
-    # wandb.log(val_metrics['sharing'])
-    # wandb.log(val_metrics['sparsity'])
-    # wandb.log(val_metrics['epoch'])
     wandb.log({**val_metrics['aggregated'], 
                **val_metrics['total'], 
                **val_metrics['parms'], 
@@ -257,29 +260,91 @@ def wandb_log_metrics(val_metrics):
     wandb.log({'epoch': val_metrics['epoch']})
 
 
-def check_for_resume_training(ns, opt, environ):
+def check_for_resume_training(ns, opt, environ, epoch = 0 , iter = 0):
     ## TODO: Remove hard coded RESUME_MODEL_CKPT and RESUME_METRICS_CKPT
-    ns.loaded_epoch, ns.loaded_iter, ns.val_metrics = None, None, None
+    ns.loaded_epoch, ns.loaded_iter = None, None
+    ns.val_metrics   = {}
+    ns.best_metrics  = {}
+    ns.best_accuracy = 0
+    ns.best_roc_auc  = 0  
+    ns.best_iter     = 0
+    ns.best_epoch    = 0    
+    ns.current_epoch  = epoch
+    ns.current_iter   = iter
+    
+    print(f"opt['train']['which_iter'] :  {opt['train']['which_iter']}")
+    
     if opt['train']['resume']:
         RESUME_MODEL_CKPT = ""
         RESUME_METRICS_CKPT = ""    
         # opt['train']['which_iter'] = 'warmup_ep_40_seed_0088'
-        print(opt['train']['which_iter'])
-        print(opt['paths']['checkpoint_dir'])
-        print(RESUME_MODEL_CKPT)
         print_separator('Resume training')
-        ns.loaded_iter, ns.loaded_epoch = environ.load_checkpoint(RESUME_MODEL_CKPT, path = opt['paths']['checkpoint_dir'], verbose = True)
-        print(ns.loaded_iter, ns.loaded_epoch)    
-    #     current_iter = environ.load_checkpoint(opt['train']['which_iter'])
-        environ.networks['mtl-net'].reset_logits()
-        ns.val_metrics = load_from_pickle(opt['paths']['checkpoint_dir'], RESUME_METRICS_CKPT)
-        # training_prep(ns, opt, environ, dldrs, epoch = loaded_epoch, iter = loaded_iter )
-        return True
-    else:
-        print_separator('Initiate Training ')
-        return False
+        print(opt['train']['which_iter'])
+        print(f" Resume training from folder : {opt['resume_path']}")
+        print(f" Resume label is             : {opt['resume_ckpt']}")
+        print(f" Resume metrics filename     : {opt['resume_metrics']}")
+        ns.loaded_iter, ns.loaded_epoch = environ.load_checkpoint(opt['resume_ckpt'], path = opt['resume_path'], verbose = True)
 
-def training_prep(ns, opt, environ, dldrs, phase = 'update_w', epoch = 0, iter = 0, verbose = False):
+        ns.current_epoch  = ns.loaded_epoch
+        ns.current_iter   = ns.loaded_iter
+        opt['train']['retrain_total_iters'] = opt['train'].get('retrain_total_iters', opt['train']['total_iters'])
+
+        print(f" Checkpoint loaded - loaded epoch:{ns.loaded_epoch}   loaded iteration:{ns.loaded_iter}")    
+        print(f"opt['train']['retrain_total_iters']:   {opt['train']['retrain_total_iters']}")        
+        
+        environ.networks['mtl-net'].reset_logits()
+    
+        # ns.val_metrics = load_from_pickle(path=opt['paths']['checkpoint_dir'], filename=RESUME_METRICS_CKPT)
+        # ns.val_metrics = load_from_pickle(path=opt['resume_path'], filename=opt['resume_metrics'])
+        # training_prep(ns, opt, environ, dldrs, epoch = loaded_epoch, iter = loaded_iter )
+        
+        loaded_metrics   = load_from_pickle(path=opt['resume_path'], filename=opt['resume_metrics'])
+
+        if 'val_metrics' not in loaded_metrics:
+            print("old style")
+            ns.val_metrics = loaded_metrics 
+        else:
+            print("new style")
+            print(loaded_metrics.keys())
+            ns.val_metrics   = loaded_metrics['val_metrics'] 
+            ns.best_metrics  = loaded_metrics.get('best_metrics' , {})
+            ns.best_accuracy = loaded_metrics.get('best_accuracy', 0)
+            ns.best_roc_auc  = loaded_metrics.get('best_roc_auc' , 0)  
+            ns.best_iter     = loaded_metrics.get('best_iter'    , 0)
+            ns.best_epoch    = loaded_metrics.get('best_epoch'   , 0)            
+            print('Resume mode - load successful!!')
+            print(f"ns.best_accuracy:   {ns.best_accuracy}")
+            print(f"ns.best_roc_auc :   {ns.best_roc_auc }")
+            print(f"ns.best_iter    :   {ns.best_iter    }")
+            print(f"ns.best_epoch   :   {ns.best_epoch   }")
+    else:
+        print_separator('Initiate Training from scratch ')
+
+
+def model_initializations(ns, opt, environ, phase = 'update_weights', policy_learning = False, verbose = False):
+    environ.define_optimizer(policy_learning=policy_learning, verbose = verbose)
+    environ.define_scheduler(policy_learning=policy_learning, verbose = verbose)
+    environ.write_metrics_csv_heading()    
+    model_fix_weights(ns, opt, environ, phase = phase)
+
+
+def model_fix_weights(ns, opt, environ, phase):
+    # Fix Alpha -     
+    if phase == 'update_weights':
+        print(' Update weights -- fix alpha')
+        ns.flag = phase
+        environ.fix_alpha()
+        environ.free_weights(opt['fix_BN'])
+    elif phase == 'update_alpha':
+        print(' Update alpha   -- fix weights')
+        ns.flag = phase
+        environ.fix_weights()
+        environ.free_alpha() 
+    else: 
+        raise ValueError('training mode/phase %s  is not valid' % phase)
+
+
+def training_initializations(ns, opt, environ, dldrs, phase = 'update_w', epoch = 0, iter = 0, verbose = False):
 
     if torch.cuda.is_available():
         print_dbg(f" training preparation: - check for CUDA - cuda available as device id: {opt['gpu_ids']}", True)
@@ -304,34 +369,15 @@ def training_prep(ns, opt, environ, dldrs, phase = 'update_w', epoch = 0, iter =
     
     print(f" training preparation: - set number of batches per weight training epoch to: {opt['train']['weight_iter_alternate']}")
     print(f" training preparation: - set number of batches per policy training epoch to: {opt['train']['alpha_iter_alternate']}")
+
     ns.stop_iter_w = opt['train']['weight_iter_alternate']
     ns.stop_iter_a = opt['train']['alpha_iter_alternate'] 
-        
-    # Fix Alpha -     
-    if phase == 'update_w':
-        ns.flag = phase
-        environ.fix_alpha()
-        environ.free_weights(opt['fix_BN'])
-    elif phase == 'update_alpha':
-        ns.flag = phase
-        environ.fix_weights()
-        environ.free_alpha() 
-    else: 
-        raise ValueError('training mode/phase %s  is not valid' % phase)
-
-    ns.current_epoch  = epoch
-    ns.current_iter   = iter
  
-    ns.best_results   = {}
-    ns.best_metrics   = None
-    ns.best_accuracy  = 0
-    ns.best_roc_auc   = 0  
-    ns.best_iter      = 0
-    ns.best_epoch     = 0
     ns.p_epoch        = 0
+    ns.check_for_improvment_wait  = 0
 
     ns.num_train_layers = None     
-    ns.leave            = False
+    ns.leave            = False   
     ns.flag_warmup      = True
 
     ns.num_prints         = 0
@@ -340,57 +386,11 @@ def training_prep(ns, opt, environ, dldrs, phase = 'update_w', epoch = 0, iter =
     ns.training_epochs    = opt['train']['training_epochs']
     ns.curriculum_speed   = opt['curriculum_speed'] 
     ns.curriculum_epochs  = 0
-    ns.check_for_improvment_wait  = 0
-    ns.write_checkpoint = True
+    ns.write_checkpoint   = True
+
     return
 
 
-def retrain_prep(ns, opt, environ, dldrs, phase = 'update_w', epoch = 0, iter = 0, verbose = False):
-    
-    if torch.cuda.is_available():
-        print_dbg(f" cuda available {opt['gpu_ids']}", verbose = verbose)
-        environ.cuda(opt['gpu_ids'])
-    else:
-        print_dbg(f" cuda not available", verbose = verbose)
-        environ.cpu()
-
-    if opt['train']['val_iters'] == -1:
-        print(f" set eval_iters to length of val loader  : {len(dldrs.val_loader)}")
-        ns.eval_iters    = len(dldrs.val_loader)    
-    else:
-        ns.eval_iters    = opt['train']['val_iters']
-
-        
-    ns.stop_iter_w =  len(dldrs.weight_trn_loader) 
-
-    # Fix Alpha -     
-    if phase == 'update_w':
-        ns.flag = phase
-        environ.fix_alpha()
-        environ.free_weights(opt['fix_BN'])
-    elif phase == 'update_alpha':
-        ns.flag = phase
-        environ.fix_weights()
-        environ.free_alpha() 
-    else: 
-        raise ValueError('training mode/phase %s  is not valid' % phase)
-
-    # environ.define_optimizer(policy_learning=False)   
-    # environ.define_scheduler(policy_learning=False)   
-    ns.current_epoch  = epoch
-    ns.current_iter   = iter
-    ns.best_results   = {}
-    ns.best_metrics   = None
-    ns.best_accuracy  = 0
-    ns.best_roc_auc   = 0       
-    ns.best_iter      = 0
-    ns.best_epoch     = 0 
-    ns.check_for_improvment_wait  = 0
-    ns.write_checkpoint = True
-
-    opt['train']['retrain_total_iters'] = opt['train'].get('retrain_total_iters', opt['train']['total_iters'])
-    print(f"opt['train']['retrain_total_iters']:   {opt['train']['retrain_total_iters']}")
-    # refer_metrics = get_reference_metrics(opt)
 
 
 
@@ -465,7 +465,6 @@ def warmup_phase(ns,opt, environ, dldrs, disable_tqdm = True, epochs = None, wri
     return 
 
 
-
 def weight_policy_training(ns, opt, environ, dldrs, disable_tqdm = True, epochs = None, display_policy = False, verbose = False):
 
     ns.phase = 'train'
@@ -474,9 +473,6 @@ def weight_policy_training(ns, opt, environ, dldrs, disable_tqdm = True, epochs 
 
     ns.stop_epoch_training = ns.current_epoch + ns.training_epochs
 
-    if opt['is_curriculum']:
-        ns.curriculum_epochs = (environ.num_layers * opt['curriculum_speed'])
- 
 
     print_heading(f" Last Epoch Completed : {ns.current_epoch}   # of epochs to run:  {ns.training_epochs}"
                   f" -->  epochs {ns.current_epoch+1} to {ns.stop_epoch_training}    \n"
@@ -490,6 +486,9 @@ def weight_policy_training(ns, opt, environ, dldrs, disable_tqdm = True, epochs 
     if  ns.current_epoch >=  ns.stop_epoch_training:
         return 
 
+    if opt['is_curriculum']:
+        ns.curriculum_epochs = (environ.num_layers * opt['curriculum_speed'])
+ 
     line_count = 0
     weight_input_size = dldrs.weight_trn_loader.dataset.input_size
     policy_input_size = dldrs.policy_trn_loader.dataset.input_size
@@ -507,10 +506,12 @@ def weight_policy_training(ns, opt, environ, dldrs, disable_tqdm = True, epochs 
             ns.num_train_layers =  environ.num_layers
 
         #-----------------------------------------
-        # Train & Update the network weights
+        # Train Network Weights
         #-----------------------------------------
         if ns.flag == 'update_weights':
             start_time = time.time()
+            environ.fix_alpha()
+            environ.free_weights(opt['fix_BN'])
             environ.train()
             
             with trange(+1, ns.stop_iter_w+1 , initial = 0, total = ns.stop_iter_w,  file=sys.stdout,
@@ -565,14 +566,14 @@ def weight_policy_training(ns, opt, environ, dldrs, disable_tqdm = True, epochs 
             # END validation process 
             #-----------------------------------------------------------------------
             ns.flag = 'update_alpha'
-            environ.fix_weights()
-            environ.free_alpha()
             
         #-----------------------------------------
         # Policy Training  
         #-----------------------------------------
         if ns.flag == 'update_alpha':
             start_time = time.time()        
+            environ.fix_weights()
+            environ.free_alpha()
             environ.train()
             
             with trange( +1, ns.stop_iter_a+1 , initial = 0, total = ns.stop_iter_a,   file=sys.stdout,
@@ -634,15 +635,13 @@ def weight_policy_training(ns, opt, environ, dldrs, disable_tqdm = True, epochs 
                 print(f" decay gumbel softmax to {environ.gumbel_temperature}")
             
             ns.flag = 'update_weights'
-            environ.fix_alpha()
-            environ.free_weights(opt['fix_BN'])
             
     #         environ.display_trained_logits(current_epoch)        
     #         print_loss(current_epoc, current_iter, environ.val_metrics, title = f"[Policy trn]  ep:{current_epoch}   it:{current_iter}")
         
-        #-----------------------------------------
-        # End Policy Training  
-        #----------------------------------------- 
+        #--------------------------------------------------
+        # End of one iteration of Weight / Policy Training  
+        #--------------------------------------------------
         if should(ns.current_epoch, 5):
             environ.save_checkpoint('model_latest_weights_policy', ns.current_iter, ns.current_epoch)        
             print_loss(environ.val_metrics, title = f"\n[e] Policy training epoch:{ns.current_epoch}  it:{ns.current_iter}",
@@ -656,7 +655,6 @@ def weight_policy_training(ns, opt, environ, dldrs, disable_tqdm = True, epochs 
             
     wrapup_phase(ns, opt, environ)
     return
-
 
 
 def retrain_phase(ns, opt, environ, dldrs, epochs = None, disable_tqdm = True,
@@ -731,24 +729,36 @@ def wrapup_phase(ns, opt, environ, label = None):
 
     # ns.model_label   = 'model_%s_ep_%d_seed_%04d'  % (label, ns.current_epoch, opt['random_seed'])
     # ns.metrics_label = 'metrics_%s_ep_%d_seed_%04d.pickle' % (label,ns.current_epoch, opt['random_seed'])
+    
+    # Write model checkpoint
     if ns.write_checkpoint:
-        ns.model_label   = 'model_%s_ep_%d'  % (label, ns.current_epoch)
+        ns.model_label = f'model_{label}_ep_{ns.current_epoch}' 
         environ.save_checkpoint(ns.model_label, ns.current_iter, ns.current_epoch) 
         print_to(f" save {label} checkpoint  to :  {ns.model_label}", out=[sys.stdout, environ.log_file])    
     
-    ns.metrics_label = 'metrics_%s_ep_%d.pickle' % (label,ns.current_epoch)
-    save_to_pickle(environ.val_metrics, environ.opt['paths']['checkpoint_dir'], ns.metrics_label)
-    print_to(f" save {label} val_metrics to :  {ns.metrics_label}", out=[sys.stdout, environ.log_file])
+    # write metrics to pickle file 
+    ns.metrics_label = f'metrics_{label}_ep_{ns.current_epoch}.pickle' 
+
+    save_to_pickle({'val_metrics'   : environ.val_metrics,
+                    'best_metrics'  : ns.best_metrics,
+                    'best_accuracy' : ns.best_accuracy, 
+                    'best_roc_auc'  : ns.best_roc_auc,
+                    'best_iter'     : ns.best_iter   ,
+                    'best_epoch'    : ns.best_epoch  },
+                    environ.opt['paths']['checkpoint_dir'], ns.metrics_label)
+
+    print_to(f" save {label} metrics to     :  {ns.metrics_label}", out=[sys.stdout, environ.log_file])
+    print_loss(environ.val_metrics, title = f"[Final] ep:{ns.current_epoch}  it:{ns.current_iter}",out=[sys.stdout])
     
-    print_loss(environ.val_metrics, title = f"[Final] ep:{ns.current_epoch}  it:{ns.current_iter}",)
+    # Display training results 
     environ.display_trained_policy(ns.current_epoch,out=[sys.stdout, environ.log_file])
     environ.display_trained_logits(ns.current_epoch,out=[sys.stdout, environ.log_file])
     environ.log_file.flush()
     return 
 
 
-
 def check_for_improvement(ns,opt,environ):
+    label = 'best' 
     #------------------------------------------------------------------------ 
     #  Save Best Checkpoint Code (saved below and in sparsechem_env_dev.py)
     #----------------------------------------------------------------------- 
@@ -760,29 +770,36 @@ def check_for_improvement(ns,opt,environ):
         if environ.val_metrics['aggregated']['roc_auc_score'] > ns.best_roc_auc:
             print(f'Previous best_epoch: {ns.best_epoch:5d}   best iter: {ns.best_iter:5d}'
                   f'   best_accuracy: {ns.best_accuracy:.5f}    best ROC auc: {ns.best_roc_auc:.5f}')        
-            ns.best_accuracy   = environ.val_metrics['aggregated']['avg_prec_score']
-            ns.best_roc_auc     = environ.val_metrics['aggregated']['roc_auc_score']
             ns.best_metrics     = environ.val_metrics
+            ns.best_accuracy    = environ.val_metrics['aggregated']['avg_prec_score']
+            ns.best_roc_auc     = environ.val_metrics['aggregated']['roc_auc_score']
             ns.best_iter        = ns.current_iter
             ns.best_epoch       = ns.current_epoch
             wandb.log({"best_roc_auc"  : ns.best_roc_auc,
-                       "best_accuracy": ns.best_accuracy,
+                       "best_accuracy" : ns.best_accuracy,
                        "best_epoch"    : ns.best_epoch,
                        "best_iter"     : ns.best_iter})        
 
             print(f'Previous best_epoch: {ns.best_epoch:5d}   best iter: {ns.best_iter:5d}'
                   f'   best_accuracy: {ns.best_accuracy:.5f}    best ROC auc: {ns.best_roc_auc:.5f}')        
             
-            # metrics_label = 'metrics_best_seed_%04d.pickle' % (opt['random_seed'])
-            metrics_label = 'metrics_best_seed.pickle' 
-            save_to_pickle(environ.val_metrics, environ.opt['paths']['checkpoint_dir'], metrics_label)    
-            
-            if ns.write_checkpoint:
-                # model_label     = 'model_best_seed_%04d' % (opt['random_seed'])
-                model_label   = 'model_best_seed'  
-                environ.save_checkpoint(model_label, ns.current_iter, ns.current_epoch) 
-    return
+            # ns.metrics_label = f"metrics_{label}_seed_{opt['random_seed']:%04d}.pickle"
+            ns.metrics_label = f'metrics_{label}.pickle' 
+            save_to_pickle({'val_metrics'   : environ.val_metrics,
+                            'best_metrics'  : ns.best_metrics,
+                            'best_accuracy' : ns.best_accuracy, 
+                            'best_roc_auc'  : ns.best_roc_auc,
+                            'best_iter'     : ns.best_iter   ,
+                            'best_epoch'    : ns.best_epoch  },
+                            environ.opt['paths']['checkpoint_dir'], ns.metrics_label)
+            print_to(f" save {label} metrics to     :  {ns.metrics_label}", out=[sys.stdout, environ.log_file])    
 
+            if ns.write_checkpoint:
+                # ns.model_label = f"model_{label}_seed_{opt['random_seed']:%04d}"
+                ns.model_label = f"model_{label}"  
+                environ.save_checkpoint(ns.model_label, ns.current_iter, ns.current_epoch) 
+                print_to(f" save  {label} checkpoint to :  {ns.model_label}", out=[sys.stdout, environ.log_file])    
+    return
 
 
 def disp_info_1(ns, opt, environ):
@@ -821,7 +838,6 @@ def disp_info_1(ns, opt, environ):
         )
 
  
-
 def disp_gpu_device_info():
     
     print_underline('GPU Device Info ', verbose=True)
@@ -838,7 +854,6 @@ def disp_gpu_device_info():
         print()
 
                         
-
 def display_gpu_info():
     from GPUtil import showUtilization as gpu_usage
     from pynvml import nvmlInit, nvmlDeviceGetHandleByIndex ,nvmlDeviceGetMemoryInfo   
@@ -884,3 +899,63 @@ def display_gpu_info():
         
     else :
         print_underline(' No CUDA devices found ',verbose=True)
+
+
+# def retrain_prep(ns, opt, environ, dldrs, phase = 'update_w', epoch = 0, iter = 0, verbose = False):
+    
+    # if torch.cuda.is_available():
+    #     print_dbg(f" training preparation: - check for CUDA - cuda available as device id: {opt['gpu_ids']}", True)
+    #     environ.cuda(opt['gpu_ids'])
+    # else:
+    #     print_dbg(f" training preparation: - check for CUDA - cuda not available", verbose = True)
+    #     environ.cpu()
+
+    # if opt['train']['print_freq'] == -1:
+    #     print(f" training preparation: - set print_freq to length of train loader: {len(dldrs.warmup_trn_loader)}")
+    #     ns.print_freq = len(dldrs.warmup_trn_loader)
+    # else:
+    #     print(f" training preparation: -  set print_freq to opt[train][print_freq]: {opt['train']['print_freq']}")
+    #     ns.print_freq = opt['train']['print_freq']     
+
+    # if opt['train']['val_iters'] == -1:
+    #     print(f" training preparation: - set eval_iters to length of val loader : {len(dldrs.val_loader)}")
+    #     ns.eval_iters    = len(dldrs.val_loader)    
+    # else:
+    #     print(f" training preparation: - set eval_iters to opt[train][val_iters]: {opt['train']['val_iters']}")
+    #     ns.eval_iters    = opt['train']['val_iters']
+        
+    # ns.stop_iter_w =  len(dldrs.weight_trn_loader) 
+    # print(f" training preparation: - set number of batches per weight training epoch to: {opt['train']['weight_iter_alternate']}")
+    # print(f" training preparation: - set number of batches per policy training epoch to: {opt['train']['alpha_iter_alternate']}")
+
+    # ns.stop_iter_w = opt['train']['weight_iter_alternate']
+    # ns.stop_iter_a = opt['train']['alpha_iter_alternate'] 
+
+    # Fix Alpha -     
+    # if phase == 'update_w':
+    #     ns.flag = phase
+    #     environ.fix_alpha()
+    #     environ.free_weights(opt['fix_BN'])
+    # elif phase == 'update_alpha':
+    #     ns.flag = phase
+    #     environ.fix_weights()
+    #     environ.free_alpha() 
+    # else: 
+    #     raise ValueError('training mode/phase %s  is not valid' % phase)
+
+    # ns.current_epoch  = epoch
+    # ns.current_iter   = iter
+
+    # ns.best_results   = {}
+    # ns.best_metrics   = None
+    # ns.best_accuracy  = 0
+    # ns.best_roc_auc   = 0       
+    # ns.best_iter      = 0
+    # ns.best_epoch     = 0 
+    # ns.check_for_improvment_wait  = 0
+
+    # ns.write_checkpoint = True
+
+    # opt['train']['retrain_total_iters'] = opt['train'].get('retrain_total_iters', opt['train']['total_iters'])
+    # print(f"opt['train']['retrain_total_iters']:   {opt['train']['retrain_total_iters']}")
+    # refer_metrics = get_reference_metrics(opt)
