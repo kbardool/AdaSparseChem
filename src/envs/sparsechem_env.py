@@ -345,7 +345,7 @@ class SparseChemEnv(BaseEnv):
                 else:
                     loss_weights = (torch.ones((num_policy_layers)).float()).to(self.device, non_blocking=True)
                     # temp = torch.ones((num_policy_layers)).float()
-                    # print(f" Up to here 1- num_policy_layers: {num_policy_layers}")
+                    print_dbg(f" Up to here 1- num_policy_layers: {num_policy_layers}",verbose=verbose)
                     # print(temp)
             else:
                 assert (num_policy_layers == logits_i.shape[0]) 

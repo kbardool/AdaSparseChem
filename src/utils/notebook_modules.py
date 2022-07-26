@@ -186,6 +186,10 @@ def init_dataloaders_by_fold_id(opt, training_folds=None, validation_folds= None
 
     opt['train']['weight_iter_alternate'] = opt['train'].get('weight_iter_alternate' , len(dldrs.weight_trn_loader))
     opt['train']['alpha_iter_alternate']  = opt['train'].get('alpha_iter_alternate'  , len(dldrs.policy_trn_loader))        
+    opt['train']['val_iters']             = opt['train'].get('val_iters'             , len(dldrs.val_loader))       
+    print(f" dataloader preparation - set number of batches per weight training epoch to: {opt['train']['weight_iter_alternate']}")
+    print(f" dataloader preparation - set number of batches per policy training epoch to: {opt['train']['alpha_iter_alternate']}")
+    print(f" dataloader preparation - set number of batches per validation to           : {opt['train']['val_iters']}")
     
     return dldrs
 
@@ -291,9 +295,10 @@ def check_for_resume_training(ns, opt, environ, epoch = 0 , iter = 0):
 
         print(f" Checkpoint loaded - loaded epoch:{ns.loaded_epoch}   loaded iteration:{ns.loaded_iter}")    
         print(f"opt['train']['retrain_total_iters']:   {opt['train']['retrain_total_iters']}")        
+        ## In resume, we DO NOT RESET LOGITS
+        environ.display_trained_policy(ns.current_epoch)
+        environ.display_trained_logits(ns.current_epoch)
         
-        environ.networks['mtl-net'].reset_logits()
-    
         # ns.val_metrics = load_from_pickle(path=opt['paths']['checkpoint_dir'], filename=RESUME_METRICS_CKPT)
         # ns.val_metrics = load_from_pickle(path=opt['resume_path'], filename=opt['resume_metrics'])
         # training_prep(ns, opt, environ, dldrs, epoch = loaded_epoch, iter = loaded_iter )
@@ -344,7 +349,11 @@ def model_fix_weights(ns, opt, environ, phase):
         raise ValueError('training mode/phase %s  is not valid' % phase)
 
 
-def training_initializations(ns, opt, environ, dldrs, phase = 'update_w', epoch = 0, iter = 0, verbose = False):
+def training_initializations(ns, opt, environ, dldrs, phase, warmup, 
+                             weight_iterations = 0,
+                             policy_iterations = 0,
+                             eval_iterations   = 0,
+                             epoch = 0, iter = 0, verbose = False):
 
     if torch.cuda.is_available():
         print_dbg(f" training preparation: - check for CUDA - cuda available as device id: {opt['gpu_ids']}", True)
@@ -360,34 +369,41 @@ def training_initializations(ns, opt, environ, dldrs, phase = 'update_w', epoch 
         print(f" training preparation: -  set print_freq to opt[train][print_freq]: {opt['train']['print_freq']}")
         ns.print_freq = opt['train']['print_freq']     
 
-    if opt['train']['val_iters'] == -1:
-        print(f" training preparation: - set eval_iters to length of val loader : {len(dldrs.val_loader)}")
-        ns.eval_iters    = len(dldrs.val_loader)    
-    else:
-        print(f" training preparation: - set eval_iters to opt[train][val_iters]: {opt['train']['val_iters']}")
-        ns.eval_iters    = opt['train']['val_iters']
-    
-    print(f" training preparation: - set number of batches per weight training epoch to: {opt['train']['weight_iter_alternate']}")
-    print(f" training preparation: - set number of batches per policy training epoch to: {opt['train']['alpha_iter_alternate']}")
+    # if opt['train']['val_iters'] == -1:
+        # print(f" training preparation: - set eval_iters to length of val loader : {len(dldrs.val_loader)}")
+        # ns.eval_iters    = len(dldrs.val_loader)    
+    # else:
+        # print(f" training preparation: - set eval_iters to opt[train][val_iters]: {opt['train']['val_iters']}")
+        # ns.eval_iters    = opt['train']['val_iters']
 
-    ns.stop_iter_w = opt['train']['weight_iter_alternate']
-    ns.stop_iter_a = opt['train']['alpha_iter_alternate'] 
+    ns.stop_iter_w = opt['train']['weight_iter_alternate'] if weight_iterations == 0 else weight_iterations
+    ns.stop_iter_a = opt['train']['alpha_iter_alternate']  if policy_iterations == 0 else policy_iterations
+    ns.eval_iters  = opt['train']['val_iters']             if eval_iterations == 0   else eval_iterations
+
+    print(f" training preparation: - set number of batches per weight training epoch to: {ns.stop_iter_w}")
+    print(f" training preparation: - set number of batches per policy training epoch to: {ns.stop_iter_a}")
+    print(f" training preparation: - set number of batches per validation to           : {ns.eval_iters }")
+
  
-    ns.p_epoch        = 0
-    ns.check_for_improvment_wait  = 0
+    ns.p_epoch            = 0
+    ns.num_train_layers   = None     
+    ns.leave              = False   
+    ns.flag_warmup        = warmup
 
-    ns.num_train_layers = None     
-    ns.leave            = False   
-    ns.flag_warmup      = True
-
-    ns.num_prints         = 0
+    # ns.num_prints         = 0
     ns.num_blocks         = sum(environ.networks['mtl-net'].layers)
     ns.warmup_epochs      = opt['train']['warmup_epochs']
     ns.training_epochs    = opt['train']['training_epochs']
     ns.curriculum_speed   = opt['curriculum_speed'] 
-    ns.curriculum_epochs  = 0
-    ns.write_checkpoint   = True
+    
+    # Wait periods before starting to check for performance improvement
+    ns.check_for_improvment_wait  = 0
+    if opt['is_curriculum']:
+        ns.curriculum_epochs = (environ.num_layers * opt['curriculum_speed'])
+    else:
+        ns.curriculum_epochs  = 0
 
+    ns.write_checkpoint   = True
     return
 
 
@@ -486,8 +502,7 @@ def weight_policy_training(ns, opt, environ, dldrs, disable_tqdm = True, epochs 
     if  ns.current_epoch >=  ns.stop_epoch_training:
         return 
 
-    if opt['is_curriculum']:
-        ns.curriculum_epochs = (environ.num_layers * opt['curriculum_speed'])
+
  
     line_count = 0
     weight_input_size = dldrs.weight_trn_loader.dataset.input_size

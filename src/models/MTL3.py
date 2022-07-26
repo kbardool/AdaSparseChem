@@ -398,6 +398,7 @@ class MTL3(nn.Module):
         ## simply pass input through backbone. A feature set is generated for each task
         ##-----------------------------------------------------------------------------
         else:
+            #print('is policy is False')
             feats = [self.backbone(input)] * self.num_tasks
 
         # print(f"\t MTL3_forward() feature set shape: {len(feats)} {feats[0].shape}")

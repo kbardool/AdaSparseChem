@@ -580,7 +580,7 @@ class BaseEnv():
         :param label: str, the label for the loading checkpoint
         :param path: str, specify if knowing the checkpoint path
         """
-        save_filename = '%s_model.pth.tar' % label
+        save_filename = '%s.pth.tar' % label
         if path is None:
             save_path = os.path.join(self.checkpoint_dir, save_filename)
         else:
