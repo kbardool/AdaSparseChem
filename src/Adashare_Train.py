@@ -60,8 +60,8 @@ check_for_resume_training(ns, opt, environ, epoch = 0 , iter = 0)
 #-----------------------------------------------------------------
 # ### Training Preparation
 #-----------------------------------------------------------------
-model_initializations(ns, opt, environ, phase = 'update_w', policy_learning = False)
-training_initializations(ns, opt, environ, dldrs)
+model_initializations(ns, opt, environ, phase='update_weights', policy_learning = False)
+training_initializations(ns, opt, environ, dldrs, phase='update_weights', warmup = True)
 # print('-'*80)
 # disp_info_1(ns, opt, environ)
 print('-'*80)
@@ -79,13 +79,15 @@ print_heading(f" Last Epoch: {ns.current_epoch}   # of warm-up epochs to do:  {n
 # warmup_phase(ns,opt, environ, dldrs, write_checkpoint=False)
 warmup_phase(ns,opt, environ, dldrs, verbose = False, disable_tqdm = False)
 
+ 
+
 print(f"Best Epoch :       {ns.best_epoch}\n"
       f"Best Iteration :   {ns.best_iter} \n"
-      f"Best Accuracy  :   {ns.best_accuracy:.5f}\n"
-      f"Best ROC AUC   :   {ns.best_roc_auc:.5f}\n")
-
+      f"Best ROC AUC   :   {ns.best_roc_auc:.5f}\n"
+      f"Best Precision :   {ns.best_accuracy:.5f}\n")
 print()
-pp.pprint(environ.val_metrics['aggregated'])
+for key in environ.val_metrics['aggregated']:
+    print(f"{key:20s}    {environ.val_metrics['aggregated'][key]:0.4f}")
 print()
 df = environ.val_metrics['task1']['classification']
 print(df[pd.notna(df.roc_auc_score)])

@@ -31,19 +31,20 @@ if [[ -n "$PBS_JOBID" ]]
     printf " PBS VERSION: $PBS_VERSION   \n"
     printf " PBS WORKDIR: $PBS_O_WORKDIR \n"
     cd $PBS_O_WORKDIR # cd to the directory from which qsub is run
+    source /user/leuven/326/vsc32647/.initconda
   else
     JOBID=${job_dt}
     printf " PBS Not defined   \n"
     printf " JOBID  : [$JOBID] \n"
 fi
 printf $divider
-# printf "=================================================\n" 
+
 for ((i=0 ; i < $num_layers ; i +=1)); do
     layers+=" $layer "
 done
-source /user/leuven/326/vsc32647/.initconda
-# echo switch to pyt-gpu 
+echo switch to pyt-gpu 
 conda activate pyt-gpu
+
 # python -V
 # export CUDA_VISIBLE_DEVICES=${gpu_id}
 # echo "gpu_id:  $gpu_id    CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES"
