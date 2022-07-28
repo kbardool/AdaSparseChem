@@ -293,6 +293,7 @@ class ClassRegrSparseDataset_v3(Dataset):
         if folds is not None:
             print_dbg(f"\n FOLDS param provided - folds: {folds} \n", verbose = verbose)
             index = np.isin(folding, folds)
+            print_dbg(f" Index shape: {index.shape} # of entries {index.sum()} \n {index}", verbose = verbose)
         elif index is not None:
             print_dbg(f"\n INDEX param provided - rows in index : {len(index)}\n", verbose = verbose)
         else:
@@ -326,7 +327,7 @@ class ClassRegrSparseDataset_v3(Dataset):
         #------------------------------------------------------------------
         ecfp = fold_and_transform_inputs(ecfp, folding_size=opt['dataload']['fold_inputs'], 
                                                transform=opt['dataload']['input_transform'])
-        print_dbg(f" X (ecfp[0]) file count non zero (post fold & transform) :{ecfp[0].count_nonzero()} \n", verbose = verbose)
+        print_dbg(f" X (ecfp[0]) file count non zero (post fold & transform) :{ecfp[0].count_nonzero()} ", verbose = verbose)
 
 
         ## Iterate through list of y_files and set up Y label file for each task 
@@ -335,8 +336,10 @@ class ClassRegrSparseDataset_v3(Dataset):
             ##-----------------------------------------------------------------------------------
             # Load Y file for task 
             ##-----------------------------------------------------------------------------------
-            print_underline(f"Load label/Y file for task {task_id+1} filename : {y_file} . . .", verbose = verbose)
             y_temp =  load_sparse(dataroot, y_file)
+            print_dbg(f"", verbose = verbose)
+            print_heading(f"Load label/Y file for task {task_id+1} - task group {y_file}", verbose = True)
+            print_dbg(f"filename : {y_file}  type: {type(y_temp)} . . .", verbose = verbose)
             if y_temp is None:
                 y_temp =  scipy.sparse.csr_matrix((ecfp.shape[0], 0))
                 stat = 'Not Supplied - Created'
@@ -354,13 +357,23 @@ class ClassRegrSparseDataset_v3(Dataset):
             ##  are no labels besides {-1,0,+1}
             ##-----------------------------------------------------------------------------------
             print(f" Number of non-zero features in ecfp[0]:{ecfp[0].count_nonzero()}")
+            self.num_class  = np.array((y_temp != 0).sum(0)).flatten()
+            # self.num_p_4    = np.array((y_temp >= +4).sum(0)).flatten()
+            # self.num_p_3    = np.array((y_temp == +3).sum(0)).flatten()
+            # self.num_p_2    = np.array((y_temp == +2).sum(0)).flatten()
+            self.num_p_1    = np.array((y_temp >= +2).sum(0)).flatten()
             self.num_pos    = np.array((y_temp == +1).sum(0)).flatten()
             self.num_neg    = np.array((y_temp == -1).sum(0)).flatten()
-            self.num_class  = np.array((y_temp != 0).sum(0)).flatten()
+            self.num_n_1    = np.array((y_temp <= -2).sum(0)).flatten()
+            # self.num_n_2    = np.array((y_temp == -2).sum(0)).flatten()
+            # self.num_n_3    = np.array((y_temp == -3).sum(0)).flatten()
+            # self.num_n_4    = np.array((y_temp <= -4).sum(0)).flatten()
             print_dbg(f"\n Task {task_id+1} label file: \n"
-                      f"    Total Positive Labels :  {self.num_pos.sum():8d} \n"
-                      f"    Total Negative Labels :  {self.num_neg.sum():8d} \n"
-                      f"    Total Non-Zero Labels : {self.num_class.sum():9d}", verbose = verbose)
+                      f"    Total > +1  Labels :  {self.num_p_1.sum():9d} \n"
+                      f"    Total   +1  Labels :  {self.num_pos.sum():9d} \n"
+                      f"    Total   -1  Labels :  {self.num_neg.sum():9d} \n"
+                      f"    Total < -1  Labels :  {self.num_n_1.sum():9d} \n"
+                      f"    Total != 0  Labels :  {self.num_class.sum():9d}", verbose = True)
             if (self.num_class != self.num_pos + self.num_neg).any():
                 raise ValueError("For classification all y values (--y_class/--y) must be 1 or -1.")
             else:
@@ -376,9 +389,13 @@ class ClassRegrSparseDataset_v3(Dataset):
                 if verbose:
                     print_dbg(f" tasks_class.aggregation_weight WAS NOT passed ", verbose = True)
                     print_dbg(f" min_samples_class: {opt['dataload']['min_samples_class']}", verbose = True)
-                    print_underline(f"Class fold counts: ", verbose = True)                    
-                    print_dbg(f" fold_pos - total: {fold_pos.sum()} - .sum(axis=0):\n{fold_pos.sum(axis=0)} \n\n fold_pos: \n {fold_pos} \n\n\n", verbose = True)                    
-                    print_dbg(f" fold_neg - total: {fold_neg.sum()} - .sum(axis=0):\n{fold_neg.sum(axis=0)} \n\n fold_neg: \n {fold_neg} \n\n\n", verbose = True)
+                    print_underline(f"Class fold counts: ", verbose = True) 
+                    fold_pos_sum = fold_pos.sum(axis=0)
+                    fold_neg_sum = fold_neg.sum(axis=0)                   
+                    print_dbg(f" fold_pos {fold_pos_sum.shape}- total: {fold_pos.sum()} - sum(axis=0):\n{fold_pos_sum} ", verbose = True)
+                    print_dbg(f"\n\n fold_pos: {fold_pos.shape} \n {fold_pos} \n\n\n", verbose = True)                    
+                    print_dbg(f" fold_neg {fold_neg_sum.shape}- total: {fold_neg.sum()} - sum(axis=0):\n{fold_neg_sum} ", verbose = True)
+                    print_dbg(f"\n\n fold_neg: {fold_neg.shape} \n {fold_neg} \n\n\n", verbose = True)
                     
                     # for fold_idx, (fold_pos, fold_neg) in enumerate(zip(fold_pos, fold_neg),1):
                         # print_underline(f" fold # {fold_idx}", verbose=True)
@@ -386,16 +403,17 @@ class ClassRegrSparseDataset_v3(Dataset):
                             # print(f"{pos:5d}  {neg:5d}" )
                         # print()
             else:
-                print_dbg(f"tasks_class.aggregation_weight WAS PASSED \n", verbose = verbose)
+                print_dbg(f"tasks_weights.aggregation_weight WAS PASSED \n", verbose = verbose)
         
             if verbose:    
                 print_underline(f" task_weights.aggregation_weight: ", verbose = verbose)
                 print_dbg(f" fold_pos >= {n} and  fold_neg >= {n}", verbose = verbose)     
                 print_dbg(f" shape: {weights_temp.aggregation_weight.shape} sum: {weights_temp.aggregation_weight.sum()}\n"
                         f" {weights_temp.aggregation_weight}", verbose = verbose)
-                print_underline(f" task_weights.training_weight: ", verbose = verbose)     
-                print_dbg(f" shape    : {weights_temp.aggregation_weight.shape} sum: {weights_temp.training_weight.sum()}\n "
-                        f"{weights_temp.training_weight}", verbose = verbose)
+
+                # print_underline(f" task_weights.training_weight: ", verbose = verbose)     
+                # print_dbg(f" shape    : {weights_temp.training_weight.shape} sum: {weights_temp.training_weight.sum()}\n "
+                        # f"{weights_temp.training_weight}", verbose = verbose)
 
             ##-----------------------------------------------------------------------------------
             ## Regression task aggregation weights 
@@ -420,9 +438,12 @@ class ClassRegrSparseDataset_v3(Dataset):
             # if y_cat_columns is not None:
                 # self.y_cat_class.data = (self.y_cat_class.data + 1) / 2.0
 
-            print_underline(f" Task {task_id+1} files pre-filtering : ", verbose = verbose)
-            print_dbg(f"X file : # Samples :  {ecfp.shape[0]}       # Features per Sample: {ecfp.shape[1]}   ", verbose = verbose)
-            print_dbg(f"Y file : # Samples :  {y_temp.shape[0]}     # Labels per Sample: {y_temp.shape[1]} ", verbose = verbose)
+            print_underline(f" Task {task_id+1} files pre-filtering : ", verbose = True)
+            y_temp_sum = (y_temp != 0).sum(axis =1) 
+            y_temp_sum = (y_temp_sum > 0).sum()
+            print_dbg(f"X file : # Samples :  {ecfp.shape[0]}     # Features per Sample: {ecfp.shape[1]}   ", verbose = True)
+            print_dbg(f"Y file : # Samples :  {y_temp.shape[0]}     # Labels per Sample  : {y_temp.shape[1]} "
+                      f" Y rows with populated labels: {y_temp_sum.sum()}  non zero cols: {(y_temp != 0).sum()}", verbose = True)
 
             ## Finally, append to list of y_class files
             # if index is not None :
@@ -433,15 +454,20 @@ class ClassRegrSparseDataset_v3(Dataset):
             y_temp = y_temp[index]
             self.y_class_list.append(y_temp)
             self.tasks_weights_list.append(weights_temp)
+
+            y_temp_sum = (y_temp != 0).sum(axis =1) 
+            y_temp_sum = (y_temp_sum > 0).sum()
+            print_underline(f" Task {task_id+1} files post-filtering : ", verbose = True)
+            print_dbg(f"X file : # Samples :  {self.x.shape[0]}     # Features per Sample: {self.x.shape[1]} ", verbose = True)
+            print_dbg(f"Y file : # Samples :  {y_temp.shape[0]}     # Labels per Sample  : {y_temp.shape[1]} "
+                      f" Y rows with populated labels: {y_temp_sum.sum()}  non zero cols: {(y_temp != 0).sum()}", verbose = True)
+            print_dbg(f"\nUsing {(weights_temp.aggregation_weight > 0).sum()} of {y_temp.shape[1]} classification "
+                      f"tasks for calculating aggregated metrics (AUCROC, F1_max, etc).", verbose = True)
+            
             # y_regr = y_regr[index]
             # y_censor = y_censor[index]
             # self.y_regr_list.append(y_regr)
             # self.y_censor_list.append(y_censor)
-
-            print_underline(f" Task {task_id+1} files post-filtering : ", verbose = verbose)
-            print_dbg(f"X file : # Samples :  {self.x.shape[0]}     # Features: {self.x.shape[1]}   ", verbose = verbose)
-            print_dbg(f"Y file : # Samples :  {y_temp.shape[1]}     # Subtasks: {y_temp.shape[1]} ", verbose = verbose)
-            print_dbg(f"Using {(weights_temp.aggregation_weight > 0).sum()} classification tasks for calculating aggregated metrics (AUCROC, F1_max, etc).", verbose = verbose)
             # print(f"#regression tasks:      {y_regr.shape[1]}")
             # print(f"Using {(tasks_regr.aggregation_weight > 0).sum()} regression tasks for calculating metrics (RMSE, Rsquared, correlation).")
           

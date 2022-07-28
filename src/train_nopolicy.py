@@ -1,12 +1,8 @@
-# %load_ext autoreload
-# %autoreload 2
+#!/usr/bin/env python
+# coding: utf-8
 import os 
 import sys
-# sys.path.insert(0, '/home/kbardool/kusanagi/AdaSparseChem/src')
 sys.path.insert(0, '.')
-# for pth in sys.path:
-#     print(pth)
-# print(sys.path)
 import time
 import argparse
 import yaml
@@ -15,54 +11,19 @@ import copy, pprint
 from time import sleep
 from datetime import datetime
 import numpy  as np
-import torch  
-import wandb
 from pynvml import *
 import pandas as pd
-from utils.notebook_modules import (initialize, init_dataloaders, init_environment, init_wandb, 
-                                   training_prep, disp_dataloader_info,disp_info_1, 
-                                   warmup_phase, weight_policy_training, disp_gpu_info,
-                                    init_dataloaders_by_fold_id)
-                                    
 
-from utils.util import (print_separator, print_heading, timestring, print_loss, load_from_pickle) 
+from utils import (initialize, init_dataloaders, init_environment, init_wandb, training_initializations, model_initializations, 
+                   check_for_resume_training, disp_dataloader_info, disp_info_1, warmup_phase, weight_policy_training, 
+                   display_gpu_info, init_dataloaders_by_fold_id, print_separator, print_heading, 
+                   timestring, print_loss, get_command_line_args, load_from_pickle)   
 
 pp = pprint.PrettyPrinter(indent=4)
 np.set_printoptions(edgeitems=3, infstr='inf', linewidth=150, nanstr='nan')
-# torch.set_printoptions(precision=None, threshold=None, edgeitems=None, linewidth=None, profile=None, sci_mode=None)
-torch.set_printoptions(precision=6, linewidth=132)
 pd.options.display.width = 132
+# torch.set_printoptions(precision=None, threshold=None, edgeitems=None, linewidth=None, profile=None, sci_mode=None)
 # disp_gpu_info() 
-
-# ********************************************************************
-# ******************** Display GPU information ***********************
-# ********************************************************************  
-disp_gpu_info()
-if torch.cuda.is_available():
-    print('cuda is available')
-    nvmlInit()
-
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-print(device)
-# torch.cuda package supports CUDA tensor types but works with GPU computations. Hence, if GPU is used, it is common to use CUDA. 
-torch.cuda.current_device()
-torch.cuda.device_count()
-torch.cuda.get_device_name(0)
-
-torch_gpu_id = torch.cuda.current_device()
-print(torch_gpu_id)
-if "CUDA_VISIBLE_DEVICES" in os.environ:
-  ids = list(map(int, os.environ.get("CUDA_VISIBLE_DEVICES", "").split(",")))
-  print(' ids : ', ids)
-  nvml_gpu_id = ids[torch_gpu_id] # remap
-else:
-  nvml_gpu_id = torch_gpu_id
-print('nvml_gpu_id: ', nvml_gpu_id)
-nvml_handle = nvmlDeviceGetHandleByIndex(nvml_gpu_id)
-print(nvml_handle)
-
-info = nvmlDeviceGetMemoryInfo(nvml_handle)
-print(info) 
 
 
 # ********************************************************************
@@ -73,8 +34,6 @@ opt, ns = initialize(build_folders = True)
 # ********************************************************************
 # ************ Dataloaders and Envronment Initialization *************
 # ********************************************************************  
-
-# dldrs = init_dataloaders(opt)
 dldrs = init_dataloaders_by_fold_id(opt, verbose = False)
 disp_dataloader_info(dldrs)
 

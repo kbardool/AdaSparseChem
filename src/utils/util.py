@@ -336,6 +336,7 @@ def get_command_line_args(input = None, display = True):
     """ get and parse command line arguments """
     parser = argparse.ArgumentParser()
     parser.add_argument("--config"           , type=str,   required=True, help="Path for the config file")
+    parser.add_argument("--project_name"     , type=str,   help="Project Name used by WandB ")
     parser.add_argument("--exp_id"           , type=str,   help="experiment unqiue id, used by wandb - defaults to wandb.util.generate_id()")
     parser.add_argument("--exp_name"         , type=str,   help="experiment name, used as folder prefix and wandb name, defaults to mmdd_hhmm")
     parser.add_argument("--folder_sfx"       , type=str,   help="experiment folder suffix, defaults to None")
@@ -420,7 +421,9 @@ def read_yaml(args = None, exp_name = None):
     opt["exp_id"] = args.exp_id 
     opt["pytorch_threads"] = args.pytorch_threads
 
-
+    if args.project_name is not None: 
+        opt['project_name'] = args.project_name
+        
     if exp_name is not None:
         opt['exp_name_pfx'] = exp_name
     elif args.exp_name is not None:

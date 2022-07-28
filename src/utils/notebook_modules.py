@@ -113,42 +113,42 @@ def init_dataloaders(opt, verbose = False):
 
     return dldrs
 
-def init_dataloaders_by_fold_id_old(opt, verbose = False):
+# def init_dataloaders_by_fold_id_old(opt, verbose = False):
 
-    dldrs = types.SimpleNamespace()
-    ## Identify indicies corresponding to =fold_va and !=fold_va
-    ## These indices are passed to the ClassRegrSparseDataset 
-    ecfp     = load_sparse(opt['dataload']['dataroot'], opt['dataload']['x'])
-    folding  = np.load(os.path.join(opt['dataload']['dataroot'], opt['dataload']['folding']))
+#     dldrs = types.SimpleNamespace()
+#     ## Identify indicies corresponding to =fold_va and !=fold_va
+#     ## These indices are passed to the ClassRegrSparseDataset 
+#     ecfp     = load_sparse(opt['dataload']['dataroot'], opt['dataload']['x'])
+#     folding  = np.load(os.path.join(opt['dataload']['dataroot'], opt['dataload']['folding']))
 
-    print(ecfp.shape, folding.shape)
+#     print(ecfp.shape, folding.shape)
 
-    fold_va = opt['dataload']['fold_va']
-    idx_tr  = np.where(folding != fold_va)[0]
-    idx_va  = np.where(folding == fold_va)[0]
-
-
-    print(f"Training dataset shape  : {idx_tr.shape}   last index #: {idx_tr[-1]}")
-    print(f"Validation dataset shape: {idx_va.shape}   last index #: {idx_va[-1]}")
-
-    dldrs = types.SimpleNamespace()
-    dldrs.trainset0 = ClassRegrSparseDataset_v3(opt, index = idx_tr, verbose = verbose)
-    dldrs.valset    = ClassRegrSparseDataset_v3(opt, index = idx_va, verbose = verbose)
-    dldrs.trainset1 = dldrs.trainset0
-    dldrs.trainset2 = dldrs.trainset0
+#     fold_va = opt['dataload']['fold_va']
+#     idx_tr  = np.where(folding != fold_va)[0]
+#     idx_va  = np.where(folding == fold_va)[0]
 
 
-    dldrs.warmup_trn_loader = InfiniteDataLoader(dldrs.trainset0 , batch_size=opt['train']['batch_size'], num_workers = 2, pin_memory=True, collate_fn=dldrs.trainset0.collate, shuffle=True)
-    dldrs.weight_trn_loader = InfiniteDataLoader(dldrs.trainset1 , batch_size=opt['train']['batch_size'], num_workers = 2, pin_memory=True, collate_fn=dldrs.trainset1.collate, shuffle=True)
-    dldrs.policy_trn_loader = InfiniteDataLoader(dldrs.trainset2 , batch_size=opt['train']['batch_size'], num_workers = 2, pin_memory=True, collate_fn=dldrs.trainset2.collate, shuffle=True)
-    dldrs.val_loader        = InfiniteDataLoader(dldrs.valset    , batch_size=opt['train']['batch_size'], num_workers = 1, pin_memory=True, collate_fn=dldrs.valset.collate   , shuffle=True)
+#     print(f"Training dataset shape  : {idx_tr.shape}   last index #: {idx_tr[-1]}")
+#     print(f"Validation dataset shape: {idx_va.shape}   last index #: {idx_va[-1]}")
+
+#     dldrs = types.SimpleNamespace()
+#     dldrs.trainset0 = ClassRegrSparseDataset_v3(opt, index = idx_tr, verbose = verbose)
+#     dldrs.valset    = ClassRegrSparseDataset_v3(opt, index = idx_va, verbose = verbose)
+#     dldrs.trainset1 = dldrs.trainset0
+#     dldrs.trainset2 = dldrs.trainset0
+
+
+#     dldrs.warmup_trn_loader = InfiniteDataLoader(dldrs.trainset0 , batch_size=opt['train']['batch_size'], num_workers = 2, pin_memory=True, collate_fn=dldrs.trainset0.collate, shuffle=True)
+#     dldrs.weight_trn_loader = InfiniteDataLoader(dldrs.trainset1 , batch_size=opt['train']['batch_size'], num_workers = 2, pin_memory=True, collate_fn=dldrs.trainset1.collate, shuffle=True)
+#     dldrs.policy_trn_loader = InfiniteDataLoader(dldrs.trainset2 , batch_size=opt['train']['batch_size'], num_workers = 2, pin_memory=True, collate_fn=dldrs.trainset2.collate, shuffle=True)
+#     dldrs.val_loader        = InfiniteDataLoader(dldrs.valset    , batch_size=opt['train']['batch_size'], num_workers = 1, pin_memory=True, collate_fn=dldrs.valset.collate   , shuffle=True)
     
-    # dldrs.test_loader       = InfiniteDataLoader(dldrs.testset   , batch_size=32                        , num_workers = 1, pin_memory=True, collate_fn=dldrs.testset.collate  , shuffle=True)
+#     # dldrs.test_loader       = InfiniteDataLoader(dldrs.testset   , batch_size=32                        , num_workers = 1, pin_memory=True, collate_fn=dldrs.testset.collate  , shuffle=True)
 
-    opt['train']['weight_iter_alternate'] = opt['train'].get('weight_iter_alternate' , len(dldrs.weight_trn_loader))
-    opt['train']['alpha_iter_alternate']  = opt['train'].get('alpha_iter_alternate'  , len(dldrs.policy_trn_loader))        
+#     opt['train']['weight_iter_alternate'] = opt['train'].get('weight_iter_alternate' , len(dldrs.weight_trn_loader))
+#     opt['train']['alpha_iter_alternate']  = opt['train'].get('alpha_iter_alternate'  , len(dldrs.policy_trn_loader))        
     
-    return dldrs
+#     return dldrs
 
 
 def init_dataloaders_by_fold_id(opt, training_folds=None, validation_folds= None, verbose = False):
@@ -328,9 +328,13 @@ def check_for_resume_training(ns, opt, environ, epoch = 0 , iter = 0):
 
 def model_initializations(ns, opt, environ, phase = 'update_weights', policy_learning = False, verbose = False):
     environ.define_optimizer(policy_learning=policy_learning, verbose = verbose)
+    print(" Model optimizers defined . . . policy_learning: {policy_learning}")
     environ.define_scheduler(policy_learning=policy_learning, verbose = verbose)
+    print(" Model schedulers defined . . . policy_learning: {policy_learning}")
     environ.write_metrics_csv_heading()    
+    print(" Metrics CSV file header written . . . ")
     model_fix_weights(ns, opt, environ, phase = phase)
+    print(" Model initializations complete . . . ")
 
 
 def model_fix_weights(ns, opt, environ, phase):
@@ -404,6 +408,7 @@ def training_initializations(ns, opt, environ, dldrs, phase, warmup,
         ns.curriculum_epochs  = 0
 
     ns.write_checkpoint   = True
+    print(f" training preparation complete . . .")
     return
 
 
