@@ -73,7 +73,7 @@ submit_list(){
             job_name="$229-${layer}x${num_layers}-${dropout}"
             printf "JobName : $job_name  Epochs: $epochs   LR: $lr   dev: $dev ---> "
             qsub -N $job_name  $pbs_account  $pbs_allocate  $pbs_folders\
-            -v epochs=$epochs,batch_size=$batch_size,num_layers=$num_layers,layer=$layer,lr=$lr,dropout=$dropout,datadir=$datadir,outdir=$outdir,config=$config,seed_idx=$seed_idx,res_opt=$3,hdn_opt=$4,desc="$5",cuda_device_id=$cuda_device_id,py_threads=$py_threads,dev=$dev,job_dt=$job_dt\
+            -v epochs=$epochs,batch_size=$batch_size,num_layers=$num_layers,layer=$layer,lr=$lr,dropout=$dropout,datadir=$datadir,config=$config,seed_idx=$seed_idx,res_opt=$3,hdn_opt=$4,desc="$5",cuda_device_id=$cuda_device_id,py_threads=$py_threads,dev=$dev,job_dt=$job_dt\
             $1
 
         elif [[ $submit_type == "LOCAL" ]]; then
