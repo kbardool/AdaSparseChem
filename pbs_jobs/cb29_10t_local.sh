@@ -31,9 +31,9 @@ batch_size=4096
 layer_size_list=(4000) 
 num_layers_list=(4)
 # num_layers_list=(1 2 3)
-dropout_list=(0.80)
+dropout_list=(0.70)
  
-epochs=10
+epochs=150
 seed_idx=1
 ## Kusanagi: 0 --> 1, 1 --> 2; 2 --> 0
 cuda_device_id=1

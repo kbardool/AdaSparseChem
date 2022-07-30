@@ -133,7 +133,9 @@ train:
 
   val_freq       :     500
   print_freq     :      -1
-  val_iters      :      -1
+  weight_iter_alternate : -1
+  alpha_iter_alternate  : -1
+  val_iters             : -1
   #
   resume         :   False
   retrain_resume :   False

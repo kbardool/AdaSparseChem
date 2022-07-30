@@ -77,7 +77,7 @@ print_heading(f" Last Epoch: {ns.current_epoch}   # of warm-up epochs to do:  {n
 
 
 # warmup_phase(ns,opt, environ, dldrs, write_checkpoint=False)
-warmup_phase(ns,opt, environ, dldrs, verbose = False, disable_tqdm = False)
+warmup_phase(ns,opt, environ, dldrs, verbose = False, disable_tqdm = True)
 
  
 
