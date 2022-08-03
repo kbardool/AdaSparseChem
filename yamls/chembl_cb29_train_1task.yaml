@@ -1,4 +1,4 @@
-project_name         : AdaSparseChem-cb29
+project_name         : AdaSparseChem-cb29-1Task
 ## Leave empty to have date_time used 
 exp_id               :
 exp_name_pfx         :
@@ -146,14 +146,14 @@ train:
 ## Data & Folder parameters
 ##------------------------------------------------------
 paths:
-  log_dir        :     ../../experiments/AdaSparseChem-cb29
-  result_dir     :     ../../experiments/AdaSparseChem-cb29
-  checkpoint_dir :     ../../experiments/AdaSparseChem-cb29
+  log_dir        :     ../../experiments/AdaSparseChem-cb29-1task
+  result_dir     :     ../../experiments/AdaSparseChem-cb29-1task
+  checkpoint_dir :     ../../experiments/AdaSparseChem-cb29-1task
 
 dataload:
   dataset        : Chembl29
-  dataroot       : "../../MLDatasets/chembl29"
-  x              : "chembl_29_x.npy"
+  dataroot       : "../../MLDatasets/chembl29_10task"
+  x              : "chembl_29_X.npy"
 
   ## Data split ratios: [Warmup, Weight Trn, Policy Trn, Validation]
   # x_split_ratios : [0.2, 0.35, 0.35, 0.1]
@@ -162,9 +162,8 @@ dataload:
   x_split_ratios : [0.725, 0.225, 0.05]
 
 
-  y_tasks        : ["chembl_29_thresh_y.npy"]
   folding        : "chembl_29_folding.npy"  
-  # y_tasks      : ["chembl_23mini_adashare_y1_bin_sparse.npy", "chembl_23mini_adashare_y2_bin_sparse.npy", "chembl_23mini_adashare_y3_bin_sparse.npy"]
+  y_tasks        : ["chembl_29_Y_all.npy"]
   y_censor       :
   fold_inputs    : 32000
   input_transform: 

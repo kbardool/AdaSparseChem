@@ -12,7 +12,7 @@ import scipy.io
 import scipy.special
 import sklearn.metrics
 from collections import namedtuple
-from utils.util import print_heading, print_dbg, debug_on, debug_off
+from utils.util import print_heading, print_dbg, debug_on, debug_off, print_underline
 from utils.flops_benchmark import add_flops_counting_methods
 from sklearn.metrics import confusion_matrix
 import torch.nn.functional as F 
@@ -242,6 +242,8 @@ def all_metrics(y_true, y_score, task):
 def compute_metrics(cols, y_true, y_score, num_tasks, verbose = False):
     """
     Compute metrics for the SparseChem classification for each individual task in a task group
+    
+    num_tasks: number of classification tasks in task group (= number of columns in taskgroup labels file)
     """
     if len(cols) < 1:
 
@@ -271,29 +273,45 @@ def compute_metrics(cols, y_true, y_score, num_tasks, verbose = False):
 ##
 ## SparseChem Metric calculations 
 ##
-def aggregate_results(df, weights):
+def aggregate_results(df, weights, verbose = False):
     """
-    Compute aggregate metrics for tasks in a task group based on 
+    Compute aggregate metrics for tasks in a task group based on task weights 
     """
     wsum = weights.sum()
     if wsum == 0:
         return pd.Series(np.nan, index=df.columns)
+        
+    ## broadcast training weights to non-null items in dataframe
     df2 = df.where(pd.isnull, 1) * weights[:,None]
-    return (df2.multiply(1.0 / df2.sum(axis=0), axis=1) * df).sum(axis=0)
+    divisor = 1.0 / df2.sum(axis=0)
+    result = (df2.multiply(divisor, axis=1) * df).sum(axis=0)
+    if verbose: 
+        print(f" wsum: {wsum}   df.shape: {df.shape}   df2: {df2.shape}  df2.sum(axis=0): \n {df2.sum(axis=0)}") 
+        print_underline(' DIVISOR ', verbose = True)
+        print(divisor)
+        print_underline(' DF ', verbose = True)
+        print(df)
+        print_underline(' DF2 ', verbose = True)        
+        print(df2)
+        print_underline(' RESULT ', verbose = True)        
+        print(result)
+
+    return result
 
 
 def load_task_weights(filename, y, label, verbose = False):
     """
     Loads and processes task weights, otherwise raises an error using the label.
     Args:
-        df      DataFrame with weights
+     filename      DataFrame with weights
         y       csr matrix of labels
         label   name for error messages
     
     Returns tuple of
-        training_weight
-        aggregation_weight
-        task_type
+        training_weight   :
+        aggregation_weight:
+        task_type         :
+        censored_weight   :
     """
     print_dbg(f" load_task_weights() - filename: {filename} label: {label}", verbose = verbose)
     res = types.SimpleNamespace(training_weight=None, aggregation_weight=None, task_type=None, censored_weight=torch.FloatTensor())

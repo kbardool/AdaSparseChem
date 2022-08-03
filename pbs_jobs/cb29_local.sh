@@ -19,25 +19,25 @@ submit_type="LOCAL"
 
 # Config Parameters ======================================================
 TRAINING_SCRIPT="AS_train.sh" 
-config="../yamls/chembl_cb29_train.yaml"
+config="../yamls/chembl_cb29_train_1task.yaml"
 datadir="../../MLDatasets/chembl29"
-outdir="../../experiments/AdaSparseChem-cb29"
+# outdir="../../experiments/AdaSparseChem-cb29"
 
 # Training Parms =========================================================
 # lr_list=(0.001)
 lr_list=(0.001)
 batch_size=4096
 
-layer_size_list=(2000) 
-num_layers_list=(6)
+layer_size_list=(4000) 
+num_layers_list=(2)
 # num_layers_list=(1 2 3)
-dropout_list=(0.80 0.70)
+dropout_list=(0.80)
  
-epochs=100
+epochs=150
 seed_idx=1
 ## Kusanagi: 0 --> 1, 1 --> 2; 2 --> 0
 cuda_device_id=1
-py_threads=4
+py_threads=6
 dev=0
 # dropout_list=(0.40 0.50 0.60)
 # dropout_list=( 0.70  0.80  0.90)

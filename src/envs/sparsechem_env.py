@@ -922,11 +922,12 @@ class SparseChemEnv(BaseEnv):
                 self.val_metrics[task_key]["classification"] = compute_metrics(cols=self.val_data[task_key]['yc_ind'][1], 
                                                                                y_true=self.val_data[task_key]['yc_data'], 
                                                                                y_score=self.val_data[task_key]['yc_hat'] ,
-                                                                               num_tasks=num_class_tasks[t_id])
+                                                                               num_tasks=num_class_tasks[t_id], verbose = False)
                 # print(self.val_metrics[task_key]["classification"])
                 ## to_dict(): convert pandas series to dict to make it compatible with print_loss()
                 self.val_metrics[task_key]["classification_agg"] = aggregate_results(self.val_metrics[task_key]["classification"], 
-                                                                                    weights = self.val_data[task_key]['yc_aggr_weights']).to_dict() 
+                                                                                     weights = self.val_data[task_key]['yc_aggr_weights'],
+                                                                                     verbose = False).to_dict() 
                 # print(self.val_metrics[task_key]["classification_agg"])
                 self.val_metrics[task_key]['classification_agg']['sc_loss'] = self.val_metrics["task"][task_key] / batch_idx
                 self.val_metrics[task_key]["classification_agg"]["logloss"] = self.val_metrics["task"][task_key] / task_class_weights[task_key].cpu().item()
@@ -945,7 +946,9 @@ class SparseChemEnv(BaseEnv):
                 # self.val_metrics[task_key]['classification_agg']['yc_weights_sum']  = self.metrics[task_key]["yc_wghts_sum"].cpu().item()
     
             ## Calculate aggregated metrics across all task groups
-            
+            ## Changed the method of calculating the aggregated metrics to account task groups containing 
+            ## Different number of tasks. We concatenate the task aggregation weights together, concatenate the classification metrics 
+            ## together, and pass them on to aggregate results as one metrics datafarme for all tasks.
             self.val_metrics['aggregated'] = aggregate_results( pd.concat(all_tasks_classification_metrics),
                                                                 weights = np.concatenate(all_tasks_aggregation_weights)).to_dict()
             self.val_metrics['aggregated']['sc_loss'] = (self.val_metrics['task']['total'] / eval_iters ) 
