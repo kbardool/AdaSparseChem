@@ -21,23 +21,23 @@ pbs_allocate="-l nodes=1:ppn=9:gpus=1,partition=gpu,walltime=72:00:00 "
 TRAINING_SCRIPT="AS_train.sh" 
 config="../yamls/chembl_cb29_train.yaml"
 datadir="../../MLDatasets/chembl29"
-outdir="../../experiments/AdaSparseChem-cb29"
+# outdir="../../experiments/AdaSparseChem-cb29"
 
 # Training Parms =========================================================
 # lr_list=(0.001)
-lr_list=(0.0001)
+lr_list=(0.001)
 batch_size=4096
 
-num_layers_list=(6)
+num_layers_list=(3)
 # num_layers_list=(1 2 3)
 layer_size_list=(4000) 
-dropout_list=(0.50)
+dropout_list=(0.80 0.70 0.60)
 
-epochs=100
+epochs=150
 seed_idx=0
 ## Kusanagi: 0 --> 1, 1 --> 2; 2 --> 0
-cuda_device_id=1
-py_threads=1
+cuda_device_id=0
+py_threads=9
 dev=0
 # dropout_list=(0.40 0.50 0.60)
 # dropout_list=( 0.70  0.80  0.90)

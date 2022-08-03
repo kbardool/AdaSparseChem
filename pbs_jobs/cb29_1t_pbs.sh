@@ -19,7 +19,7 @@ pbs_allocate="-l nodes=1:ppn=9:gpus=1,partition=gpu,walltime=72:00:00 "
 
 # Config Parameters ======================================================
 TRAINING_SCRIPT="AS_train.sh" 
-config="../yamls/chembl_cb29_train_10task.yaml"
+config="../yamls/chembl_cb29_train_1task.yaml"
 datadir="../../MLDatasets/chembl29"
 # outdir="../../experiments/AdaSparseChem-cb29"
 
@@ -28,7 +28,7 @@ datadir="../../MLDatasets/chembl29"
 lr_list=(0.001)
 batch_size=4096
 
-num_layers_list=(5)
+num_layers_list=(2 3 4 5 6)
 # num_layers_list=(1 2 3)
 layer_size_list=(4000) 
 dropout_list=(0.80)
