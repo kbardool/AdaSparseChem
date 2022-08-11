@@ -163,16 +163,16 @@ dataload:
 
 
   folding        : "chembl_29_folding.npy"  
-  y_tasks        : ["chembl_29_Y_all_tg_0_cols_472.npy",
-                    "chembl_29_Y_all_tg_1_cols_624.npy",
-                    "chembl_29_Y_all_tg_6_cols_688.npy",
-                    "chembl_29_Y_all_tg_10_cols_192.npy",
-                    "chembl_29_Y_all_tg_11_cols_620.npy",
-                    "chembl_29_Y_all_tg_643_cols_184.npy",
-                    "chembl_29_Y_all_tg_836_cols_224.npy",
-                    "chembl_29_Y_all_tg_1005_cols_148.npy",
-                    "chembl_29_Y_all_tg_1028_cols_344.npy",
-                    "chembl_29_Y_all_tg_1031_cols_72.npy"
+  y_tasks        : ["chembl_29_Y_tg_0_cols_472.npy",
+                    "chembl_29_Y_tg_1_cols_624.npy",
+                    "chembl_29_Y_tg_6_cols_688.npy",
+                    "chembl_29_Y_tg_10_cols_192.npy",
+                    "chembl_29_Y_tg_11_cols_620.npy",
+                    "chembl_29_Y_tg_643_cols_184.npy",
+                    "chembl_29_Y_tg_836_cols_224.npy",
+                    "chembl_29_Y_tg_1005_cols_148.npy",
+                    "chembl_29_Y_tg_1028_cols_344.npy",
+                    "chembl_29_Y_tg_1031_cols_72.npy"
                    ]
   y_censor       :
   fold_inputs    : 32000

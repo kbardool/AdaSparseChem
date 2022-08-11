@@ -20,7 +20,7 @@ lr_list=(0.001)
 batch_size=4096
 
 layer_size_list=(4000) 
-num_layers_list=(2)
+num_layers_list=(4)
 # num_layers_list=(1 2 3)
 dropout_list=(0.80)
  
