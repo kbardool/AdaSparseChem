@@ -15,12 +15,11 @@ from utils       import ( makedir, print_separator, create_path, print_yaml, pri
 
 # DISABLE_TQDM = True
 
-def initialize(ns, build_folders = True):
+def initialize(ns, build_folders = True, start_wandb = True):
          
     print_separator('READ YAML')
     opt = read_yaml(ns.args)
     fix_random_seed(opt["random_seed"])
-
 
     # print(f" cuda_devices : {ns.args.cuda_devices}")
     # os.environ["CUDA_VISIBLE_DEVICES"]=ns.args.cuda_devices
@@ -30,8 +29,9 @@ def initialize(ns, build_folders = True):
     print(f" Set Pytorch thread count to : {opt['pytorch_threads']}")
     torch.set_num_threads(opt['pytorch_threads'])
     print(f" Pytorch thread count set to : {torch.get_num_threads()}")
-
-    init_wandb(ns, opt)
+    
+    if start_wandb:
+        init_wandb(ns, opt)
         
     if build_folders:
         create_path(opt)    
@@ -108,6 +108,7 @@ def init_dataloaders(opt, verbose = False):
     dldrs.val_loader        = InfiniteDataLoader(dldrs.valset    , batch_size=opt['train']['batch_size'], num_workers = 1, pin_memory=True, collate_fn=dldrs.valset.collate  , shuffle=True)
     dldrs.test_loader       = InfiniteDataLoader(dldrs.testset   , batch_size=32                        , num_workers = 1, pin_memory=True, collate_fn=dldrs.testset.collate  , shuffle=True)
 
+    opt['train']['warmup_iter_alternate'] = opt['train'].get('warmup_iter_alternate' , len(dldrs.weight_trn_loader))
     opt['train']['weight_iter_alternate'] = opt['train'].get('weight_iter_alternate' , len(dldrs.weight_trn_loader))
     opt['train']['alpha_iter_alternate']  = opt['train'].get('alpha_iter_alternate'  , len(dldrs.policy_trn_loader))    
 
@@ -115,30 +116,31 @@ def init_dataloaders(opt, verbose = False):
 
  
 
-def init_dataloaders_by_fold_id(opt, training_folds=None, validation_folds= None, verbose = False):
+def init_dataloaders_by_fold_id(opt, warmup_folds=None, weight_folds = None, policy_folds = None, validation_folds= None, verbose = False):
 
     dldrs = types.SimpleNamespace()
     ## Identify indicies corresponding to =fold_va and !=fold_va
     ## These indices are passed to the ClassRegrSparseDataset 
+
     # ecfp     = load_sparse(opt['dataload']['dataroot'], opt['dataload']['x'])
     # folding  = np.load(os.path.join(opt['dataload']['dataroot'], opt['dataload']['folding']))
-
     # print(ecfp.shape, folding.shape)
-
-    # fold_va = opt['dataload']['fold_va']
-    # idx_tr  = np.where(folding != fold_va)[0]
-    # idx_va  = np.where(folding == fold_va)[0]
-
-
-    # print(f"Training dataset shape  : {idx_tr.shape}   last index #: {idx_tr[-1]}")
-    # print(f"Validation dataset shape: {idx_va.shape}   last index #: {idx_va[-1]}")
-    training_folds = [1,2,3,4]
-    validation_folds = [0]
+    warmup_folds   = opt['dataload']['fold_warmup']  if warmup_folds is None else warmup_folds   
+    weight_folds   = opt['dataload']['fold_weights'] if weight_folds is None else weight_folds   
+    policy_folds   = opt['dataload']['fold_policy']  if policy_folds is None else policy_folds   
+    validation_folds = opt['dataload']['fold_va']  if validation_folds is None else validation_folds 
+    print(f" Warmup folds    : {warmup_folds}")
+    print(f" Weights folds   : {weight_folds}")
+    print(f" Policy folds    : {policy_folds}")
+    print(f" Validation folds: {validation_folds}")
+    
     dldrs = types.SimpleNamespace()
-    dldrs.trainset0 = ClassRegrSparseDataset_v3(opt, folds= training_folds, verbose = verbose)
+    dldrs.trainset0 = ClassRegrSparseDataset_v3(opt, folds= warmup_folds, verbose = verbose)
+    dldrs.trainset1 = ClassRegrSparseDataset_v3(opt, folds= weight_folds, verbose = verbose)
+    dldrs.trainset2 = ClassRegrSparseDataset_v3(opt, folds= policy_folds, verbose = verbose)
     dldrs.valset    = ClassRegrSparseDataset_v3(opt, folds= validation_folds, verbose = verbose)
-    dldrs.trainset1 = dldrs.trainset0
-    dldrs.trainset2 = dldrs.trainset0
+    # dldrs.trainset1 = dldrs.trainset0
+    # dldrs.trainset2 = dldrs.trainset0
 
 
     dldrs.warmup_trn_loader = InfiniteDataLoader(dldrs.trainset0 , batch_size=opt['train']['batch_size'], num_workers = 1, pin_memory=True, collate_fn=dldrs.trainset0.collate, shuffle=True)
@@ -147,15 +149,16 @@ def init_dataloaders_by_fold_id(opt, training_folds=None, validation_folds= None
     dldrs.val_loader        = InfiniteDataLoader(dldrs.valset    , batch_size=opt['train']['batch_size'], num_workers = 1, pin_memory=True, collate_fn=dldrs.valset.collate   , shuffle=True)
     
     # dldrs.test_loader       = InfiniteDataLoader(dldrs.testset   , batch_size=32                        , num_workers = 1, pin_memory=True, collate_fn=dldrs.testset.collate  , shuffle=True)
-
     # opt['train']['weight_iter_alternate'] = opt['train'].get('weight_iter_alternate' , len(dldrs.weight_trn_loader))
     # opt['train']['alpha_iter_alternate']  = opt['train'].get('alpha_iter_alternate'  , len(dldrs.policy_trn_loader))        
     # opt['train']['val_iters']             = opt['train'].get('val_iters'             , len(dldrs.val_loader))       
 
+    opt['train']['warmup_iter_alternate'] = len(dldrs.warmup_trn_loader) if opt['train']['warmup_iter_alternate'] == -1 else opt['train']['warmup_iter_alternate']
     opt['train']['weight_iter_alternate'] = len(dldrs.weight_trn_loader) if opt['train']['weight_iter_alternate'] == -1 else opt['train']['weight_iter_alternate']
     opt['train']['alpha_iter_alternate']  = len(dldrs.policy_trn_loader) if opt['train']['alpha_iter_alternate']  == -1 else opt['train']['alpha_iter_alternate'] 
     opt['train']['val_iters']             = len(dldrs.val_loader)        if opt['train']['val_iters']             == -1 else opt['train']['val_iters']            
     
+    print(f" dataloader preparation - set number of batches per warmup training epoch to: {opt['train']['warmup_iter_alternate']}")
     print(f" dataloader preparation - set number of batches per weight training epoch to: {opt['train']['weight_iter_alternate']}")
     print(f" dataloader preparation - set number of batches per policy training epoch to: {opt['train']['alpha_iter_alternate']}")
     print(f" dataloader preparation - set number of batches per validation to           : {opt['train']['val_iters']}")
@@ -322,7 +325,8 @@ def model_fix_weights(ns, opt, environ, phase):
         raise ValueError('training mode/phase %s  is not valid' % phase)
 
 
-def training_initializations(ns, opt, environ, dldrs, phase, warmup, 
+def training_initializations(ns, opt, environ, dldrs, phase, warmup,
+                             warmup_iterations = 0, 
                              weight_iterations = 0,
                              policy_iterations = 0,
                              eval_iterations   = 0,
@@ -337,12 +341,14 @@ def training_initializations(ns, opt, environ, dldrs, phase, warmup,
 
     ns.print_freq  = opt['train']['print_freq'] if opt['train']['print_freq'] != -1  else len(dldrs.warmup_trn_loader)
 
-    ns.trn_iters_w = opt['train']['weight_iter_alternate'] if weight_iterations == 0 else weight_iterations
+    ns.trn_iters_warmup = opt['train']['warmup_iter_alternate'] if warmup_iterations == 0 else warmup_iterations
+    ns.trn_iters_weights = opt['train']['weight_iter_alternate'] if weight_iterations == 0 else weight_iterations
     ns.trn_iters_a = opt['train']['alpha_iter_alternate']  if policy_iterations == 0 else policy_iterations
     ns.eval_iters  = opt['train']['val_iters']             if eval_iterations   == 0 else eval_iterations
 
     print(f" training preparation: - set print_freq to                                 : {ns.print_freq} ")
-    print(f" training preparation: - set number of batches per weight training epoch to: {ns.trn_iters_w}")
+    print(f" training preparation: - set number of batches per warmup training epoch to: {ns.trn_iters_warmup}")
+    print(f" training preparation: - set number of batches per weight training epoch to: {ns.trn_iters_weights}")
     print(f" training preparation: - set number of batches per policy training epoch to: {ns.trn_iters_a}")
     print(f" training preparation: - set number of batches per validation to           : {ns.eval_iters }")
  
@@ -396,7 +402,7 @@ def warmup_phase(ns,opt, environ, dldrs, disable_tqdm = True, epochs = None, wri
         #-----------------------------------------
         # Train & Update the network weights
         #-----------------------------------------   
-        with trange(+1, ns.trn_iters_w+1 , initial = 0 , total = ns.trn_iters_w, position=0, file=sys.stdout,
+        with trange(+1, ns.trn_iters_warmup+1 , initial = 0 , total = ns.trn_iters_warmup, position=0, file=sys.stdout,
                     leave= False, disable = disable_tqdm, desc=f" Warmup Epoch {ns.current_epoch}/{ns.stop_epoch_warmup}") as t_warmup :
             for _ in t_warmup:
                 ns.current_iter += 1            
@@ -433,8 +439,8 @@ def warmup_phase(ns,opt, environ, dldrs, disable_tqdm = True, epochs = None, wri
         line_count += 1
         wandb_log_metrics(ns.val_metrics)
 
-        environ.schedulers['weights'].step(ns.trn_losses['total']['total'])
-        environ.schedulers['alphas'].step(ns.trn_losses['total']['total'])            
+        environ.schedulers['weights'].step(ns.val_metrics['total']['task'])
+        environ.schedulers['alphas'].step(ns.val_metrics['total']['task'])            
         
         # Checkpoint on best results
         check_for_improvement(ns,opt,environ)    
@@ -491,7 +497,7 @@ def weight_policy_training(ns, opt, environ, dldrs, disable_tqdm = True, epochs 
             environ.free_weights(opt['fix_BN'])
             environ.train()
             
-            with trange(+1, ns.trn_iters_w+1 , initial = 0, total = ns.trn_iters_w,  file=sys.stdout,
+            with trange(+1, ns.trn_iters_weights+1 , initial = 0, total = ns.trn_iters_weights,  file=sys.stdout,
                         position=0, ncols = 132, leave= False, disable = disable_tqdm,
                         desc=f"Ep: {ns.current_epoch} [weights]") as t_weights :
                 
@@ -643,7 +649,7 @@ def retrain_phase(ns, opt, environ, dldrs, epochs = None, disable_tqdm = True,
     ns.stop_epoch_training = ns.current_epoch + ns.training_epochs
 
     print_heading(f" Last Epoch Completed: {ns.current_epoch}   # of epochs to do:  {ns.training_epochs} -  epochs {ns.current_epoch+1} to {ns.stop_epoch_training}"
-                f"\n weight train iterations : {ns.trn_iters_w}"
+                f"\n weight train iterations : {ns.trn_iters_weights}"
                 f"\n policy_lr               : {opt['train']['policy_lr']}"
                 f"\n lambda_sparsity         : {opt['train']['lambda_sparsity']}"
                 f"\n lambda_sharing          : {opt['train']['lambda_sharing']}", verbose = True)
@@ -658,7 +664,7 @@ def retrain_phase(ns, opt, environ, dldrs, epochs = None, disable_tqdm = True,
         ns.current_epoch+=1    
         start_time = time.time()
 
-        with trange(+1, ns.trn_iters_w+1 , initial = 0, total = ns.trn_iters_w, position=0,  file=sys.stdout,
+        with trange(+1, ns.trn_iters_weights+1 , initial = 0, total = ns.trn_iters_weights, position=0,  file=sys.stdout,
                         ncols = 132, leave= False, disable = disable_tqdm, 
                         desc=f"Epoch {ns.current_epoch} weight training") as t_weights :
             for _ in t_weights:    
@@ -784,7 +790,7 @@ def disp_info_1(ns, opt, environ):
             f"\n Num_blocks                : {sum(environ.networks['mtl-net'].layers)}"    
             f"                                \n"
             f"\n batch size                : {opt['train']['batch_size']}",    
-            f"\n batches/ Weight trn epoch : {ns.trn_iters_w}",
+            f"\n batches/ Weight trn epoch : {ns.trn_iters_weights}",
             f"\n batches/ Policy trn epoch : {ns.trn_iters_a}",
             # f"\n Total iterations          : {opt['train']['total_iters']}",
             # f"\n Warm-up iterations        : {opt['train']['warm_up_iters']}",
@@ -811,7 +817,7 @@ def disp_info_1(ns, opt, environ):
             # f"\n # of warm-up epochs to do : {ns.warmup_epochs}",
             # f"\n Warm-up stop              : {ns.stop_epoch_warmup}",
             # f"\n training_epochs           : {ns.training_epochs}",
-            # f"\n stop_iter_w               : {ns.trn_iters_w}",
+            # f"\n stop_iter_w               : {ns.trn_iters_weights}",
         )
 
  
@@ -901,11 +907,11 @@ def display_gpu_info():
     #     print(f" training preparation: - set eval_iters to opt[train][val_iters]: {opt['train']['val_iters']}")
     #     ns.eval_iters    = opt['train']['val_iters']
         
-    # ns.trn_iters_w =  len(dldrs.weight_trn_loader) 
+    # ns.trn_iters_weights =  len(dldrs.weight_trn_loader) 
     # print(f" training preparation: - set number of batches per weight training epoch to: {opt['train']['weight_iter_alternate']}")
     # print(f" training preparation: - set number of batches per policy training epoch to: {opt['train']['alpha_iter_alternate']}")
 
-    # ns.trn_iters_w = opt['train']['weight_iter_alternate']
+    # ns.trn_iters_weights = opt['train']['weight_iter_alternate']
     # ns.trn_iters_a = opt['train']['alpha_iter_alternate'] 
 
     # Fix Alpha -     

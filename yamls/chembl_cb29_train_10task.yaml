@@ -133,6 +133,7 @@ train:
 
   val_freq       :     500
   print_freq     :      -1
+  warmup_iter_alternate : -1
   weight_iter_alternate : -1
   alpha_iter_alternate  : -1
   val_iters             : -1
@@ -180,8 +181,11 @@ dataload:
   weights_class  :  
   
   min_samples_class : 1
-  fold_va        : 0
-  fold_te        :  
+  fold_test      : [0] 
+  fold_va        : [1]
+  fold_warmup    : [2, 3, 4]
+  fold_weights   : [2, 3]
+  fold_policy    : [4]
 
 ##------------------------------------------------------
 ## sparsechem related parameters
