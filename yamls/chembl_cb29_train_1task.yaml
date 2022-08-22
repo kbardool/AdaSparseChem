@@ -171,8 +171,12 @@ dataload:
   weights_class  :  
   
   min_samples_class : 1
-  fold_va        : 0
-  fold_te        :  
+  fold_test      : [0] 
+  fold_va        : [1]
+  fold_warmup    : [2, 3, 4]
+  fold_weights   : [2, 3]
+  fold_policy    : [4]
+
 
 ##------------------------------------------------------
 ## sparsechem related parameters

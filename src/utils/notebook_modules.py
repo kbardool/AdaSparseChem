@@ -49,7 +49,8 @@ def initialize(ns, build_folders = True, start_wandb = True):
                   f" policy_iter           : {opt['train']['policy_iter']}\n"
                   f" Data Split ratios     : {opt['dataload']['x_split_ratios']}", verbose = True)
 
-    ns.config_filename = 'run_config_seed_%04d.txt' % (opt['random_seed'])
+    # ns.config_filename = 'run_config_seed_%04d.txt' % (opt['random_seed'])
+    ns.config_filename = 'run_configuration.txt'  
     write_config_report(opt, filename = ns.config_filename)    
     display_config(opt)
 
@@ -196,25 +197,21 @@ def disp_dataloader_info(dldrs):
           f"  validation set num of negative                     : {dldrs.valset.num_neg.sum()}\n"
           f"  task_weights_list[0].aggregation_weight sum        : {dldrs.valset.tasks_weights_list[0].aggregation_weight.sum()}\n")
 
-def init_environment(ns, opt, is_train = True, policy_learning = False, display_cfg = False, verbose = False):
+def init_environment(ns, opt, is_train = True, display_cfg = False, verbose = False):
     # ********************************************************************
     # ********************Create the environment *************************
     # ********************************************************************
     # create the model and the pretrain model
     print_separator('CREATE THE ENVIRONMENT')
-    environ = SparseChemEnv(log_dir          = opt['paths']['log_dir'], 
-                            checkpoint_dir   = opt['paths']['checkpoint_dir'], 
-                            exp_name         = opt['exp_name'],
-                            tasks_num_class  = opt['tasks_num_class'], 
+    environ = SparseChemEnv(opt = opt, 
+                            is_train         = is_train,
+
                             init_neg_logits  = opt['train']['init_neg_logits'], 
-                            device           = opt['gpu_ids'][0],
                             init_temperature = opt['train']['init_temp'], 
                             temperature_decay= opt['train']['decay_temp'], 
-                            is_train         = is_train,
-                            opt              = opt, 
                             verbose          = False)
-    wandb_watch(environ.networks['mtl-net'], log='all', log_freq= 10)     ###  Weights and Biases Initialization         
-    
+
+    wandb_watch(environ.networks['mtl-net'], log='all', log_freq= 1000)     ###  Weights and Biases Initialization         
     cfg = environ.print_configuration()
     write_config_report(opt, cfg, filename = ns.config_filename, mode = 'a')
 
@@ -223,17 +220,23 @@ def init_environment(ns, opt, is_train = True, policy_learning = False, display_
     
     return environ
 
-def wandb_watch(item = None, log = 'all', log_freq = 10):
+def wandb_watch(item = None, log = 'all', log_freq = 1000):
+    """
+    Note: Increasing the log frequency can result in longer run times
+    """
     if item is not None:
         wandb.watch(item, log='all', log_freq= log_freq)     ###  Weights and Biases Initialization         
 
-def wandb_log_metrics(val_metrics):
-    wandb.log({**val_metrics['aggregated'], 
-               **val_metrics['total'], 
-               **val_metrics['parms'], 
-               **val_metrics['sharing'], 
-               **val_metrics['sparsity']})
-    wandb.log({'epoch': val_metrics['epoch']})
+def wandb_log_metrics(val_metrics, step = None):
+
+    wandb.log({ **val_metrics['parms'], 
+                **val_metrics['aggregated'],
+                'ERRORS'    : {**val_metrics['total']}, 
+                'SHARING'   : {**val_metrics['sharing']}, 
+                'SPARSITY'  : {**val_metrics['sparsity']},
+                'epoch'     : val_metrics['epoch']}, step = step)
+
+    # wandb.log({'epoch': val_metrics['epoch']}, step = step)
 
 
 def check_for_resume_training(ns, opt, environ, epoch = 0 , iter = 0):
@@ -300,24 +303,27 @@ def check_for_resume_training(ns, opt, environ, epoch = 0 , iter = 0):
 
 def model_initializations(ns, opt, environ, phase = 'update_weights', policy_learning = False, verbose = False):
     environ.define_optimizer(policy_learning=policy_learning, verbose = verbose)
-    print(" Model optimizers defined . . . policy_learning: {policy_learning}")
+    print(f" Model optimizers defined . . . policy_learning: {policy_learning}")
+
     environ.define_scheduler(policy_learning=policy_learning, verbose = verbose)
-    print(" Model schedulers defined . . . policy_learning: {policy_learning}")
+    print(f" Model schedulers defined . . . policy_learning: {policy_learning}")
+    
     environ.write_metrics_csv_heading()    
     print(" Metrics CSV file header written . . . ")
-    model_fix_weights(ns, opt, environ, phase = phase)
+    
+    # model_fix_weights(ns, opt, environ, phase = phase)
     print(" Model initializations complete . . . ")
 
 
 def model_fix_weights(ns, opt, environ, phase):
     # Fix Alpha -     
     if phase == 'update_weights':
-        print(' Update weights -- fix alpha')
+        print(' Allow weight updates -- fix alpha')
         ns.flag = phase
         environ.fix_alpha()
         environ.free_weights(opt['fix_BN'])
     elif phase == 'update_alpha':
-        print(' Update alpha   -- fix weights')
+        print(' Update alpha updates -- fix weights')
         ns.flag = phase
         environ.fix_weights()
         environ.free_alpha() 
@@ -325,11 +331,13 @@ def model_fix_weights(ns, opt, environ, phase):
         raise ValueError('training mode/phase %s  is not valid' % phase)
 
 
-def training_initializations(ns, opt, environ, dldrs, phase, warmup,
+def training_initializations(ns, opt, environ, dldrs, 
+                             warmup,
                              warmup_iterations = 0, 
                              weight_iterations = 0,
                              policy_iterations = 0,
                              eval_iterations   = 0,
+                             write_checkpoint  = None,
                              epoch = 0, iter = 0, verbose = False):
 
     if torch.cuda.is_available():
@@ -343,19 +351,19 @@ def training_initializations(ns, opt, environ, dldrs, phase, warmup,
 
     ns.trn_iters_warmup = opt['train']['warmup_iter_alternate'] if warmup_iterations == 0 else warmup_iterations
     ns.trn_iters_weights = opt['train']['weight_iter_alternate'] if weight_iterations == 0 else weight_iterations
-    ns.trn_iters_a = opt['train']['alpha_iter_alternate']  if policy_iterations == 0 else policy_iterations
-    ns.eval_iters  = opt['train']['val_iters']             if eval_iterations   == 0 else eval_iterations
+    ns.trn_iters_policy = opt['train']['alpha_iter_alternate']  if policy_iterations == 0 else policy_iterations
+    ns.eval_iters  = opt['train']['val_iters']  if eval_iterations   == 0 else eval_iterations
 
     print(f" training preparation: - set print_freq to                                 : {ns.print_freq} ")
     print(f" training preparation: - set number of batches per warmup training epoch to: {ns.trn_iters_warmup}")
     print(f" training preparation: - set number of batches per weight training epoch to: {ns.trn_iters_weights}")
-    print(f" training preparation: - set number of batches per policy training epoch to: {ns.trn_iters_a}")
+    print(f" training preparation: - set number of batches per policy training epoch to: {ns.trn_iters_policy}")
     print(f" training preparation: - set number of batches per validation to           : {ns.eval_iters }")
  
     ns.p_epoch            = 0
     ns.num_train_layers   = None     
     ns.leave              = False   
-    ns.flag_warmup        = warmup
+    # ns.flag_warmup        = warmup
 
     # ns.num_prints         = 0
     ns.num_blocks         = sum(environ.networks['mtl-net'].layers)
@@ -370,7 +378,10 @@ def training_initializations(ns, opt, environ, dldrs, phase, warmup,
     else:
         ns.curriculum_epochs  = 0
 
-    ns.write_checkpoint   = True
+    if write_checkpoint is not None:
+        ns.write_checkpoint = write_checkpoint
+    else:
+        ns.write_checkpoint   = True
     print(f" training preparation complete . . .")
     return
 
@@ -378,8 +389,7 @@ def training_initializations(ns, opt, environ, dldrs, phase, warmup,
 
 
 
-def warmup_phase(ns,opt, environ, dldrs, disable_tqdm = True, epochs = None, write_checkpoint = True, verbose = False):
-    ns.write_checkpoint = write_checkpoint
+def warmup_phase(ns,opt, environ, dldrs, disable_tqdm = True, epochs = None, verbose = False):
     ns.phase = 'warmup'
     ns.flag  = 'update_weights'
     if epochs is not None:
@@ -394,10 +404,14 @@ def warmup_phase(ns,opt, environ, dldrs, disable_tqdm = True, epochs = None, wri
 
     line_count = 0
     input_size = dldrs.warmup_trn_loader.dataset.input_size
-
+   
+    environ.fix_alpha()
+    environ.free_weights(opt['fix_BN'])
+   
     while ns.current_epoch < ns.stop_epoch_warmup:
         start_time = time.time()
         ns.current_epoch+=1
+
         environ.train()    
         #-----------------------------------------
         # Train & Update the network weights
@@ -410,17 +424,16 @@ def warmup_phase(ns,opt, environ, dldrs, disable_tqdm = True, epochs = None, wri
                 batch = next(dldrs.warmup_trn_loader)            
                 environ.set_inputs(batch, input_size)
 
-                environ.optimize(opt['lambdas'], 
-                                is_policy=False, 
-                                flag='update_weights', 
-                                verbose = verbose)
+                environ.optimize(is_policy=False, 
+                                 flag='update_weights', 
+                                 verbose = verbose)
             
                 t_warmup.set_postfix({'curr_iter':ns.current_iter, 
                                     'Loss': f"{environ.losses['total']['total'].item():.4f}"})
 
         ns.trn_losses = environ.losses
-        environ.print_trn_metrics(ns.current_epoch, ns.current_iter, start_time, title = f"[Warmup Trn]")
-        # wandb.log(environ.losses)
+        environ.write_trn_metrics(ns.current_epoch, ns.current_iter, start_time, title = f"[Warmup Trn]", to_tb=False)
+        # wandb.log(environ.losses, step = ns.current_epoch)
 
         ##--------------------------------------------------------------- 
         ## validation
@@ -433,14 +446,14 @@ def warmup_phase(ns,opt, environ, dldrs, disable_tqdm = True, epochs = None, wri
                                         leave           = False,
                                         verbose         = False)
 
-        environ.print_val_metrics(ns.current_epoch, ns.current_iter, start_time, title = f"[Warmup Val]")    
-        print_metrics_cr(ns.current_epoch,  time.time() - start_time, ns.trn_losses, ns.val_metrics, line_count, 
-                        out=[sys.stdout, environ.log_file], to_tqdm = True) 
-        line_count += 1
-        wandb_log_metrics(ns.val_metrics)
+        # environ.write_val_metrics(ns.current_epoch, ns.current_iter, start_time, title = f"[Warmup Val]")    
+        print_metrics_cr(ns.current_epoch,  time.time() - start_time, ns.trn_losses, ns.val_metrics,
+                         line_count, out=[sys.stdout, environ.log_file]) 
+        line_count +=1
+        wandb_log_metrics(ns.val_metrics, step = ns.current_epoch)
 
-        environ.schedulers['weights'].step(ns.val_metrics['total']['task'])
-        environ.schedulers['alphas'].step(ns.val_metrics['total']['task'])            
+        # environ.schedulers['weights'].step(ns.val_metrics['total']['task'])
+        # environ.schedulers['alphas'].step(ns.val_metrics['total']['task'])            
         
         # Checkpoint on best results
         check_for_improvement(ns,opt,environ)    
@@ -506,12 +519,11 @@ def weight_policy_training(ns, opt, environ, dldrs, disable_tqdm = True, epochs 
                     batch = next(dldrs.weight_trn_loader)
                     environ.set_inputs(batch , weight_input_size)
 
-                    environ.optimize(opt['lambdas'], 
-                                    is_policy=opt['policy'], 
-                                    flag=ns.flag, 
-                                    num_train_layers=ns.num_train_layers,
-                                    hard_sampling=opt['train']['hard_sampling'],
-                                    verbose = False)
+                    environ.optimize(is_policy=opt['policy'], 
+                                     flag=ns.flag, 
+                                     num_train_layers=ns.num_train_layers,
+                                     hard_sampling=opt['train']['hard_sampling'],
+                                     verbose = False)
 
                     t_weights.set_postfix({'it' : ns.current_iter, 
                                            'Lss': f"{environ.losses['task']['total'].item():.4f}" , 
@@ -519,26 +531,28 @@ def weight_policy_training(ns, opt, environ, dldrs, disable_tqdm = True, epochs 
                                            'Shr': f"{environ.losses['sharing']['total'].item():.4e}",
                                            'lyr': f"{ns.num_train_layers}"})    
     
-            trn_losses = environ.losses
-            environ.print_trn_metrics(ns.current_epoch, ns.current_iter, start_time, title = f"[Weight Trn]", to_display = False)
-            # wandb.log(environ.losses)
+            ns.trn_losses = environ.losses
+            environ.write_trn_metrics(ns.current_epoch, ns.current_iter, start_time, title = f"[Weight Trn]", to_tb=False)
+            # wandb.log(environ.losses, step = ns.current_epoch)
                         
             #--------------------------------------------------------------------
             # validation process (here current_iter_w and stop_iter_w are equal)
             #--------------------------------------------------------------------
             ns.val_metrics = environ.evaluate(dldrs.val_loader,  
-                                           is_policy        = opt['policy'],
-                                           num_train_layers = ns.num_train_layers,
-                                           hard_sampling    = opt['train']['hard_sampling'],
-                                           eval_iters       = ns.eval_iters, 
-                                           disable_tqdm     = disable_tqdm, 
-                                           leave = False, verbose = False)  
+                                              is_policy        = opt['policy'],
+                                              num_train_layers = ns.num_train_layers,
+                                              hard_sampling    = opt['train']['hard_sampling'],
+                                              eval_iters       = ns.eval_iters, 
+                                              disable_tqdm     = disable_tqdm, 
+                                              leave = False, verbose = False)  
 
-            environ.print_val_metrics(ns.current_epoch, ns.current_iter, start_time, title = f"[Weight Val]", verbose = False)
-            print_metrics_cr(ns.current_epoch, time.time() - start_time, trn_losses, environ.val_metrics, line_count, out=[sys.stdout, environ.log_file]) 
+            # environ.write_val_metrics(ns.current_epoch, ns.current_iter, start_time, title = f"[Weight Val]")
+            print_metrics_cr(ns.current_epoch, time.time() - start_time, ns.trn_losses, environ.val_metrics,
+                             line_count, out=[sys.stdout, environ.log_file]) 
             line_count +=1
-            wandb_log_metrics(ns.val_metrics)
+            wandb_log_metrics(ns.val_metrics, step = ns.current_epoch)
 
+            ## Comment out to stop reducing LR during warmup phase
             environ.schedulers['weights'].step(ns.val_metrics['task']['total'])
             
 
@@ -559,7 +573,7 @@ def weight_policy_training(ns, opt, environ, dldrs, disable_tqdm = True, epochs 
             environ.free_alpha()
             environ.train()
             
-            with trange( +1, ns.trn_iters_a+1 , initial = 0, total = ns.trn_iters_a,   file=sys.stdout,
+            with trange( +1, ns.trn_iters_policy+1 , initial = 0, total = ns.trn_iters_policy,   file=sys.stdout,
                         position=0, dynamic_ncols = True, leave= False,  disable = disable_tqdm, 
                         desc=f"Ep:{ns.current_epoch} [policy] ") as t_policy :
                 for _ in t_policy:    
@@ -567,8 +581,7 @@ def weight_policy_training(ns, opt, environ, dldrs, disable_tqdm = True, epochs 
                     batch = next(dldrs.policy_trn_loader)
                     environ.set_inputs(batch, policy_input_size)
 
-                    environ.optimize(opt['lambdas'], 
-                                     is_policy        = opt['policy'],  
+                    environ.optimize(is_policy        = opt['policy'],  
                                      flag             = ns.flag, 
                                      num_train_layers = ns.num_train_layers,
                                      hard_sampling    = opt['train']['hard_sampling'], 
@@ -582,9 +595,9 @@ def weight_policy_training(ns, opt, environ, dldrs, disable_tqdm = True, epochs 
                                         # ,'row_ids':f"{batch['row_id'][0]}-{batch['row_id'][-1]}"})
 
             # print loss results - here current_iter_w and stop_iter_w are equal
-            trn_losses = environ.losses
-            environ.print_trn_metrics(ns.current_epoch, ns.current_iter, start_time, title = f"[Policy Trn]")
-            # wandb.log(environ.losses)
+            ns.trn_losses = environ.losses
+            environ.write_trn_metrics(ns.current_epoch, ns.current_iter, start_time, title = f"[Policy Trn]", to_tb=False)
+            # wandb.log(environ.losses, step = ns.current_epoch)
             
             #--------------------------------------------------------------------
             # validation process (here current_iter_a and stop_iter_a are equal)
@@ -597,11 +610,11 @@ def weight_policy_training(ns, opt, environ, dldrs, disable_tqdm = True, epochs 
                                            disable_tqdm     = disable_tqdm, 
                                            leave = False, verbose = False)  
 
-            environ.print_val_metrics(ns.current_epoch, ns.current_iter, start_time, title = f"[Policy Val]", verbose = False)
-            print_metrics_cr(ns.current_epoch, time.time() - start_time, trn_losses, environ.val_metrics, 
+            # environ.write_val_metrics(ns.current_epoch, ns.current_iter, start_time, title = f"[Policy Val]")
+            print_metrics_cr(ns.current_epoch, time.time() - start_time, ns.trn_losses, environ.val_metrics, 
                              line_count, out=[sys.stdout, environ.log_file])      
             line_count +=1
-            wandb_log_metrics(ns.val_metrics)
+            wandb_log_metrics(ns.val_metrics, step = ns.current_epoch)
 
             environ.schedulers['alphas'].step(ns.val_metrics['total']['total'])
 
@@ -634,7 +647,8 @@ def weight_policy_training(ns, opt, environ, dldrs, disable_tqdm = True, epochs 
             line_count = 0
         else:
             if display_policy:
-                environ.display_trained_policy(ns.current_epoch,out=[sys.stdout, environ.log_file])
+                environ.display_trained_logits(ns.current_epoch,out=[sys.stdout, environ.log_file])
+                # environ.display_trained_policy(ns.current_epoch,out=[sys.stdout, environ.log_file])
             
     wrapup_phase(ns, opt, environ)
     return
@@ -682,12 +696,11 @@ def retrain_phase(ns, opt, environ, dldrs, epochs = None, disable_tqdm = True,
                                     'Spr': f"{environ.losses['sparsity']['total'].item():.4e}",  
                                     'Shr': f"{environ.losses['sharing']['total'].item():.4e}"})  
 
-            trn_losses = environ.losses
-            environ.print_trn_metrics(ns.current_epoch, ns.current_iter, start_time, title = f"[Weight Trn]", to_display = False)
-            # wandb.log(environ.losses)
+            ns.trn_losses = environ.losses
+            environ.write_trn_metrics(ns.current_epoch, ns.current_iter, start_time, title = f"[Weight Trn]", to_tb=False)
+            # wandb.log(environ.losses, step = ns.current_epoch)
 
         # validation   
-        # val_metrics = eval_fix_policy(environ = environ, dataloader = val_loader, tasks = opt['tasks'], num_seg_cls = num_seg_class)    
         ns.val_metrics = environ.evaluate(dldrs.val_loader, 
                                         is_policy        = True,
                                         policy_sampling_mode = 'fix_policy',
@@ -696,11 +709,11 @@ def retrain_phase(ns, opt, environ, dldrs, epochs = None, disable_tqdm = True,
                                         disable_tqdm     = disable_tqdm, 
                                         leave = False, verbose = False)      
 
-    #     print_loss(environ.val_metrics, title = f"[Retrain] ep:{current_epoch}  it:{current_iter}")
-        environ.print_val_metrics(ns.current_epoch, ns.current_iter, start_time, title = f"[Weight Val]", verbose = False)
-        print_metrics_cr(ns.current_epoch, time.time() - start_time, trn_losses, environ.val_metrics, line_count, out=[sys.stdout, environ.log_file]) 
+        # environ.write_val_metrics(ns.current_epoch, ns.current_iter, start_time, title = f"[Weight Val]")
+        print_metrics_cr(ns.current_epoch, time.time() - start_time, ns.trn_losses, environ.val_metrics,
+                         line_count, out=[sys.stdout, environ.log_file]) 
         line_count +=1        
-        wandb_log_metrics(ns.val_metrics)
+        wandb_log_metrics(ns.val_metrics, step = ns.current_epoch)
 
         
     wrapup_phase(ns, opt, environ)
@@ -715,12 +728,12 @@ def wrapup_phase(ns, opt, environ, label = None):
     
     # Write model checkpoint
     if ns.write_checkpoint:
-        ns.model_label = f'model_{label}_ep_{ns.current_epoch}' 
+        ns.model_label = f'model_{label}_last_ep_{ns.current_epoch}' 
         environ.save_checkpoint(ns.model_label, ns.current_iter, ns.current_epoch) 
         print_to(f" save {label} checkpoint  to :  {ns.model_label}", out=[sys.stdout, environ.log_file])    
     
     # write metrics to pickle file 
-    ns.metrics_label = f'metrics_{label}_ep_{ns.current_epoch}.pickle' 
+    ns.metrics_label = f'metrics_{label}_last_ep_{ns.current_epoch}.pickle' 
 
     save_to_pickle({'val_metrics'   : environ.val_metrics,
                     'best_metrics'  : ns.best_metrics,
@@ -761,7 +774,8 @@ def check_for_improvement(ns,opt,environ):
             wandb.log({"best_roc_auc"  : ns.best_roc_auc,
                        "best_accuracy" : ns.best_accuracy,
                        "best_epoch"    : ns.best_epoch,
-                       "best_iter"     : ns.best_iter})        
+                       "best_iter"     : ns.best_iter}, 
+                       step = ns.current_epoch)        
 
             print(f'Previous best_epoch: {ns.best_epoch:5d}   best iter: {ns.best_iter:5d}'
                   f'   best_accuracy: {ns.best_accuracy:.5f}    best ROC auc: {ns.best_roc_auc:.5f}')        
@@ -790,10 +804,10 @@ def disp_info_1(ns, opt, environ):
             f"\n Num_blocks                : {sum(environ.networks['mtl-net'].layers)}"    
             f"                                \n"
             f"\n batch size                : {opt['train']['batch_size']}",    
-            f"\n batches/ Weight trn epoch : {ns.trn_iters_weights}",
-            f"\n batches/ Policy trn epoch : {ns.trn_iters_a}",
+            f"\n # batches / Warmup epoch  : {ns.trn_iters_weights}",
+            f"\n # batches / Weight epoch  : {ns.trn_iters_weights}",
+            f"\n # batches / Policy epoch  : {ns.trn_iters_policy}",
             # f"\n Total iterations          : {opt['train']['total_iters']}",
-            # f"\n Warm-up iterations        : {opt['train']['warm_up_iters']}",
             f"                                \n"
             f"\n Print Frequency           : {opt['train']['print_freq']}",
             f"\n Config Val Frequency      : {opt['train']['val_freq']}",
@@ -912,7 +926,7 @@ def display_gpu_info():
     # print(f" training preparation: - set number of batches per policy training epoch to: {opt['train']['alpha_iter_alternate']}")
 
     # ns.trn_iters_weights = opt['train']['weight_iter_alternate']
-    # ns.trn_iters_a = opt['train']['alpha_iter_alternate'] 
+    # ns.trn_iters_policy = opt['train']['alpha_iter_alternate'] 
 
     # Fix Alpha -     
     # if phase == 'update_w':

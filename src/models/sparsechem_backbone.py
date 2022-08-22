@@ -267,11 +267,6 @@ class SparseChem_Backbone(torch.nn.Module):
                     residual = x  if self.residuals[layer] is None else self.residuals[layer](x)
                     x = F.relu(residual + self.blocks[layer](x))
                     
-                # x = residual + self.blocks[layer](x)
-                # x  =  self.blocks[segment][b](x)
-                # print_dbg(f"\t Segment{segment} num_blocks: {num_blocks}   block {b} -  output: {x.shape}", verbose = verbose)
-
-
             # for layer, num_blocks in enumerate(self.layer_config):
             #     for b in range(num_blocks):
             #         # apply the residual skip out of _make_layers_
@@ -279,28 +274,25 @@ class SparseChem_Backbone(torch.nn.Module):
             #         # x = F.relu(residual + self.blocks[layer][b](x))
             #         # x = residual + self.blocks[layer][b](x)
             #         x = self.blocks[layer][b](x)
-
             #         # print_dbg(f"\t Segment{segment} num_blocks: {num_blocks}   block {b} -  output: {x.shape}", verbose = verbose)
             #         # x  =  self.blocks[segment][b](x)
 
-        # else:
-        #     # t = 0
+        else:
         #     ##----------------------------------------------------
         #     ## Apply policies to each layer  
         #     ##----------------------------------------------------
-        #     for layer, num_blocks in enumerate(self.layer_config):
-        #         for b in range(num_blocks):
+        #     # t = 0
+            for layer, _ in enumerate(self.layer_config):
+                # for b in range(num_blocks):
         #             # print_dbg(f" segment: {segment}  num_block: {num_blocks}  t: {t}  b: {b} ", verbose = verbose)
         #             # print_dbg(f" policy[{t},0]: {policy[t,0]:5f}   policy[{t},1]: {policy[t,1]:5f} ", verbose = verbose)
                     
-        #             residual = x
-        #             block_x = self.blocks[layer][b](x)
-        #             fx = F.relu(residual + block_x)
-                    
-        #             # Policy[t,0] : layer selected  
-        #             # Policy[t,1] : layer IS NOT selected.
-        
-        #             x  = (fx * policy[layer, 0] )+ (residual * policy[layer, 1])
+                # Policy[t,0] : probability layer selected  
+                # Policy[t,1] : probability layer IS NOT selected.
+                residual = x  if self.residuals[layer] is None else self.residuals[layer](x)
+                block_x = self.blocks[layer](x)
+                fx = F.relu(residual + block_x)
+                x  = (fx * policy[layer, 0] )+ (residual * policy[layer, 1])
                     
                     # print_dbg(f" residual: {residual.shape}  block_out: {block_x.shape}  ", verbose = verbose)
                     # print_dbg(f" fx: {fx.shape}   ", verbose = verbose)

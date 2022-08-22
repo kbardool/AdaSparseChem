@@ -64,7 +64,7 @@ class MTL3(nn.Module):
  
         ## initialize policys
         self.policys = [None] * self.num_tasks
-
+        print('policies :', self.policys)
         ## Display Task specific heads info
         if self.verbose:
             print_heading(f" Task Specific Heads :", verbose = True)
@@ -127,6 +127,9 @@ class MTL3(nn.Module):
     get_logits = arch_parameters
     
     def backbone_parameters(self):
+        """
+        Return trunk parameters
+        """
         params = []
         for name, param in self.named_parameters():
             if 'backbone' in name:
@@ -134,6 +137,9 @@ class MTL3(nn.Module):
         return params
 
     def task_specific_parameters(self):
+        """
+        return task head parameters
+        """
         params = []
         for name, param in self.named_parameters():
             if 'task' in name and 'fc' in name:
@@ -141,6 +147,9 @@ class MTL3(nn.Module):
         return params
 
     def network_parameters(self):
+        """
+        Return all non-policy related network parameters
+        """
         params = []
         for name, param in self.named_parameters():
             if not ('task' in name and 'logits' in name):
@@ -291,7 +300,8 @@ class MTL3(nn.Module):
     ##----------------------------------------------------
     ##  forward routine
     ##----------------------------------------------------
-    def forward(self, input, 
+    def forward(self, 
+                input, 
                 temperature, 
                 is_policy, 
                 num_train_layers=None, 

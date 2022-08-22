@@ -2,7 +2,7 @@ import os
 import sys 
 import pprint
 # import pickle
-# import time
+import time
 
 import torch
 import pandas as pd
@@ -35,13 +35,12 @@ class SparseChemEnv(BaseEnv):
     The environment to train a simple classification model
     """
 
-    def __init__(self, log_dir, checkpoint_dir, exp_name, tasks_num_class, 
-                 device=0, 
+    def __init__(self, opt=None, 
                  is_train=True, 
                  init_neg_logits=-10, 
                  init_temperature=5.0, 
                  temperature_decay=0.965,
-                 opt=None, 
+
                  verbose = None):
         """
         :param num_class: int, the number of classes in the dataset
@@ -56,15 +55,13 @@ class SparseChemEnv(BaseEnv):
         self.init_neg_logits    = init_neg_logits
         self.gumbel_temperature = init_temperature
         self.temperature_decay  = temperature_decay
-        self.num_tasks          = len(tasks_num_class)
         self.input_size         = opt['input_size']
         self.norm_loss          = opt['SC']['normalize_loss']
         self.task_lambdas       = opt['lambdas']
         self.weight_optimizer   = opt['train']['weight_optimizer']
         self.policy_optimizer   = opt['train']['policy_optimizer']
         
-        super(SparseChemEnv, self).__init__(log_dir, checkpoint_dir, exp_name, tasks_num_class, device,
-                                                is_train, opt, verbose)
+        super(SparseChemEnv, self).__init__(opt=opt, is_train= is_train, verbose = verbose)
         if self.verbose:
             print_underline(f"Input parms :", verbose = True)
             print( f" log_dir        :  {self.log_dir} \n"
@@ -170,8 +167,8 @@ class SparseChemEnv(BaseEnv):
         # results in resetting the LR . By this change we basically keep the optimizer unchange during the transision 
         # from warmup to training 
         if policy_learning:
-            self.optimizers['weights'] = optim.SGD([{'params': task_specific_params, 'lr': self.opt['train']['task_lr']/ 100},
-                                                    {'params': backbone_parameters , 'lr': self.opt['train']['backbone_lr']/ 100}],
+            self.optimizers['weights'] = optim.SGD([{'params': task_specific_params, 'lr': self.opt['train']['task_lr']},
+                                                    {'params': backbone_parameters , 'lr': self.opt['train']['backbone_lr']}],
                                                     momentum=0.9, weight_decay=0.0001)
         else:
             if self.weight_optimizer == 'adam':
@@ -283,8 +280,6 @@ class SparseChemEnv(BaseEnv):
             ##
             ##---------------------------------------------------------------------------------------
 
-            # print_dbg(f" loss normalizer is : {self.loss_normalizer})", verbose = True)
-
             # task_loss_none = self.loss_class(yc_hat, yc_data)
             loss_sum  = self.loss_class_sum(yc_hat, yc_data)
             loss_mean = self.loss_class_mean(yc_hat, yc_data)
@@ -319,7 +314,7 @@ class SparseChemEnv(BaseEnv):
         Compute policy network sharing loss using Hamming distance
 
         Higher sharing loss means less sharing among the task groups
-
+        Lower  sharing loss : more sharing among task groups
         """
         # print_dbg(f" {timestring()} -  get_sharing_loss() START  ", verbose = verbose)
         total_sharing_loss = 0 
@@ -455,6 +450,7 @@ class SparseChemEnv(BaseEnv):
 
     def compute_losses(self, num_train_layers = None, verbose = False):
         # Compute Task Losses
+        # start_time = time.time() 
         # print_dbg(f" {timestring()} - SparseChem network compute_losses() start ", verbose = verbose)
 
         self.compute_task_losses(verbose=verbose) 
@@ -471,11 +467,17 @@ class SparseChemEnv(BaseEnv):
         self.losses['total']['total']      =  self.losses['task']['total']   +  self.losses['sparsity']['total'] + self.losses['sharing']['total']
         self.losses['total']['total_mean'] =  self.losses['task_mean']['total']   +  self.losses['sparsity']['total'] + self.losses['sharing']['total']
 
-        # print_dbg(f" {timestring()} - SparseChem network compute_losses() end ", verbose = verbose)
+        # print(f" {timestring()} - SparseChem.compute_losses() end : {time.time() - start_time:.7f}")
 
-    def optimize(self, task_lambdas, is_policy=False, flag='update_weights', num_train_layers=None, 
-                policy_sampling_mode = "train", 
-                hard_sampling=False, verbose = False):
+
+
+    def optimize(self, 
+                 is_policy=False, 
+                 flag='update_weights', 
+                 num_train_layers=None, 
+                 policy_sampling_mode = "train", 
+                 hard_sampling=False, 
+                 task_lambdas = None, verbose = False):
         """
         Train on one input batch 
 
@@ -487,12 +489,14 @@ class SparseChemEnv(BaseEnv):
         # print_dbg(f" {timestring()} - SparseChem network optimize() start ", verbose = verbose)
         #     print_dbg(f"\t flag: {flag}      num_train_layers: {num_train_layers}     is_policy: {is_policy}      hard_sampling: {hard_sampling}"
         #               f"    task lambdas:  {lambdas}", verbose = verbose)
-        self.task_lambdas = task_lambdas
+        # self.task_lambdas = task_lambdas
 
         ## reset losses & get loss_normalizer 
-        self.set_loss_normalizer()
+        # self.set_loss_normalizer()
+        self.loss_normalizer = self.batch['batch_size']
+        
         self.losses = self.initialize_loss_metrics(num_train_layers, verbose=verbose)
-     
+        
         self.forward(is_policy = is_policy,
                      policy_sampling_mode = policy_sampling_mode,  
                      num_train_layers = num_train_layers, 
@@ -511,19 +515,21 @@ class SparseChemEnv(BaseEnv):
         return 
 
 
-    def optimize_fix_policy(self, task_lambdas, is_policy = True, num_train_layers=None, 
+    def optimize_fix_policy(self, is_policy = True, num_train_layers=None, 
                             policy_sampling_mode = "fix_policy", 
-                            hard_sampling = False, verbose = False):
+                            hard_sampling = False, task_lambdas = None, verbose = False):
         """
         Optimize weights while keeping policy fixed 
 
         num_train_layers = None   --> All layers are invovled in training 
         hard_sampling    = False  -->
         """
-        self.task_lambdas = task_lambdas 
+        # self.task_lambdas = task_lambdas 
         
         ## reset losses & get loss_normalizer 
-        self.set_loss_normalizer()
+        # self.set_loss_normalizer()
+        self.loss_normalizer = self.batch['batch_size']
+
         self.losses = self.initialize_loss_metrics(num_train_layers)
      
         self.forward(is_policy = is_policy,                             ## Always True
@@ -554,9 +560,11 @@ class SparseChemEnv(BaseEnv):
         """
         ##  policy_sampling = None    Originally set to "train" when is_policy == False, but was never used 
         ## policy_sampling = "eval" if is_policy else None 
- 
         ## reset losses & get loss_normalizer 
-        self.set_loss_normalizer()
+
+        # self.set_loss_normalizer()
+        self.loss_normalizer = self.batch['batch_size']
+
         self.losses = self.initialize_loss_metrics(num_train_layers)
         
         self.forward(is_policy = is_policy, 
@@ -575,7 +583,9 @@ class SparseChemEnv(BaseEnv):
     def forward(self, is_policy, num_train_layers = None, policy_sampling_mode = "train" , hard_sampling = False, verbose = None):
         '''
         mode: Policy sampling mode (train, eval, fix_policy)
-        '''
+        '''        
+        # start_time = time.time()
+
         # if verbose: 
         # print_dbg(f" {timestring()} - SparseChem network FORWARD() start ", verbose = verbose)
         #     print_dbg(f"\t num_train_layers:{num_train_layers}   is_policy: {is_policy}   "
@@ -602,7 +612,7 @@ class SparseChemEnv(BaseEnv):
             setattr(self, 'logit%d' % (t_id+1), logits[t_id])
     
         # if verbose:
-        # print_dbg(f" {timestring()} - SparseChem network FORWARD() end ", verbose = verbose)
+        # print(f" {timestring()} - SparseChem.forward() end  {time.time() - start_time:.7f}")
         return 
 
 
@@ -610,6 +620,7 @@ class SparseChemEnv(BaseEnv):
         """
         Compute losses on policy and back-propagate
         """
+        # start_time = time.time()
         # if verbose:
             # print(f" B-P Task losses: {self.losses['task']['total']:8.4f}     mean: {self.losses['task_mean']['total']:8.4f}"
                 #   f"     Sparsity: {self.losses['sparsity']['total']:.5e}     Sharing: { self.losses['sharing']['total']:.5e}"
@@ -617,11 +628,19 @@ class SparseChemEnv(BaseEnv):
         
         self.losses['total']['backprop']   =  (self.losses['task']['total']   +  self.losses['sparsity']['total'] + self.losses['sharing']['total']) 
 
+        # start_time2 = time.time()
         self.optimizers['alphas'].zero_grad()
+        # print(f" {timestring()} - backward_policy() zero_grad : {time.time() - start_time2:.7f}")        
 
+        # start_time2 = time.time()
         self.losses['total']['backprop'].backward()        
+        # print(f" {timestring()} - backward_policy() backward  : {time.time() - start_time2:.7f}")        
+        
+        # start_time2 = time.time()
         self.optimizers['alphas'].step()
+        # print(f" {timestring()} - backward_policy() step      : {time.time() - start_time2:.7f}")        
 
+        # print(f" {timestring()} - SparseChem.backward_policy(): {time.time() - start_time:.7f}")        
         # self.display_trained_logits(0)        
         return
 
@@ -630,26 +649,38 @@ class SparseChemEnv(BaseEnv):
         '''
         Aggregate losses and back-propagate
         '''
+        start_time = time.time()
         # if verbose:
             # print(f" B-N Task losses: {self.losses['task']['total']:8.4f}     Mean: {self.losses['task_mean']['total']:8.4f}"
                 #   f"     Sparsity: {self.losses['sparsity']['total']:.5e}     Sharing: {self.losses['sharing']['total']:.5e}"
                 #   f"     Total: {self.losses['total']['total']:8.4f}     mean: {self.losses['total']['total_mean']:8.4f}")
 
+        # start_time2 = time.time()
         self.losses['total']['backprop']   =  self.losses['task']['total']    
+        # print(f" {timestring()} - backward_network() loss      : {time.time() - start_time2:.7f}")        
 
         ## Here we only pass the Weights related loss through the backward step 
         ## Question - if the alpha parms are frozen (no grad), then is there any effect if we
         ## passed all loss (weight + policy) backwards???
  
+        # start_time2 = time.time()
         self.optimizers['weights'].zero_grad()
+        # print(f" {timestring()} - backward_network() zero_grad : {time.time() - start_time2:.7f}")        
 
+        # start_time2 = time.time()
         self.losses['total']['backprop'].backward()
+        # print(f" {timestring()} - backward_network() backward  : {time.time() - start_time2:.7f}")        
+        
+        # start_time2 = time.time()
         self.optimizers['weights'].step()
+        # print(f" {timestring()} - backward_network() step      : {time.time() - start_time2:.7f}")        
 
+        # print(f" {timestring()} - SparseChem.backward_network(): {time.time() - start_time:.7f}")        
         return 
 
     
     def initialize_loss_metrics(self, num_train_layers = None, verbose = False):
+        # start_time = time.time()
 
         loss_metrics = {}
         loss_metrics['parms'] = {}
@@ -682,13 +713,14 @@ class SparseChemEnv(BaseEnv):
             task_key     = f"task{t_id+1}"
             loss_metrics['task'][task_key]      = 0.0     
             loss_metrics['task_mean'][task_key] = 0.0
-            loss_metrics['sparsity'][task_key]    = 0.0
+            loss_metrics['sparsity'][task_key]  = 0.0
 
         loss_metrics['total'] = {'backprop'  : 0.0,
                                  'task'      : 0.0,
                                  'policy'    : 0.0,
                                  'total'     : 0.0,
                                  'total_mean': 0.0}
+        # print(f" {timestring()} - initialize_loss_metrics() end : {time.time() - start_time:.7f}")     
         return loss_metrics
 
 
@@ -919,12 +951,11 @@ class SparseChemEnv(BaseEnv):
                                                                                y_true=self.val_data[task_key]['yc_data'], 
                                                                                y_score=self.val_data[task_key]['yc_hat'] ,
                                                                                num_tasks=num_class_tasks[t_id], verbose = False)
-                # print(self.val_metrics[task_key]["classification"])
+                
                 ## to_dict(): convert pandas series to dict to make it compatible with print_loss()
                 self.val_metrics[task_key]["classification_agg"] = aggregate_results(self.val_metrics[task_key]["classification"], 
                                                                                      weights = self.val_data[task_key]['yc_aggr_weights'],
                                                                                      verbose = False).to_dict() 
-                # print(self.val_metrics[task_key]["classification_agg"])
                 self.val_metrics[task_key]['classification_agg']['sc_loss'] = self.val_metrics["task"][task_key] / batch_idx
                 self.val_metrics[task_key]["classification_agg"]["logloss"] = self.val_metrics["task"][task_key] / task_class_weights[task_key].cpu().item()
 
@@ -961,56 +992,6 @@ class SparseChemEnv(BaseEnv):
         else:
             self.gumbel_temperature *= decay_ratio
         # print_dbg(f"Change temperature from {tmp:.5f} to{self.gumbel_temperature:.5f}", verbose = verbose )
-
-
-    def get_task_specific_parameters(self):
-        if isinstance(self.networks['mtl-net'], nn.DataParallel):
-            task_specific_params = self.networks['mtl-net'].module.task_specific_parameters()
-        else:
-            task_specific_params = self.networks['mtl-net'].task_specific_parameters()
-
-        return task_specific_params
-
-
-    def get_arch_parameters(self):
-        if isinstance(self.networks['mtl-net'], nn.DataParallel):
-            arch_parameters = self.networks['mtl-net'].module.arch_parameters()
-        else:
-            arch_parameters = self.networks['mtl-net'].arch_parameters()
-
-        return arch_parameters
-
-
-    def get_network_parameters(self):
-        if isinstance(self.networks['mtl-net'], nn.DataParallel):
-            network_parameters = self.networks['mtl-net'].module.network_parameters()
-        else:
-            network_parameters = self.networks['mtl-net'].network_parameters()
-        return network_parameters
-
-
-    def get_backbone_parameters(self):
-        if self.opt['backbone'] == 'WRN':
-            network_parameters = []
-            if isinstance(self.networks['mtl-net'], nn.DataParallel):
-                for name, param in self.networks['mtl-net'].module.named_parameters():
-                    if name.startswith('task') and ('logits' in name or 'fc' in name):
-                        continue
-                    else:
-                        network_parameters.append(param)
-            else:
-                for name, param in self.networks['mtl-net'].named_parameters():
-                    if name.startswith('task') and ('logits' in name or 'fc' in name):
-                        continue
-                    else:
-                        network_parameters.append(param)
-            return network_parameters
-        else:
-            if isinstance(self.networks['mtl-net'], nn.DataParallel):
-                backbone_parameters = self.networks['mtl-net'].module.backbone_parameters()
-            else:
-                backbone_parameters = self.networks['mtl-net'].backbone_parameters()
-            return backbone_parameters
 
 
     def get_sample_policy(self, hard_sampling):
@@ -1056,6 +1037,7 @@ class SparseChemEnv(BaseEnv):
         return policies_tensor,logits
 
     sample_policy = set_sample_policy
+    
     
     def get_policy_prob(self, verbose = False):
         '''
@@ -1166,25 +1148,56 @@ class SparseChemEnv(BaseEnv):
         return snapshot['iter'], snapshot['epoch']
 
 
+    def get_task_specific_parameters(self):
+        if isinstance(self.networks['mtl-net'], nn.DataParallel):
+            task_specific_params = self.networks['mtl-net'].module.task_specific_parameters()
+        else:
+            task_specific_params = self.networks['mtl-net'].task_specific_parameters()
+
+        return task_specific_params
+
+
+    def get_arch_parameters(self):
+        if isinstance(self.networks['mtl-net'], nn.DataParallel):
+            arch_parameters = self.networks['mtl-net'].module.arch_parameters()
+        else:
+            arch_parameters = self.networks['mtl-net'].arch_parameters()
+
+        return arch_parameters
+
+
+    def get_network_parameters(self):
+        if isinstance(self.networks['mtl-net'], nn.DataParallel):
+            network_parameters = self.networks['mtl-net'].module.network_parameters()
+        else:
+            network_parameters = self.networks['mtl-net'].network_parameters()
+        return network_parameters
+
+
+    def get_backbone_parameters(self):
+
+        if isinstance(self.networks['mtl-net'], nn.DataParallel):
+            backbone_parameters = self.networks['mtl-net'].module.backbone_parameters()
+        else:
+            backbone_parameters = self.networks['mtl-net'].backbone_parameters()
+        return backbone_parameters
+
+
     def fix_weights(self):
         # print_heading(f" Fix Weights - disable gradient flow through main computation graph     ")
 
-        if self.opt['backbone'] == 'WRN':
-            network_params = self.get_network_parameters()
-            for param in network_params:
+
+        if isinstance(self.networks['mtl-net'], nn.DataParallel):
+            for param in self.networks['mtl-net'].module.backbone.parameters():
                 param.requires_grad = False
+
         else:
-            if isinstance(self.networks['mtl-net'], nn.DataParallel):
-                for param in self.networks['mtl-net'].module.backbone.parameters():
-                    param.requires_grad = False
-
-            else:
-                for param in self.networks['mtl-net'].backbone.parameters():
-                    param.requires_grad = False
-
-            task_specific_parameters = self.get_task_specific_parameters()
-            for param in task_specific_parameters:
+            for param in self.networks['mtl-net'].backbone.parameters():
                 param.requires_grad = False
+
+        task_specific_parameters = self.get_task_specific_parameters()
+        for param in task_specific_parameters:
+            param.requires_grad = False
 
 
     def free_weights(self, fix_BN):
@@ -1193,27 +1206,22 @@ class SparseChemEnv(BaseEnv):
         '''
         # print_heading(f" Free Weights - allow gradient flow through the main computation graph ")
         
-        if self.opt['backbone'] == 'WRN':
-            network_params = self.get_network_parameters()
-            for param in network_params:
+        if isinstance(self.networks['mtl-net'], nn.DataParallel):
+            for name, param in self.networks['mtl-net'].module.backbone.named_parameters():
                 param.requires_grad = True
+
+                if fix_BN and 'bn' in name:
+                    param.requires_grad = False
         else:
-            if isinstance(self.networks['mtl-net'], nn.DataParallel):
-                for name, param in self.networks['mtl-net'].module.backbone.named_parameters():
-                    param.requires_grad = True
-
-                    if fix_BN and 'bn' in name:
-                        param.requires_grad = False
-            else:
-                for name, param in self.networks['mtl-net'].backbone.named_parameters():
-                    param.requires_grad = True
-                    if fix_BN and 'bn' in name:
-                        param.requires_grad = False
-
-            task_specific_parameters = self.get_task_specific_parameters()
-
-            for param in task_specific_parameters:
+            for name, param in self.networks['mtl-net'].backbone.named_parameters():
                 param.requires_grad = True
+                if fix_BN and 'bn' in name:
+                    param.requires_grad = False
+
+        task_specific_parameters = self.get_task_specific_parameters()
+
+        for param in task_specific_parameters:
+            param.requires_grad = True
 
 
     def fix_alpha(self):
@@ -1236,14 +1244,20 @@ class SparseChemEnv(BaseEnv):
 
     def cuda(self, gpu_ids):
         super(SparseChemEnv, self).cuda(gpu_ids)
+        print(f'sparsechem_env.cuda()')
         policys = []
 
         for t_id in range(self.num_tasks):
-            if not hasattr(self, 'policy%d' % (t_id+1)):
+            policy_key = 'policy%d' % (t_id+1)
+            if not hasattr(self, policy_key):
                 return
-            policy = getattr(self, 'policy%d' % (t_id + 1))
-            policy = policy.to(self.device)
-            policys.append(policy)
+            policy = getattr(self, policy_key)
+            if policy is not None:
+                print(f" move policy {policy_key} to {self.device}")
+                policy = policy.to(self.device)
+                policys.append(policy)
+            else: 
+                print(f" policy {policy_key} is None")
 
         if isinstance(self.networks['mtl-net'], nn.DataParallel):
             setattr(self.networks['mtl-net'].module, 'policys', policys)
@@ -1257,11 +1271,16 @@ class SparseChemEnv(BaseEnv):
         policys = []
 
         for t_id in range(self.num_tasks):
-            if not hasattr(self, 'policy%d' % (t_id+1)):
+            policy_key = 'policy%d' % (t_id+1)
+            if not hasattr(self, policy_key):
                 return
-            policy = getattr(self, 'policy%d' % (t_id + 1))
-            policy = policy.to(self.device)
-            policys.append(policy)
+            if policy is not None:
+                print(f" move policy {policy_key} to {self.device}")
+                policy = getattr(self, policy_key)
+                policy = policy.to(self.device)
+                policys.append(policy)
+            else: 
+                print(f" policy {policy_key} is None")
 
         ## nn.DataParallel only applies to GPU configurations
         

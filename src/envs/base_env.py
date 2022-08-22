@@ -16,7 +16,7 @@ class BaseEnv():
     The environment to train a simple classification model
     """
 
-    def __init__(self, log_dir, checkpoint_dir, exp_name, tasks_num_class, device=0, is_train=True, opt=None, verbose = None):
+    def __init__(self, opt=None,  is_train=True, verbose = None):
         """
         :param log_dir: str, the path to save logs
         :param checkpoint_dir: str, the path to save checkpoints
@@ -28,10 +28,11 @@ class BaseEnv():
         print_heading(f"{self.name}.super() init()  Start - verbose: {verbose}", verbose = self.verbose)
         
         self.opt = opt
-        self.log_dir = log_dir
-        self.checkpoint_dir = checkpoint_dir
         self.is_train = is_train
-        self.tasks_num_class = tasks_num_class
+        self.log_dir = self.opt['paths']['log_dir']
+        self.checkpoint_dir = self.opt['paths']['checkpoint_dir']
+        self.tasks_num_class = self.opt['tasks_num_class']
+        self.num_tasks = len(self.tasks_num_class)        
         # self.device = device
         # self.device = 'cpu' if self.opt['cpu'] else 'gpu'
         self.dataset = self.opt['dataload']['dataset']
@@ -45,8 +46,8 @@ class BaseEnv():
         self.num_layers = len(self.opt['hidden_sizes'])
         
         if torch.cuda.is_available():
-            torch.cuda.set_device(device)
-            self.device = torch.device("cuda:%d" % device)
+            torch.cuda.set_device(self.opt['gpu_ids'][0])
+            self.device = torch.device("cuda:%d" % self.opt['gpu_ids'][0])
         else:
             self.device = "cpu"
 
@@ -271,14 +272,8 @@ class BaseEnv():
             for tsk in range(self.num_tasks):
                 # ln += f"  task {policy_softmaxs[tsk][lyr]} info"
                 ln += f"  {logits[tsk][lyr][0]:8.4f}  {logits[tsk][lyr][1]:8.4f}  {logits_argmaxs[tsk][lyr]:1d}"
-            ln += '\n'
-                     
+            ln += '\n'                    
         
-        # for idx, (l1,l2,l3,  p1,p2,p3) in enumerate(zip(logits[0], logits[1], logits[2], 
-                                                        # logits_argmaxs[0], logits_argmaxs[1], logits_argmaxs[2]),1):
-            # ln += f"{idx:4d}  {l1[0]:8.4f}  {l1[1]:8.4f}  {p1:1d}  {l2[0]:8.4f}  {l2[1]:8.4f}  {p2:1d}  {l3[0]:8.4f}  {l3[1]:8.4f}  {p3:1d}\n"
-        # ln += '\n'
-
         for file in out:
             print(ln, file = file)
 
@@ -296,7 +291,7 @@ class BaseEnv():
 
         hdr2 = f" ----- "
         for t_id, _ in enumerate(self.tasks):
-            ln   +=  "softmax      s        "
+            ln   += " softmax     s         "
             hdr2 += "----------------- -    " 
         ln = ln + '\n' + hdr2 + '\n'
 
@@ -305,12 +300,13 @@ class BaseEnv():
             for tsk in range(self.num_tasks):
                 # ln += f"  task {policy_softmaxs[tsk][lyr]} info"
                 ln += f"  {policy_softmaxs[tsk][lyr][0]:8.4f}  {policy_softmaxs[tsk][lyr][1]:8.4f}  {policy_argmaxs[tsk][lyr]:1d}"
-            # for idx, (l1,l2,l3,  p1,p2,p3) in enumerate(zip(policy_softmaxs[0], policy_softmaxs[1], policy_softmaxs[2], 
-                                                        # policy_argmaxs[0], policy_argmaxs[1], policy_argmaxs[2]),1):
-            # "  {l2[0]:8.4f}  {l2[1]:8.4f}  {p2:1d}  {l3[0]:8.4f}  {l3[1]:8.4f}  {p3:1d}\n"
             ln += '\n'
+
         for file in out:
             print(ln, file = file)
+
+          
+
 
 
     def display_test_sample_policy(self, epoch=0, hard_sampling = False, out = None):
@@ -331,6 +327,10 @@ class BaseEnv():
         for file in out:
             print(ln, file = file)
             
+
+
+
+
 
     def display_train_sample_policy(self, epoch=0, temp = None, hard_sampling = False, out = None):
         if not isinstance(out, list):
@@ -379,45 +379,29 @@ class BaseEnv():
     #         print(ln, file = file)
 
                       
-    def print_trn_metrics(self, epoch, iter, start_time, loss=None, title='Iteration', 
+    def write_trn_metrics(self, epoch, iter, start_time, loss=None, title='Iteration', 
                     to_tb      = True,  
                     to_csv     = True, 
                     to_display = False, 
                     to_text    = False):
         elapsed_time = time.time() - start_time
         title = f"{title} ep:{epoch}    it:{iter}"
-        if to_display:
-            print_loss(iter, title, self.loss)
-        
-        if to_csv:
-            self.write_metrics_csv(self.loss_csv_file, epoch, iter, elapsed_time, self.losses )
-        
-        if to_text:
-            self.write_metrics_txt(self.log_file, epoch, iter, elapsed_time, self.losses)
 
         if to_tb:
-            for key in ['parms']:
-                if key not in self.losses:
-                    continue
-                # print(key + ':')
-                if isinstance(self.losses[key], dict):
-                    for subkey in self.losses[key].keys():
-                        self.writer.add_scalar('trn_%s/%s'%(key, subkey), self.losses[key][subkey], iter)
-                elif (isinstance(self.losses[key], float)):
-                    self.writer.add_scalar('trn_%s'%(key), self.losses[key], iter)
+            self.write_trn_metrics_tensorboard(epoch, iter, elapsed_time, metrics =  self.losses)
+        
+        if to_csv:
+            self.write_trn_metrics_csv(self.loss_csv_file, epoch, iter, elapsed_time, self.losses )
+        
+        if to_display:
+            print_loss(iter, title, self.loss)
 
-            for key in [ 'task', 'task_mean', 'total', 'sharing', 'sparsity']:
-                if key not in self.losses:
-                    continue
-                # print(key + ':')
-                if isinstance(self.losses[key], dict):
-                    for subkey in self.losses[key].keys():
-                        self.writer.add_scalar('trn_loss_%s/%s'%(key, subkey), self.losses[key][subkey], iter)
-                elif (isinstance(self.losses[key], float)):
-                    self.writer.add_scalar('trn_loss_%s'%(key), self.losses[key], iter)
+        if to_text:
+            self.write_trn_metrics_txt(self.log_txt_file, epoch, iter, elapsed_time, self.losses)
 
 
-    def print_val_metrics(self, epoch, iter, start_time, metrics=None, title='Iteration', verbose = False):
+
+    def write_val_metrics_tensorboard(self, epoch, iter, start_time, metrics=None, title='Iteration', verbose = False):
         """ write metrics to tensorboard and optionally to sysout """
         if metrics is None:
             metrics = self.val_metrics
@@ -441,7 +425,7 @@ class BaseEnv():
         ## Following items will be written as val_metrics:[key]/[subkey] to Tensorboard
         for t_id, _ in enumerate(self.tasks):
             key = f"task{t_id+1}"
-            print_heading(f"{title}  {iter}  {key} : {metrics[key]['classification_agg']}", verbose = verbose)
+            # print_heading(f"{title}  {iter}  {key} : {metrics[key]['classification_agg']}", verbose = verbose)
 
             for subkey, metric_value in metrics[key]['classification_agg'].items():
                 self.writer.add_scalar(f"val_metrics:{key:s}/{subkey:s}", metric_value, iter)
@@ -450,13 +434,77 @@ class BaseEnv():
         ## Write aggregated metrics (aggregated accross all groups/tasks)
         ## Following items will be written as val_metrics:[key]/[subkey] to Tensorboard
         key = "aggregated"
-        print_heading(f"{title}  {iter}  {key} : {metrics[key]}", verbose = verbose)
+        # print_heading(f"{title}  {iter}  {key} : {metrics[key]}", verbose = verbose)
         for subkey, metric_value  in metrics[key].items():
             self.writer.add_scalar(f"val_metrics:{key:s}/{subkey:s}", metric_value, iter)
             # print_current_errors(os.path.join(self.log_dir, 'loss.txt'), current_iter,key, loss[key], time.time() - start_time)
 
+    write_val_metrics = write_val_metrics_tensorboard
 
-    def write_metrics_csv_heading(self, csv_file = None, losses = None):
+    # def print_val_metrics(self, epoch, iter, start_time, metrics=None, title='Iteration', verbose = False):
+    #     """ write metrics to tensorboard and optionally to sysout """
+    #     if metrics is None:
+    #         metrics = self.val_metrics
+
+    #     title = f"{title} ep:{epoch}    it:{iter}"
+
+    #     ## Following items will be written as val_loss[key]:[subkey] to Tensorboard
+    #     for key in ['task', 'task_mean', 'sharing', 'sparsity' , 'total']:
+    #         if key not in metrics:
+    #             continue
+    #         # print(key + ':')
+    #         if isinstance(metrics[key], dict):
+    #             for subkey, metric_value in metrics[key].items():
+    #                 self.writer.add_scalar('val_loss_%s/%s'%(key, subkey), metric_value, iter)
+    #                 # print_current_errors(os.path.join(self.log_dir, 'loss.txt'), current_iter,key, metrics[key], time.time() - start_time)
+    #         elif (isinstance(metrics[key], float)):
+    #             self.writer.add_scalar('val_loss_%s'%(key), metrics[key], iter)
+    #             # print_current_errors(os.path.join(self.log_dir, 'loss.txt'), current_iter,key, metrics[key], time.time() - start_time)
+
+    #     ## Write aggregated metrics for each group (i.e, group of tasks)
+    #     ## Following items will be written as val_metrics:[key]/[subkey] to Tensorboard
+    #     for t_id, _ in enumerate(self.tasks):
+    #         key = f"task{t_id+1}"
+    #         # print_heading(f"{title}  {iter}  {key} : {metrics[key]['classification_agg']}", verbose = verbose)
+
+    #         for subkey, metric_value in metrics[key]['classification_agg'].items():
+    #             self.writer.add_scalar(f"val_metrics:{key:s}/{subkey:s}", metric_value, iter)
+    #              # print_current_errors(os.path.join(self.log_dir, 'loss.txt'), current_iter,key, loss[key], time.time() - start_time)
+
+    #     ## Write aggregated metrics (aggregated accross all groups/tasks)
+    #     ## Following items will be written as val_metrics:[key]/[subkey] to Tensorboard
+    #     key = "aggregated"
+    #     # print_heading(f"{title}  {iter}  {key} : {metrics[key]}", verbose = verbose)
+    #     for subkey, metric_value  in metrics[key].items():
+    #         self.writer.add_scalar(f"val_metrics:{key:s}/{subkey:s}", metric_value, iter)
+    #         # print_current_errors(os.path.join(self.log_dir, 'loss.txt'), current_iter,key, loss[key], time.time() - start_time)
+
+    def write_trn_metrics_tensorboard(self, epoch, iter, start_time, metrics=None, verbose = False):
+        if metrics is None:
+            metrics = self.losses
+
+        for key in ['parms']:
+            if key not in metrics:
+                continue
+            # print(key + ':')
+            if isinstance(metrics[key], dict):
+                for subkey in metrics[key].keys():
+                    self.writer.add_scalar('trn_%s/%s'%(key, subkey), metrics[key][subkey], iter)
+            elif (isinstance(metrics, float)):
+                self.writer.add_scalar('trn_%s'%(key), metrics[key], iter)
+
+        for key in [ 'task', 'task_mean', 'total', 'sharing', 'sparsity']:
+            if key not in metrics:
+                continue
+            # print(key + ':')
+            if isinstance(metrics[key], dict):
+                for subkey in metrics[key].keys():
+                    self.writer.add_scalar('trn_loss_%s/%s'%(key, subkey), metrics[key][subkey], iter)
+            elif (isinstance(metrics[key], float)):
+                self.writer.add_scalar('trn_loss_%s'%(key), metrics[key], iter)
+    
+
+    def write_trn_metrics_csv_heading(self, csv_file = None, losses = None):
         message = ' epoch, iteration, timestamp,elapsed,' 
         sorted_keys = sorted(['task', 'task_mean', 'parms', 'sharing', 'sparsity', 'total'])
         
@@ -475,9 +523,10 @@ class BaseEnv():
         
         with open(csv_file, 'a') as f:
             f.write('%s \n' % message.rstrip(" ,"))
+    
+    write_metrics_csv_heading = write_trn_metrics_csv_heading
 
-
-    def write_metrics_csv(self, log_name, epoch, iteration, elapsed, losses):
+    def write_trn_metrics_csv(self, log_name, epoch, iteration, elapsed, losses):
         message = '%4d,%4d,%26s,%6.3f,' % (epoch, iteration, timestring(), elapsed)
         sorted_keys = sorted([ 'task', 'task_mean', 'parms', 'sharing', 'sparsity', 'total'])
         
@@ -495,7 +544,7 @@ class BaseEnv():
             log_file.write('%s \n' % message.rstrip(" ,"))
 
 
-    def write_metrics_txt(self, log_name, epoch, iteration, elapsed, losses):
+    def write_trn_metrics_txt(self, log_name, epoch, iteration, elapsed, losses):
         sorted_keys = sorted( [ 'task', 'task_mean','parms', 'sharing', 'sparsity', 'total'])
         
         for key in sorted_keys:
@@ -567,7 +616,7 @@ class BaseEnv():
         :param label: str, the label for the loading checkpoint
         :param current_iter: int, the current iteration
         """
-        save_filename = '%s_model.pth.tar' % str(label)
+        save_filename = '%s.tar' % str(label)
         save_path = os.path.join(self.checkpoint_dir, save_filename)
         current_state = self.get_current_state(current_iter, current_epoch)
         torch.save(current_state, save_path)

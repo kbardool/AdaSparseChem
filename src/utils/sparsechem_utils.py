@@ -493,7 +493,7 @@ def print_cell(value, size, dec, left, fmt = 's', end=""):
         out = ("{:" + align + str(size) + "." + str(dec) + fmt+"}").format(value)
     return out 
 
-def print_metrics_cr(epoch, train_time, results_tr, results_va, printed_lines, new_header = 25, out = None, to_tqdm = False):
+def print_metrics_cr(epoch, train_time, results_tr, results_va, printed_lines, new_header = 25, out = None):
     if not isinstance(out, list):
         out = [out]
 

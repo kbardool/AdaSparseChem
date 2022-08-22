@@ -747,62 +747,62 @@ def populate_records(records, metrics, tasks):
     return records
 
 
-def populate_val_metrics(records, tasks, num_seg_cls, batch_size):
-    val_metrics = {}
+# def populate_val_metrics(records, tasks, num_seg_cls, batch_size):
+#     val_metrics = {}
     
-    if 'seg' in tasks:
-        val_metrics['seg'] = {}
-        jaccard_perclass = []
-        for i in range(num_seg_cls):
-            if not records['seg']['conf_mat'][i, i] == 0:
-                jaccard_perclass.append(records['seg']['conf_mat'][i, i] / (np.sum(records['seg']['conf_mat'][i, :]) +
-                                                                            np.sum(records['seg']['conf_mat'][:, i]) -
-                                                                            records['seg']['conf_mat'][i, i]))
+#     if 'seg' in tasks:
+#         val_metrics['seg'] = {}
+#         jaccard_perclass = []
+#         for i in range(num_seg_cls):
+#             if not records['seg']['conf_mat'][i, i] == 0:
+#                 jaccard_perclass.append(records['seg']['conf_mat'][i, i] / (np.sum(records['seg']['conf_mat'][i, :]) +
+#                                                                             np.sum(records['seg']['conf_mat'][:, i]) -
+#                                                                             records['seg']['conf_mat'][i, i]))
 
-        val_metrics['seg']['mIoU'] = np.sum(jaccard_perclass) / len(jaccard_perclass)
+#         val_metrics['seg']['mIoU'] = np.sum(jaccard_perclass) / len(jaccard_perclass)
 
-        val_metrics['seg']['Pixel Acc'] = (np.array(records['seg']['pixelAccs']) * np.array(batch_size)).sum() / sum(
-            batch_size)
+#         val_metrics['seg']['Pixel Acc'] = (np.array(records['seg']['pixelAccs']) * np.array(batch_size)).sum() / sum(
+#             batch_size)
 
-        val_metrics['seg']['err'] = (np.array(records['seg']['errs']) * np.array(batch_size)).sum() / sum(batch_size)
+#         val_metrics['seg']['err'] = (np.array(records['seg']['errs']) * np.array(batch_size)).sum() / sum(batch_size)
 
         
-    if 'sn' in tasks:
-        val_metrics['sn'] = {}
-        overall_cos = np.clip(np.concatenate(records['sn']['cos_similaritys']), -1, 1)
+#     if 'sn' in tasks:
+#         val_metrics['sn'] = {}
+#         overall_cos = np.clip(np.concatenate(records['sn']['cos_similaritys']), -1, 1)
 
-        angles = np.arccos(overall_cos) / np.pi * 180.0
-        val_metrics['sn']['cosine_similarity'] = overall_cos.mean()
-        val_metrics['sn']['Angle Mean'] = np.mean(angles)
-        val_metrics['sn']['Angle Median'] = np.median(angles)
-        val_metrics['sn']['Angle 11.25'] = np.mean(np.less_equal(angles, 11.25)) * 100
-        val_metrics['sn']['Angle 22.5'] = np.mean(np.less_equal(angles, 22.5)) * 100
-        val_metrics['sn']['Angle 30'] = np.mean(np.less_equal(angles, 30.0)) * 100
-        val_metrics['sn']['Angle 45'] = np.mean(np.less_equal(angles, 45.0)) * 100
+#         angles = np.arccos(overall_cos) / np.pi * 180.0
+#         val_metrics['sn']['cosine_similarity'] = overall_cos.mean()
+#         val_metrics['sn']['Angle Mean'] = np.mean(angles)
+#         val_metrics['sn']['Angle Median'] = np.median(angles)
+#         val_metrics['sn']['Angle 11.25'] = np.mean(np.less_equal(angles, 11.25)) * 100
+#         val_metrics['sn']['Angle 22.5'] = np.mean(np.less_equal(angles, 22.5)) * 100
+#         val_metrics['sn']['Angle 30'] = np.mean(np.less_equal(angles, 30.0)) * 100
+#         val_metrics['sn']['Angle 45'] = np.mean(np.less_equal(angles, 45.0)) * 100
         
-    if 'depth' in tasks:
-        val_metrics['depth'] = {}
-        records['depth']['abs_errs'] = np.stack(records['depth']['abs_errs'], axis=0)
-        records['depth']['rel_errs'] = np.stack(records['depth']['rel_errs'], axis=0)
-        records['depth']['ratios'] = np.concatenate(records['depth']['ratios'], axis=0)
+#     if 'depth' in tasks:
+#         val_metrics['depth'] = {}
+#         records['depth']['abs_errs'] = np.stack(records['depth']['abs_errs'], axis=0)
+#         records['depth']['rel_errs'] = np.stack(records['depth']['rel_errs'], axis=0)
+#         records['depth']['ratios'] = np.concatenate(records['depth']['ratios'], axis=0)
 
-        val_metrics['depth']['abs_err'] = (records['depth']['abs_errs'] * np.array(batch_size)).sum() / sum(batch_size)
-        val_metrics['depth']['rel_err'] = (records['depth']['rel_errs'] * np.array(batch_size)).sum() / sum(batch_size)
+#         val_metrics['depth']['abs_err'] = (records['depth']['abs_errs'] * np.array(batch_size)).sum() / sum(batch_size)
+#         val_metrics['depth']['rel_err'] = (records['depth']['rel_errs'] * np.array(batch_size)).sum() / sum(batch_size)
        
-        val_metrics['depth']['sigma_1.25'] = np.mean(np.less_equal(records['depth']['ratios'], 1.25)) * 100
-        val_metrics['depth']['sigma_1.25^2'] = np.mean(np.less_equal(records['depth']['ratios'], 1.25 ** 2)) * 100
-        val_metrics['depth']['sigma_1.25^3'] = np.mean(np.less_equal(records['depth']['ratios'], 1.25 ** 3)) * 100
+#         val_metrics['depth']['sigma_1.25'] = np.mean(np.less_equal(records['depth']['ratios'], 1.25)) * 100
+#         val_metrics['depth']['sigma_1.25^2'] = np.mean(np.less_equal(records['depth']['ratios'], 1.25 ** 2)) * 100
+#         val_metrics['depth']['sigma_1.25^3'] = np.mean(np.less_equal(records['depth']['ratios'], 1.25 ** 3)) * 100
 
         
-    if 'keypoint' in tasks:
-        val_metrics['keypoint'] = {}
-        val_metrics['keypoint']['err'] = (np.array(records['keypoint']['errs']) * np.array(batch_size)).sum() / sum(batch_size)
+#     if 'keypoint' in tasks:
+#         val_metrics['keypoint'] = {}
+#         val_metrics['keypoint']['err'] = (np.array(records['keypoint']['errs']) * np.array(batch_size)).sum() / sum(batch_size)
 
-    if 'edge' in tasks:
-        val_metrics['edge'] = {}
-        val_metrics['edge']['err'] = (np.array(records['edge']['errs']) * np.array(batch_size)).sum() / sum(batch_size)
+#     if 'edge' in tasks:
+#         val_metrics['edge'] = {}
+#         val_metrics['edge']['err'] = (np.array(records['edge']['errs']) * np.array(batch_size)).sum() / sum(batch_size)
  
-    return val_metrics
+#     return val_metrics
 
 
 def get_reference_metrics(opt):
