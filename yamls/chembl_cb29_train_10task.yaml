@@ -43,8 +43,10 @@ skip_residual        : False
 skip_hidden          : False
 
 is_sparse            : True
-is_sharing           : True
 diff_sparsity_weights: False
+
+is_sharing           : True
+diff_sharing_weights : False
 
 skip_layer           :     0
 
@@ -74,15 +76,17 @@ train:
 
   weight_optimizer         : adam
   policy_optimizer         : adam
+
   # Decay parameters for weights training
   decay_lr_rate            : 0.75
   decay_lr_freq            :   40
   decay_lr_cooldown        :    0
+
   # Decay parameters for policy training
-  policy_lr                :       0.001  # 1.0e-03
-  policy_decay_lr_rate     : 0.75
-  policy_decay_lr_freq     :   50
-  policy_decay_lr_cooldown :    0
+  policy_lr                : 0.001  # 1.0e-03
+  policy_decay_lr_rate     :  0.75
+  policy_decay_lr_freq     :    40
+  policy_decay_lr_cooldown :     0
   # Policy Learning Rates
   # policy_lr      :       0.1    # 1.0e-01
   # policy_lr      :       0.01   # 1.0e-02
@@ -122,17 +126,17 @@ train:
   # init_temp    :         5
   # decay_temp   :     0.965
   # decay_temp_freq:       2    
-  init_temp      :         4
-  decay_temp     :     0.965
-  decay_temp_freq:        16
+  init_temp      :      2.5
+  decay_temp     :     0.75
+  decay_temp_freq:        3
 
   init_neg_logits:
   hard_sampling  :    False
 
   #
 
-  val_freq       :     500
-  print_freq     :      -1
+  val_freq              :  500
+  print_freq            : -1
   warmup_iter_alternate : -1
   weight_iter_alternate : -1
   alpha_iter_alternate  : -1

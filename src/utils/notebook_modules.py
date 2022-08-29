@@ -8,7 +8,7 @@ import wandb
 from tqdm        import trange 
 from envs        import SparseChemEnv
 from dataloaders import ClassRegrSparseDataset_v3,   InfiniteDataLoader
-from utils       import ( makedir, print_separator, create_path, print_yaml, print_yaml2, print_loss, should, print_to,
+from utils       import ( makedir, print_separator, create_path, print_loss, should, print_to,
                          fix_random_seed, read_yaml, timestring, print_heading, print_dbg, save_to_pickle, load_from_pickle,
                          print_underline, write_config_report, display_config, get_command_line_args, is_notebook, 
                          load_sparse, print_metrics_cr) 
@@ -51,6 +51,7 @@ def initialize(ns, build_folders = True, start_wandb = True):
 
     # ns.config_filename = 'run_config_seed_%04d.txt' % (opt['random_seed'])
     ns.config_filename = 'run_configuration.txt'  
+
     write_config_report(opt, filename = ns.config_filename)    
     display_config(opt)
 
@@ -120,9 +121,6 @@ def init_dataloaders(opt, verbose = False):
 def init_dataloaders_by_fold_id(opt, warmup_folds=None, weight_folds = None, policy_folds = None, validation_folds= None, verbose = False):
 
     dldrs = types.SimpleNamespace()
-    ## Identify indicies corresponding to =fold_va and !=fold_va
-    ## These indices are passed to the ClassRegrSparseDataset 
-
     # ecfp     = load_sparse(opt['dataload']['dataroot'], opt['dataload']['x'])
     # folding  = np.load(os.path.join(opt['dataload']['dataroot'], opt['dataload']['folding']))
     # print(ecfp.shape, folding.shape)
@@ -149,11 +147,6 @@ def init_dataloaders_by_fold_id(opt, warmup_folds=None, weight_folds = None, pol
     dldrs.policy_trn_loader = InfiniteDataLoader(dldrs.trainset2 , batch_size=opt['train']['batch_size'], num_workers = 1, pin_memory=True, collate_fn=dldrs.trainset2.collate, shuffle=True)
     dldrs.val_loader        = InfiniteDataLoader(dldrs.valset    , batch_size=opt['train']['batch_size'], num_workers = 1, pin_memory=True, collate_fn=dldrs.valset.collate   , shuffle=True)
     
-    # dldrs.test_loader       = InfiniteDataLoader(dldrs.testset   , batch_size=32                        , num_workers = 1, pin_memory=True, collate_fn=dldrs.testset.collate  , shuffle=True)
-    # opt['train']['weight_iter_alternate'] = opt['train'].get('weight_iter_alternate' , len(dldrs.weight_trn_loader))
-    # opt['train']['alpha_iter_alternate']  = opt['train'].get('alpha_iter_alternate'  , len(dldrs.policy_trn_loader))        
-    # opt['train']['val_iters']             = opt['train'].get('val_iters'             , len(dldrs.val_loader))       
-
     opt['train']['warmup_iter_alternate'] = len(dldrs.warmup_trn_loader) if opt['train']['warmup_iter_alternate'] == -1 else opt['train']['warmup_iter_alternate']
     opt['train']['weight_iter_alternate'] = len(dldrs.weight_trn_loader) if opt['train']['weight_iter_alternate'] == -1 else opt['train']['weight_iter_alternate']
     opt['train']['alpha_iter_alternate']  = len(dldrs.policy_trn_loader) if opt['train']['alpha_iter_alternate']  == -1 else opt['train']['alpha_iter_alternate'] 
@@ -239,8 +232,9 @@ def wandb_log_metrics(val_metrics, step = None):
     # wandb.log({'epoch': val_metrics['epoch']}, step = step)
 
 
-def check_for_resume_training(ns, opt, environ, epoch = 0 , iter = 0):
+def check_for_resume_training(ns, opt, environ, epoch = None, iter = None):
     ## TODO: Remove hard coded RESUME_MODEL_CKPT and RESUME_METRICS_CKPT
+    ns.resume_training = False
     ns.loaded_epoch, ns.loaded_iter = None, None
     ns.val_metrics   = {}
     ns.best_metrics  = {}
@@ -260,7 +254,7 @@ def check_for_resume_training(ns, opt, environ, epoch = 0 , iter = 0):
         print_separator('Resume training')
         print(opt['train']['which_iter'])
         print(f" Resume training from folder : {opt['resume_path']}")
-        print(f" Resume label is             : {opt['resume_ckpt']}")
+        print(f" Resume checkpoint filename  : {opt['resume_ckpt']}")
         print(f" Resume metrics filename     : {opt['resume_metrics']}")
         ns.loaded_iter, ns.loaded_epoch = environ.load_checkpoint(opt['resume_ckpt'], path = opt['resume_path'], verbose = True)
 
@@ -284,14 +278,14 @@ def check_for_resume_training(ns, opt, environ, epoch = 0 , iter = 0):
             print("old style")
             ns.val_metrics = loaded_metrics 
         else:
-            print("new style")
-            print(loaded_metrics.keys())
+            ns.resume_training = True
             ns.val_metrics   = loaded_metrics['val_metrics'] 
             ns.best_metrics  = loaded_metrics.get('best_metrics' , {})
             ns.best_accuracy = loaded_metrics.get('best_accuracy', 0)
             ns.best_roc_auc  = loaded_metrics.get('best_roc_auc' , 0)  
             ns.best_iter     = loaded_metrics.get('best_iter'    , 0)
             ns.best_epoch    = loaded_metrics.get('best_epoch'   , 0)            
+            print(loaded_metrics.keys())
             print('Resume mode - load successful!!')
             print(f"ns.best_accuracy:   {ns.best_accuracy}")
             print(f"ns.best_roc_auc :   {ns.best_roc_auc }")
@@ -317,7 +311,7 @@ def model_initializations(ns, opt, environ, phase = 'update_weights', policy_lea
 
 def model_fix_weights(ns, opt, environ, phase):
     # Fix Alpha -     
-    if phase == 'update_weights':
+    if phase in 'update_weights':
         print(' Allow weight updates -- fix alpha')
         ns.flag = phase
         environ.fix_alpha()
@@ -363,9 +357,7 @@ def training_initializations(ns, opt, environ, dldrs,
     ns.p_epoch            = 0
     ns.num_train_layers   = None     
     ns.leave              = False   
-    # ns.flag_warmup        = warmup
 
-    # ns.num_prints         = 0
     ns.num_blocks         = sum(environ.networks['mtl-net'].layers)
     ns.warmup_epochs      = opt['train']['warmup_epochs']
     ns.training_epochs    = opt['train']['training_epochs']
@@ -407,6 +399,7 @@ def warmup_phase(ns,opt, environ, dldrs, disable_tqdm = True, epochs = None, ver
    
     environ.fix_alpha()
     environ.free_weights(opt['fix_BN'])
+    ns.num_train_layers =  environ.num_layers
    
     while ns.current_epoch < ns.stop_epoch_warmup:
         start_time = time.time()
@@ -425,6 +418,7 @@ def warmup_phase(ns,opt, environ, dldrs, disable_tqdm = True, epochs = None, ver
                 environ.set_inputs(batch, input_size)
 
                 environ.optimize(is_policy=False, 
+                                 num_train_layers=ns.num_train_layers,
                                  flag='update_weights', 
                                  verbose = verbose)
             
@@ -440,18 +434,19 @@ def warmup_phase(ns,opt, environ, dldrs, disable_tqdm = True, epochs = None, ver
         ##--------------------------------------------------------------- 
         ns.val_metrics = environ.evaluate(dldrs.val_loader,
                                         is_policy       = False, 
-                                        num_train_layers= None,
+                                        num_train_layers= ns.num_train_layers,
                                         eval_iters      = ns.eval_iters, 
                                         disable_tqdm    = disable_tqdm,
                                         leave           = False,
                                         verbose         = False)
 
-        # environ.write_val_metrics(ns.current_epoch, ns.current_iter, start_time, title = f"[Warmup Val]")    
+        # environ.write_val_metrics_tb(ns.current_epoch, ns.current_iter, start_time, title = f"[Warmup Val]")    
         print_metrics_cr(ns.current_epoch,  time.time() - start_time, ns.trn_losses, ns.val_metrics,
                          line_count, out=[sys.stdout, environ.log_file]) 
         line_count +=1
         wandb_log_metrics(ns.val_metrics, step = ns.current_epoch)
 
+        ## 8-2022 - Commented out, experiment with not reducing LR during warmup
         # environ.schedulers['weights'].step(ns.val_metrics['total']['task'])
         # environ.schedulers['alphas'].step(ns.val_metrics['total']['task'])            
         
@@ -471,20 +466,18 @@ def weight_policy_training(ns, opt, environ, dldrs, disable_tqdm = True, epochs 
     ns.stop_epoch_training = ns.current_epoch + ns.training_epochs
 
 
-    print_heading(f" Last Epoch Completed : {ns.current_epoch}   # of epochs to run:  {ns.training_epochs}"
-                  f" -->  epochs {ns.current_epoch+1} to {ns.stop_epoch_training}    \n"
-                  f" policy_learning rate : {environ.opt['train']['policy_lr']}      \n"
-                  f" lambda_sparsity      : {environ.opt['train']['lambda_sparsity']}\n"
-                  f" lambda_sharing       : {environ.opt['train']['lambda_sharing']} \n"
-                  f" curriculum training  : {opt['is_curriculum']}     cirriculum speed:"
-                  f" {opt['curriculum_speed']}     num_training_layers : {ns.num_train_layers}", 
-              verbose = True, out=[sys.stdout, environ.log_file])    
+    print_heading(f" Last Epoch Completed : {ns.current_epoch}       # of epochs to run:  {ns.training_epochs} -->  epochs {ns.current_epoch+1} to {ns.training_epochs + ns.current_epoch}"
+              f"\n Backbone Initial LR  : {environ.opt['train']['backbone_lr']}      Current LR : {environ.optimizers['weights'].param_groups[0]['lr']} "
+              f"\n Heads    Initial LR  : {environ.opt['train']['task_lr']}      Current LR : {environ.optimizers['weights'].param_groups[1]['lr']}"              
+              f"\n Policy   Initial LR  : {environ.opt['train']['policy_lr']}      Current LR : {environ.optimizers['alphas'].param_groups[0]['lr']}"
+              f"\n Regularization tasks : {environ.opt['train']['lambda_tasks']}          Sparsity: {environ.opt['train']['lambda_sparsity']}"
+              f"           sharing: {environ.opt['train']['lambda_sharing']}"
+              f"\n curriculum training  : {opt['is_curriculum']}      Cirriculum speed: {opt['curriculum_speed']}     num_training_layers : {ns.num_train_layers}", 
+              verbose = True, out=[sys.stdout, environ.log_file])     
      
     if  ns.current_epoch >=  ns.stop_epoch_training:
         return 
 
-
- 
     line_count = 0
     weight_input_size = dldrs.weight_trn_loader.dataset.input_size
     policy_input_size = dldrs.policy_trn_loader.dataset.input_size
@@ -546,16 +539,15 @@ def weight_policy_training(ns, opt, environ, dldrs, disable_tqdm = True, epochs 
                                               disable_tqdm     = disable_tqdm, 
                                               leave = False, verbose = False)  
 
-            # environ.write_val_metrics(ns.current_epoch, ns.current_iter, start_time, title = f"[Weight Val]")
+            # environ.write_val_metrics_tb(ns.current_epoch, ns.current_iter, start_time, title = f"[Weight Val]")
             print_metrics_cr(ns.current_epoch, time.time() - start_time, ns.trn_losses, environ.val_metrics,
                              line_count, out=[sys.stdout, environ.log_file]) 
             line_count +=1
             wandb_log_metrics(ns.val_metrics, step = ns.current_epoch)
 
-            ## Comment out to stop reducing LR during warmup phase
+ 
             environ.schedulers['weights'].step(ns.val_metrics['task']['total'])
             
-
             # Checkpoint on best results
             check_for_improvement(ns,opt,environ)                                 
 
@@ -610,7 +602,7 @@ def weight_policy_training(ns, opt, environ, dldrs, disable_tqdm = True, epochs 
                                            disable_tqdm     = disable_tqdm, 
                                            leave = False, verbose = False)  
 
-            # environ.write_val_metrics(ns.current_epoch, ns.current_iter, start_time, title = f"[Policy Val]")
+            # environ.write_val_metrics_tb(ns.current_epoch, ns.current_iter, start_time, title = f"[Policy Val]")
             print_metrics_cr(ns.current_epoch, time.time() - start_time, ns.trn_losses, environ.val_metrics, 
                              line_count, out=[sys.stdout, environ.log_file])      
             line_count +=1
@@ -628,13 +620,10 @@ def weight_policy_training(ns, opt, environ, dldrs, disable_tqdm = True, epochs 
             ns.p_epoch += 1        
             if should(ns.p_epoch, opt['train']['decay_temp_freq']):
                 environ.decay_temperature()
-                print(f" decay gumbel softmax to {environ.gumbel_temperature}")
+                print(f" decay gumbel temperature to {environ.gumbel_temperature}")
             
             ns.flag = 'update_weights'
             
-    #         environ.display_trained_logits(current_epoch)        
-    #         print_loss(current_epoc, current_iter, environ.val_metrics, title = f"[Policy trn]  ep:{current_epoch}   it:{current_iter}")
-        
         #--------------------------------------------------
         # End of one iteration of Weight / Policy Training  
         #--------------------------------------------------
@@ -642,13 +631,13 @@ def weight_policy_training(ns, opt, environ, dldrs, disable_tqdm = True, epochs 
             environ.save_checkpoint('model_latest_weights_policy', ns.current_iter, ns.current_epoch)        
             print_loss(environ.val_metrics, title = f"\n[e] Policy training epoch:{ns.current_epoch}  it:{ns.current_iter}",
                       out=[sys.stdout, environ.log_file])
-            environ.display_trained_policy(ns.current_epoch,out=[sys.stdout, environ.log_file])
+            environ.display_current_policy(ns.current_epoch,out=[sys.stdout, environ.log_file])
             environ.log_file.flush()
             line_count = 0
         else:
             if display_policy:
-                environ.display_trained_logits(ns.current_epoch,out=[sys.stdout, environ.log_file])
-                # environ.display_trained_policy(ns.current_epoch,out=[sys.stdout, environ.log_file])
+                # environ.display_trained_logits(ns.current_epoch,out=[sys.stdout, environ.log_file])
+                environ.display_current_policy(ns.current_epoch,out=[sys.stdout, environ.log_file])
             
     wrapup_phase(ns, opt, environ)
     return
@@ -709,7 +698,7 @@ def retrain_phase(ns, opt, environ, dldrs, epochs = None, disable_tqdm = True,
                                         disable_tqdm     = disable_tqdm, 
                                         leave = False, verbose = False)      
 
-        # environ.write_val_metrics(ns.current_epoch, ns.current_iter, start_time, title = f"[Weight Val]")
+        # environ.write_val_metrics_tb(ns.current_epoch, ns.current_iter, start_time, title = f"[Weight Val]")
         print_metrics_cr(ns.current_epoch, time.time() - start_time, ns.trn_losses, environ.val_metrics,
                          line_count, out=[sys.stdout, environ.log_file]) 
         line_count +=1        
@@ -747,8 +736,8 @@ def wrapup_phase(ns, opt, environ, label = None):
     print_loss(environ.val_metrics, title = f"[Final] ep:{ns.current_epoch}  it:{ns.current_iter}",out=[sys.stdout])
     
     # Display training results 
-    environ.display_trained_policy(ns.current_epoch,out=[sys.stdout, environ.log_file])
     environ.display_trained_logits(ns.current_epoch,out=[sys.stdout, environ.log_file])
+    environ.display_current_policy(ns.current_epoch,out=[sys.stdout, environ.log_file])
     environ.log_file.flush()
     return 
 

@@ -55,16 +55,13 @@ class MTL3(nn.Module):
 
         
         ## initialize logits
-
         self.reset_logits()
         self.logits = self.arch_parameters()
-        # print(f"\n Arch parameters : \n")
-        # print(f"\t {self.arch_parameters()}")
-        # print()
  
         ## initialize policys
         self.policys = [None] * self.num_tasks
-        print('policies :', self.policys)
+
+
         ## Display Task specific heads info
         if self.verbose:
             print_heading(f" Task Specific Heads :", verbose = True)
@@ -72,8 +69,7 @@ class MTL3(nn.Module):
                 print_underline(f" Task {t_id+1} :", verbose = True)
                 print_dbg(f"task{t_id+1}_fc1_c0:  {getattr(self,'task%d_fc1_c0' % (t_id + 1))}    num classes: {num_classes} \n", verbose = True)
                 
-        if self.verbose:
-            print_heading(f" Initialize policies ",verbose=True)
+            print_heading(f" Initial policies ",verbose=True)
             print_dbg(self.policys, verbose = True)
             print_heading(f" {self.name} init() End ", verbose = True)
 
@@ -85,8 +81,9 @@ class MTL3(nn.Module):
     ##  Reset logits 
     ##----------------------------------------------------
     def reset_logits(self, verbose = None):
-        if verbose is None:
-            verbose = self.verbose
+        """
+        Initialize task<n>_logits
+        """
 
         print_heading(f" Reset Logits  num layers: {self.num_layers}  skip_layers: {self.skip_layer}"
                       f" Init method: {self.init_method}", verbose = verbose)
@@ -107,54 +104,10 @@ class MTL3(nn.Module):
             self._arch_parameters = []
             self.register_parameter('task%d_logits' % (t_id + 1), nn.Parameter(task_logits, requires_grad=True))
             self._arch_parameters.append(getattr(self, 'task%d_logits' % (t_id + 1)))            
- 
+
+        return
 
 
-    def arch_parameters(self):
-        """
-        return policy network parameters
-        """
-        params = []
-        for name, param in self.named_parameters():
-            if 'task' in name and 'logits' in name:
-                params.append(param)
-
-        # for t_id in range(self.num_tasks):
-        #     task_logits = getattr(self, f"task{t_id+1}_logits")
-        #     params.append(task_logits)
-        return params
-
-    get_logits = arch_parameters
-    
-    def backbone_parameters(self):
-        """
-        Return trunk parameters
-        """
-        params = []
-        for name, param in self.named_parameters():
-            if 'backbone' in name:
-                params.append(param)
-        return params
-
-    def task_specific_parameters(self):
-        """
-        return task head parameters
-        """
-        params = []
-        for name, param in self.named_parameters():
-            if 'task' in name and 'fc' in name:
-                params.append(param)
-        return params
-
-    def network_parameters(self):
-        """
-        Return all non-policy related network parameters
-        """
-        params = []
-        for name, param in self.named_parameters():
-            if not ('task' in name and 'logits' in name):
-                params.append(param)
-        return params
 
     ##----------------------------------------------------
     ##  Train policy 
@@ -164,9 +117,6 @@ class MTL3(nn.Module):
         """
         Using task_logits -  Samples from the Gumbel-Softmax distribution and optionally discretizes.
         """
-        if verbose is None:
-            verbose = self.verbose
-
         # print_dbg(f"  MTL3 train_sample_policy():  temperature: {temperature}  "
                 #   f"hard_sampling: {hard_sampling}", verbose = verbose)
         policys = []
@@ -200,9 +150,6 @@ class MTL3(nn.Module):
         if hard sampling == False
                 Task Logits --> Softmax --> random.choice((1,0), P = softmax)
         """
-        if verbose is None:
-            verbose = self.verbose
-
         # print_dbg(f" MTL3 test_sample_policy() START -  hard sampling: {hard_sampling}", verbose = verbose)
         logits  = []
         policys = []
@@ -211,32 +158,36 @@ class MTL3(nn.Module):
             task_logits_attribute = f"task{t_id+1}_logits"
             task_logits  = getattr(self, task_logits_attribute)
             cuda_device  = task_logits.get_device()
-            task_logits  = task_logits.detach().cpu().numpy()
+            task_logits_np  = task_logits.detach().cpu().numpy()
 
+            ##-------------------------------------------------------------------------------
             ## KB - if hard sampling -  they are just doing a straight argmax on the logits
+            ##-------------------------------------------------------------------------------
             if hard_sampling:
-                task_policy  = np.argmax(task_logits, axis=-1)
-                task_policy  = np.stack((1 - task_policy, task_policy), axis=-1)
+                task_policy_np  = np.argmax(task_logits_np, axis=-1)
+                task_policy_np  = np.stack((1 - task_policy_np, task_policy_np), axis=-1)
             else:
+                ##-------------------------------------------------------------------------
                 ## Sample between (1,0) based on the probablites returned by softmax    
                 ## Initially the lower layers have probability of [1, 0] - meaning the
                 ## layer will always be selected. As the policy training progresses
                 ## a different trained distribution starts to take shape
-                task_policy = []
-                distribution = softmax(task_logits, axis=-1)
+                ##-------------------------------------------------------------------------
+                task_policy_np = []
+                distribution = softmax(task_logits_np, axis=-1)
                 
                 for tmp_d in distribution:
                     sampled = np.random.choice((1, 0), p=tmp_d)
                     layer_policy = [sampled, 1 - sampled]
-                    task_policy.append(layer_policy)
+                    task_policy_np.append(layer_policy)
                     # print_dbg(f" sampled policy from  distribution with P:{tmp_d[0]:.4f} {tmp_d[1]:.4f} "
                     #            "- sampled: {sampled} --> layer policy: {layer_policy}", verbose = verbose )
             ## endif
 
             if cuda_device != -1:
-                task_policy = torch.from_numpy(np.array(task_policy)).to('cuda:%d' % cuda_device)
+                task_policy = torch.from_numpy(np.array(task_policy_np)).to('cuda:%d' % cuda_device)
             else:
-                task_policy = torch.from_numpy(np.array(task_policy))
+                task_policy = torch.from_numpy(np.array(task_policy_np))
             
             logits.append(task_logits)
             policys.append(task_policy)
@@ -328,8 +279,7 @@ class MTL3(nn.Module):
         #               f"   policy sampling mode:{policy_sampling_mode}    temperature:{temperature}  "
         #               f"   is_policy:{is_policy}    self.skip_layer:{self.skip_layer}  "
         #               f"   num_layers:{self.num_layers}", verbose)
-        
-        # print_dbg(f" MTL3.forward() self.layers: {self.num_layers}   self.skip_layer: {self.skip_layer}"
+        #     print_dbg(f" MTL3.forward() self.layers: {self.num_layers}   self.skip_layer: {self.skip_layer}"
         #           f"    num_train_layers: {num_train_layers}", verbose = True)
 
         if num_train_layers is None:
@@ -340,8 +290,6 @@ class MTL3(nn.Module):
 
         # Generate features
         cuda_device = input.get_device()
-
-        logits = [None] * self.num_tasks
 
         ##----------------------------------------------------------------------------------------
         ## if is_policy == TRUE: 
@@ -371,10 +319,6 @@ class MTL3(nn.Module):
             ## num_non_train_layers is the number of front layers that are not being trained.
             num_non_train_layers = self.num_layers - num_train_layers
              
-            # print_dbg(f" MTL3.forward()  Non training layers - first {num_non_train_layers} layers "
-            #           f"NOT included in policy training \n", verbose = verbose)
-            
-
             if cuda_device != -1:
                 padding = torch.ones(num_non_train_layers, 2).to(cuda_device)
             else:
@@ -394,8 +338,6 @@ class MTL3(nn.Module):
             for t_id in range(self.num_tasks):
 
                 task_policy = torch.cat((padding.float(), self.policys[t_id][-num_train_layers:].float()), dim=0)
-                # print_dbg(f"\n MTL3.forward() task id: {t_id}   policy after padding {num_non_train_layers} "
-                #           f"non-training layers : shape: {task_policy.shape}   \n {task_policy}", verbose = verbose)
                 active_policys.append(task_policy)
 
                 ## PASS INPUT through BACKBONE based on TASK_POLICY
@@ -408,7 +350,6 @@ class MTL3(nn.Module):
         ## simply pass input through backbone. A feature set is generated for each task
         ##-----------------------------------------------------------------------------
         else:
-            #print('is policy is False')
             feats = [self.backbone(input)] * self.num_tasks
 
         # print(f"\t MTL3_forward() feature set shape: {len(feats)} {feats[0].shape}")
@@ -431,6 +372,53 @@ class MTL3(nn.Module):
 
         # print_dbg(f" {timestring()} - MTL3 network forward() end", verbose = verbose) 
         return outputs, self.policys, self.logits
+
+
+    def arch_parameters(self):
+        """
+        return policy network parameters
+        """
+        params = []
+        for name, param in self.named_parameters():
+            if 'task' in name and 'logits' in name:
+                params.append(param)
+
+        # for t_id in range(self.num_tasks):
+        #     task_logits = getattr(self, f"task{t_id+1}_logits")
+        #     params.append(task_logits)
+        return params
+
+    get_logits = arch_parameters
+    
+    def backbone_parameters(self):
+        """
+        Return trunk parameters
+        """
+        params = []
+        for name, param in self.named_parameters():
+            if 'backbone' in name:
+                params.append(param)
+        return params
+
+    def task_specific_parameters(self):
+        """
+        return task head parameters
+        """
+        params = []
+        for name, param in self.named_parameters():
+            if 'task' in name and 'fc' in name:
+                params.append(param)
+        return params
+
+    def network_parameters(self):
+        """
+        Return all non-policy related network parameters
+        """
+        params = []
+        for name, param in self.named_parameters():
+            if not ('task' in name and 'logits' in name):
+                params.append(param)
+        return params
 
     @property
     def name(self):

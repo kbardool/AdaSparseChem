@@ -81,7 +81,7 @@ def print_underline(text,  verbose = False, out=[sys.stdout]):
     len_ttl = len(text)+2
     if verbose:
         for file in out:
-            print(f"\n {text}", file=file)
+            print(f"\n{text}", file=file)
             print('-' * len_ttl, file=file)
 
 
@@ -117,13 +117,10 @@ def print_loss(losses, title='Iteration', out = [sys.stdout]):
     """
     print loss summary line 
     """
-    loss_display = f"{title} -  Total Loss: {losses['total']['total']:.4f}     \nTask: {losses['task']['total']:.4f}" 
+    loss_display = f"{title} -  Losses:   \t Task: {losses['task']['total']:.4f}" 
     if 'sparsity' in losses:
-        loss_display += f"   Sparsity: {losses['sparsity']['total']:.5e}    Sharing: {losses['sharing']['total']:.5e} "
-    # loss_display = f"{title}  {current_iter} \nLosses: Task: {self.losses['losses']['total']:.4f}   " 
-    # if 'sparsity' in self.losses:
-    #     loss_display += f"Spar: {self.losses['sparsity']['total']:.5e}   Shr: {self.losses['sharing']['total']:.5e}"
-    # loss_display += f"   Ttl: {self.losses['total']['total']:.4f}"
+        loss_display += f"   \t Sparsity: {losses['sparsity']['total']:.5e}    \t Sharing: {losses['sharing']['total']:.5e} "
+    loss_display += f"   \t Total: {losses['total']['total']:.4f} "
     print_to(loss_display, out = out)
 
 def print_to(data, out = [sys.stdout]):
@@ -350,16 +347,27 @@ def get_command_line_args(input = None, display = True):
     parser.add_argument("--first_dropout"    , type=float, help="Dropout ratio for Sparse Input Layer")
     parser.add_argument("--middle_dropout"   , type=float, help="Dropout ratio for middle (hidden) layers")
     parser.add_argument("--last_dropout"     , type=float, help="Dropout ratio for final (task head) layers")
+
     parser.add_argument("--backbone_lr"      , type=float, help="Backbone Learning Rate Override - default read from config file")
     parser.add_argument("--task_lr"          , type=float, help="Task Heads Learning Rate Override - default read from config file")
     parser.add_argument("--policy_lr"        , type=float, help="Policy Net Learning Rate Override - default read from config file")
+    
     parser.add_argument("--decay_lr_rate"    , type=float, help="LR Decay Rate Override - default read from config file")
-    parser.add_argument("--decay_lr_freq"    , type=float, help="LR Decay Frequency Override - default read from config file")
+    parser.add_argument("--decay_lr_freq"    , type=int, help="LR Decay Frequency Override - default read from config file")
+    parser.add_argument("--decay_lr_cooldown", type=int, help="Policy LR Decay Cooldown Override - default read from config file")
+
+    parser.add_argument("--policy_decay_lr_rate"     , type=float, help="Policy LR Decay Rate Override - default read from config file")
+    parser.add_argument("--policy_decay_lr_freq"     , type=int, help="Policy LR Decay Frequency Override - default read from config file")
+    parser.add_argument("--policy_decay_lr_cooldown" , type=int, help="Policy LR Decay Cooldown Override - default read from config file")
+
+    parser.add_argument("--lambda_tasks"     , type=float, help="Classification Regularization - default read from config file")
     parser.add_argument("--lambda_sparsity"  , type=float, help="Sparsity Regularization - default read from config file")
     parser.add_argument("--lambda_sharing"   , type=float, help="Sharing Regularization - default read from config file")
+    
     parser.add_argument("--cuda_devices"     , type=str,   required=True, help="CUDA GPU Device Id")
     parser.add_argument("--gpu_ids"          , type=int,   nargs='+', default=[0],  help="GPU Device Ids")
     parser.add_argument("--pytorch_threads"  , type=int,   default=2,  help="Number of threads used by PyTorch for parallelizing CPU operations")
+
     # parser.add_argument("--policy"           , action="store_true",  help="Train policies")
     parser.add_argument("--skip_residual"    , default='False', choices=('True','False'), help="Bypass all residual layers")
     parser.add_argument("--skip_hidden"      , default='False', choices=('True','False'), help="Bypass all hidden layers")
@@ -464,20 +472,35 @@ def read_yaml(args = None, exp_name = None):
         opt['middle_dropout'] = args.middle_dropout
     if args.last_dropout is not None:
         opt['last_dropout'] = args.last_dropout
-    if args.task_lr  is not None:
+
+    if args.backbone_lr  is not None:
         opt['train']['backbone_lr'] = args.backbone_lr
     if args.task_lr  is not None:
         opt['train']['task_lr'] = args.task_lr
     if args.policy_lr  is not None:
         opt['train']['policy_lr'] = args.policy_lr
+    
     if args.decay_lr_rate is not None:
         opt['train']['decay_lr_rate'] = args.decay_lr_rate
     if args.decay_lr_freq is not None:
         opt['train']['decay_lr_freq'] = args.decay_lr_freq
+    if args.decay_lr_cooldown is not None:
+        opt['train']['decay_lr_cooldown'] = args.decay_lr_cooldown
+
+
+    if args.policy_decay_lr_rate is not None:
+        opt['train']['policy_decay_lr_rate'] = args.policy_decay_lr_rate
+    if args.policy_decay_lr_freq is not None:
+        opt['train']['policy_decay_lr_freq'] = args.policy_decay_lr_freq
+    if args.policy_decay_lr_cooldown is not None:
+        opt['train']['policy_decay_lr_cooldown'] = args.policy_decay_lr_cooldown
+
     if args.lambda_sparsity is not None:
         opt['train']['lambda_sparsity'] = args.lambda_sparsity
     if args.lambda_sharing  is not None:
         opt['train']['lambda_sharing'] = args.lambda_sharing
+    if args.lambda_tasks  is not None:
+        opt['train']['lambda_tasks'] = args.lambda_tasks
 
     # opt['gpu_ids'] = [f"cuda:{i}" for i in args.gpu_ids]
     opt['gpu_ids'] = args.gpu_ids
@@ -488,6 +511,9 @@ def read_yaml(args = None, exp_name = None):
     if args.folder_sfx is not None:
         opt['folder_sfx'] = args.folder_sfx
   
+    if 'diff_sharing_weights' not in opt :
+        opt['diff_sharing_weights'] = False
+
     if opt['skip_residual']:
         if  opt['folder_sfx'] is not None:
             opt['folder_sfx'] += "_no_resid"

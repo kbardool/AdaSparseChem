@@ -250,7 +250,6 @@ class SparseChem_Backbone(torch.nn.Module):
         # if self.verbose:
         #     print_heading(f" {timestring()} - SparseChem backbone forward start  for task {task_id} ", verbose = verbose)
         #     print_dbg(f"\t  Input : X shape: {x.shape}   last_hidden:{last_hidden}", verbose = verbose)
-        #     print_dbg(f"  policy used for forward pass: \n {policy}", verbose = verbose)
         
         x = self.Input_Layer(x)
         # print_dbg(f"\t Output of Input Linear Layer: {x.shape}", verbose = verbose)
@@ -266,29 +265,13 @@ class SparseChem_Backbone(torch.nn.Module):
                 else:
                     residual = x  if self.residuals[layer] is None else self.residuals[layer](x)
                     x = F.relu(residual + self.blocks[layer](x))
-                    
-            # for layer, num_blocks in enumerate(self.layer_config):
-            #     for b in range(num_blocks):
-            #         # apply the residual skip out of _make_layers_
-            #         # residual = self.residuals[layer](x) if b == 0 and self.residuals[layer] is not None else x
-            #         # x = F.relu(residual + self.blocks[layer][b](x))
-            #         # x = residual + self.blocks[layer][b](x)
-            #         x = self.blocks[layer][b](x)
-            #         # print_dbg(f"\t Segment{segment} num_blocks: {num_blocks}   block {b} -  output: {x.shape}", verbose = verbose)
-            #         # x  =  self.blocks[segment][b](x)
-
         else:
-        #     ##----------------------------------------------------
-        #     ## Apply policies to each layer  
-        #     ##----------------------------------------------------
-        #     # t = 0
+            ##----------------------------------------------------
+            ## Apply policies to each layer  
+            ## Policy[t,0] : probability layer selected  
+            ## Policy[t,1] : probability layer IS NOT selected.
+            ##----------------------------------------------------
             for layer, _ in enumerate(self.layer_config):
-                # for b in range(num_blocks):
-        #             # print_dbg(f" segment: {segment}  num_block: {num_blocks}  t: {t}  b: {b} ", verbose = verbose)
-        #             # print_dbg(f" policy[{t},0]: {policy[t,0]:5f}   policy[{t},1]: {policy[t,1]:5f} ", verbose = verbose)
-                    
-                # Policy[t,0] : probability layer selected  
-                # Policy[t,1] : probability layer IS NOT selected.
                 residual = x  if self.residuals[layer] is None else self.residuals[layer](x)
                 block_x = self.blocks[layer](x)
                 fx = F.relu(residual + block_x)
@@ -311,11 +294,6 @@ class SparseChem_Backbone(torch.nn.Module):
                     
                     # t += 1
 
-        # if last_hidden:
-            # H = self.net[:-1](X)
-            # return self.net[-1].net[:-1](H)
-        
-        # print_heading(f" {timestring()} - SparseChem backbone forward end", verbose = verbose)   
         return x
 
 

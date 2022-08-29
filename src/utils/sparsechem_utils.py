@@ -424,7 +424,7 @@ columns_parms = [
     Column("lr_1",           size=10, dec= 2,  fmt = 'e', title="Heads LR"),
     Column("policy_lr",      size=10, dec= 2,  fmt = 'e', title="Polcy LR"),
     Column("gumbel_temp",    size=10, dec= 2,  fmt = 'e', title="Gmbl Tmp"),
-    Column(None,             size=1, dec=-1,  fmt = 's', title=" |"),
+    Column(None,             size=1 , dec=-1,  fmt = 's', title=" |"),
 ]
 
 columns_trn_metrics = [
@@ -432,7 +432,7 @@ columns_trn_metrics = [
     Column("avg_prec_score",  size=10, dec= 5,  fmt = 'f', title="avg prec"),
     Column("roc_auc_score",   size=10, dec= 5,  fmt = 'f', title="aucroc"),
     Column("auc_pr",          size=10, dec= 5,  fmt = 'f', title="aucpr"),
-    Column(None,              size=1, dec=-1,  fmt = 's', title=" |"),
+    Column(None,              size=1 , dec=-1,  fmt = 's', title=" |"),
     # Column("auc_pr_cal",  size=9, dec= 5, title="aucpr_cal"),
     # Column(None,            size=1, dec=-1, title="|"),
     # Column("rmse",          size=9, dec= 5, title="rmse"),
@@ -449,13 +449,13 @@ columns_trn_loss = [
 ]
 
 columns_val_metrics = [
-    Column("logloss",        size=10, dec= 5,  fmt = 'f', title="logloss"),
+    Column("logloss",        size=11, dec= 3,  fmt = 'e', title="logloss"),
     Column("bceloss",        size=10, dec= 5,  fmt = 'f', title="bceloss"),
     Column("avg_prec_score", size=10, dec= 5,  fmt = 'f', title="avg prec"),
     Column("roc_auc_score",  size=10, dec= 5,  fmt = 'f', title="aucroc"),
     Column("auc_pr",         size=10, dec= 5,  fmt = 'f', title="aucpr"),
     Column("f1_max",         size=10, dec= 5,  fmt = 'f', title="f1_max"),
-    Column(None,             size=1, dec=-1,  fmt = 's', title=" |"),
+    Column(None,             size=1 , dec=-1,  fmt = 's', title=" |"),
     # Column("auc_pr_cal",  size=9, dec= 5, title="aucpr_cal"),
     # Column(None,            size=1, dec=-1, title="|"),
     # Column("rmse",          size=9, dec= 5, title="rmse"),
@@ -473,17 +473,10 @@ columns_val_loss = [
 
 
 columns_end = [
-    Column("train_time",     size=5, dec= 1, fmt = 'f', title=" time"),
+    Column("train_time",     size=6, dec= 1, fmt = 'f', title=" time"),
     Column(None,             size=1, dec=-1, fmt = 's', title=" |")
 ]
 
-
-# def print_cell(value, size, dec, left, fmt = 's', end=""):
-#     align = "<" if left else ">"
-#     if type(value) == str:
-#         print(("{:" + align + str(size) +  "}").format(value), end=end)
-#     else:
-#         print(("{:" + align + str(size) + "." + str(dec) + fmt+"}").format(value), end=end)
 
 def print_cell(value, size, dec, left, fmt = 's', end=""):
     align = "<" if left else ">"

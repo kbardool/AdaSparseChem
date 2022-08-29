@@ -6,6 +6,7 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 from torch.utils.tensorboard import SummaryWriter
+from scipy.special import softmax
 # from torch.utitensorboardX import SummaryWriter
 from utils  import print_heading, print_dbg, print_underline, print_loss, timestring
 # from data_utils.image_decoder import inv_preprocess, decode_labels2
@@ -123,7 +124,7 @@ class BaseEnv():
         return
 
     def print_configuration(self, verbose = False):
-                #  f"---------------------------------------- \n" \
+
         config = f" \n\n" \
                  f"{self.name}  Configuration       \n" \
                  f"---------------------------------------- \n" \
@@ -201,7 +202,6 @@ class BaseEnv():
         return ln   
 
 
-
     def write_run_info(self):
         split_rto = self.opt['dataload']['x_split_ratios']
         md = f"""
@@ -251,132 +251,6 @@ class BaseEnv():
         self.writer.add_text('_General Info_', md, 0)
         return md
 
-    def display_trained_logits(self, epoch=0, out = None):
-        if not isinstance(out, list):
-            out = [out]
-
-        logits = self.get_policy_logits()
-        logits_argmaxs = 1-np.argmax(logits, axis = -1)
-        ln = "\n"
-        ln += f" ep: {epoch:4d}   "
-        # "logits      s         logits       s\n"
-        # "----------------  -    ----------------  - \n"
-
-        hdr2 = f" ----- "
-        for t_id, _ in enumerate(self.tasks):
-            ln   += "logits       s         " 
-            hdr2 += "----------------- -    "
-        ln = ln + '\n' + hdr2 + '\n'
-        for lyr in range(self.num_layers):
-            ln += f"{lyr:3d}"
-            for tsk in range(self.num_tasks):
-                # ln += f"  task {policy_softmaxs[tsk][lyr]} info"
-                ln += f"  {logits[tsk][lyr][0]:8.4f}  {logits[tsk][lyr][1]:8.4f}  {logits_argmaxs[tsk][lyr]:1d}"
-            ln += '\n'                    
-        
-        for file in out:
-            print(ln, file = file)
-
-
-    def display_trained_policy(self, epoch=0, out = None):
-        if not isinstance(out, list):
-            out = [out]
-
-        policy_softmaxs = self.get_policy_prob()
-        policy_argmaxs = 1-np.argmax(policy_softmaxs, axis = -1)
-        ln = "\n"
-        ln += f" ep: {epoch:4d}   "
-        # "softmax       s        softmax       s\n"
-        ## ----------------- -    ----------------- - \n"
-
-        hdr2 = f" ----- "
-        for t_id, _ in enumerate(self.tasks):
-            ln   += " softmax     s         "
-            hdr2 += "----------------- -    " 
-        ln = ln + '\n' + hdr2 + '\n'
-
-        for lyr in range(self.num_layers):
-            ln += f"{lyr:3d}"
-            for tsk in range(self.num_tasks):
-                # ln += f"  task {policy_softmaxs[tsk][lyr]} info"
-                ln += f"  {policy_softmaxs[tsk][lyr][0]:8.4f}  {policy_softmaxs[tsk][lyr][1]:8.4f}  {policy_argmaxs[tsk][lyr]:1d}"
-            ln += '\n'
-
-        for file in out:
-            print(ln, file = file)
-
-          
-
-
-
-    def display_test_sample_policy(self, epoch=0, hard_sampling = False, out = None):
-        if not isinstance(out, list):
-            out = [out]
-
-        policies, logits = self.get_sample_policy(hard_sampling)
-        # policies = 1-np.argmax(logits, axis = -1)
-        ln =  f" Sample Policy (Testing mode - hard_sampling: {hard_sampling}) "
-        ln += "\n"
-        ln += f" epch: {epoch:3d}   logits         sel        logits         sel         logits         sel \n"
-        ln += f" -----   ----------------  -----    ----------------  -----    ---------------   ----- \n"
-        for idx, (l1,l2,l3,  p1,p2,p3) in enumerate(zip(logits[0], logits[1], logits[2], 
-                                                        policies[0], policies[1], policies[2]),1):
-            # ln += f"   {idx}      {l1[0]}   {l1[1]}   {p1}   {l2[0]}   {l2[1]}  {p2}   {l3[0]}   {l3[1]}  {p3}\n"
-            ln += f"   {idx}    {l1[0]:7.4f}   {l1[1]:7.4f}  {p1}   {l2[0]:7.4f}   {l2[1]:7.4f}  {p2}   {l3[0]:7.4f}   {l3[1]:7.4f}  {p3}\n"
-        ln += '\n'
-        for file in out:
-            print(ln, file = file)
-            
-
-
-
-
-
-    def display_train_sample_policy(self, epoch=0, temp = None, hard_sampling = False, out = None):
-        if not isinstance(out, list):
-            out = [out]
-        if temp is None:
-            temp = self.gumbel_temperature
-
-        policies_tensors, logits = self.networks['mtl-net'].train_sample_policy(temp, hard_sampling)
-        policies = [p.detach().cpu().numpy() for p in policies_tensors]
-        ln = f" Sample Policy (Training mode - hard_sampling: {hard_sampling}) "
-        ln += "\n"
-        ln += f" epch: {epoch:3d}   logits          gumbel                logits           gumbel               logits             gumbel \n"
-        ln += f" -----   ----------------------------------     ----------------------------------     ------------------------------------ \n"
-        for idx, (l1,l2,l3,  p1,p2,p3) in enumerate(zip(logits[0], logits[1], logits[2], 
-                                                        policies[0], policies[1], policies[2]),1):
-            # ln += f"   {idx}      {l1[0]}   {l1[1]}   {p1[0]}   {p1[1]}      {l2[0]}   {l2[1]}  {p2}   {l3[0]}   {l3[1]}  {p3}\n"
-            ln += f"   {idx}    {l1[0]:7.4f}  {l1[1]:7.4f}   {p1[0]:7.4f}  {p1[1]:7.4f}    {l2[0]:7.4f}  {l2[1]:7.4f}   {p2[0]:7.4f}  {p2[1]:7.4f}" \
-                  f"    {l3[0]:7.4f}   {l3[1]:7.4f}    {p3[0]:7.4f}  {p3[1]:7.4f}\n"
-        ln += '\n'
-        for file in out:
-            print(ln, file = file)
-
-    def display_logit_grads(self, title):
-        for name, param in self.networks['mtl-net'].named_parameters():
-            if 'task' in name and 'logits' in name:
-                grad_sum = param.grad.sum() if param.grad is not None else None
-                print(f" {title} -  {name:30s}   ")
-                print(f"              grad_sum: {grad_sum:.7f}                     param_sum: {param.sum():.7f}  ")
-                for p, g in zip(param, param.grad):
-                    print(f"          {g.detach().cpu().numpy()}            {p.detach().cpu().numpy()}")
-                print(f"------------------------------------------\n")
-        
-    # def display_sampled_policy(self, epoch=0, hard_sampling = False, out = None):
-    #     if not isinstance(out, list):
-    #         out = [out]
-    #     policy_softmaxs = self.get_sample_policy(hard_sampling = hard_sampling)
-    #     policy_argmaxs = 1-np.argmax(policy_softmaxs, axis = -1)
-    #     ln = "\n"
-    #     ln += f" {epoch:3d} epochs  softmax        sel        softmax       sel        softmax       sel \n"
-    #     ln += f" -----    ---------------   ---     ---------------  ---     ---------------  --- \n"
-    #     for idx, (l1,l2,l3,  p1,p2,p3) in enumerate(zip(policy_softmaxs[0], policy_softmaxs[1], policy_softmaxs[2], 
-    #                                                     policy_argmaxs[0], policy_argmaxs[1], policy_argmaxs[2]),1):
-    #         ln += f"   {idx}      {l1[0]:.4f}   {l1[1]:.4f}   {p1:2d}   {l2[0]:9.4f}   {l2[1]:.4f}  {p2:2d}   {l3[0]:9.4f}   {l3[1]:.4f}  {p3:2d}\n"
-    #     ln += '\n'
-    #     for file in out:
-    #         print(ln, file = file)
 
                       
     def write_trn_metrics(self, epoch, iter, start_time, loss=None, title='Iteration', 
@@ -388,7 +262,7 @@ class BaseEnv():
         title = f"{title} ep:{epoch}    it:{iter}"
 
         if to_tb:
-            self.write_trn_metrics_tensorboard(epoch, iter, elapsed_time, metrics =  self.losses)
+            self.write_trn_metrics_tb(epoch, iter, elapsed_time, metrics =  self.losses)
         
         if to_csv:
             self.write_trn_metrics_csv(self.loss_csv_file, epoch, iter, elapsed_time, self.losses )
@@ -401,7 +275,7 @@ class BaseEnv():
 
 
 
-    def write_val_metrics_tensorboard(self, epoch, iter, start_time, metrics=None, title='Iteration', verbose = False):
+    def write_val_metrics_tb(self, epoch, iter, start_time, metrics=None, title='Iteration', verbose = False):
         """ write metrics to tensorboard and optionally to sysout """
         if metrics is None:
             metrics = self.val_metrics
@@ -439,47 +313,10 @@ class BaseEnv():
             self.writer.add_scalar(f"val_metrics:{key:s}/{subkey:s}", metric_value, iter)
             # print_current_errors(os.path.join(self.log_dir, 'loss.txt'), current_iter,key, loss[key], time.time() - start_time)
 
-    write_val_metrics = write_val_metrics_tensorboard
+    write_val_metrics = write_val_metrics_tb
 
-    # def print_val_metrics(self, epoch, iter, start_time, metrics=None, title='Iteration', verbose = False):
-    #     """ write metrics to tensorboard and optionally to sysout """
-    #     if metrics is None:
-    #         metrics = self.val_metrics
 
-    #     title = f"{title} ep:{epoch}    it:{iter}"
-
-    #     ## Following items will be written as val_loss[key]:[subkey] to Tensorboard
-    #     for key in ['task', 'task_mean', 'sharing', 'sparsity' , 'total']:
-    #         if key not in metrics:
-    #             continue
-    #         # print(key + ':')
-    #         if isinstance(metrics[key], dict):
-    #             for subkey, metric_value in metrics[key].items():
-    #                 self.writer.add_scalar('val_loss_%s/%s'%(key, subkey), metric_value, iter)
-    #                 # print_current_errors(os.path.join(self.log_dir, 'loss.txt'), current_iter,key, metrics[key], time.time() - start_time)
-    #         elif (isinstance(metrics[key], float)):
-    #             self.writer.add_scalar('val_loss_%s'%(key), metrics[key], iter)
-    #             # print_current_errors(os.path.join(self.log_dir, 'loss.txt'), current_iter,key, metrics[key], time.time() - start_time)
-
-    #     ## Write aggregated metrics for each group (i.e, group of tasks)
-    #     ## Following items will be written as val_metrics:[key]/[subkey] to Tensorboard
-    #     for t_id, _ in enumerate(self.tasks):
-    #         key = f"task{t_id+1}"
-    #         # print_heading(f"{title}  {iter}  {key} : {metrics[key]['classification_agg']}", verbose = verbose)
-
-    #         for subkey, metric_value in metrics[key]['classification_agg'].items():
-    #             self.writer.add_scalar(f"val_metrics:{key:s}/{subkey:s}", metric_value, iter)
-    #              # print_current_errors(os.path.join(self.log_dir, 'loss.txt'), current_iter,key, loss[key], time.time() - start_time)
-
-    #     ## Write aggregated metrics (aggregated accross all groups/tasks)
-    #     ## Following items will be written as val_metrics:[key]/[subkey] to Tensorboard
-    #     key = "aggregated"
-    #     # print_heading(f"{title}  {iter}  {key} : {metrics[key]}", verbose = verbose)
-    #     for subkey, metric_value  in metrics[key].items():
-    #         self.writer.add_scalar(f"val_metrics:{key:s}/{subkey:s}", metric_value, iter)
-    #         # print_current_errors(os.path.join(self.log_dir, 'loss.txt'), current_iter,key, loss[key], time.time() - start_time)
-
-    def write_trn_metrics_tensorboard(self, epoch, iter, start_time, metrics=None, verbose = False):
+    def write_trn_metrics_tb(self, epoch, iter, start_time, metrics=None, verbose = False):
         if metrics is None:
             metrics = self.losses
 
@@ -629,7 +466,7 @@ class BaseEnv():
         :param label: str, the label for the loading checkpoint
         :param path: str, specify if knowing the checkpoint path
         """
-        save_filename = '%s.pth.tar' % label
+        save_filename = '%s.tar' % label
         if path is None:
             save_path = os.path.join(self.checkpoint_dir, save_filename)
         else:
@@ -689,6 +526,158 @@ class BaseEnv():
         print_dbg(f" check_exist_policy() : check for policy file  {save_path}", verbose = verbose)
         return os.path.exists(save_path)
 
+
+    def display_trained_logits(self, epoch=0, out = None):
+        """
+        call get_all_task_logits_numpy() to obtain all policy logits from networks['mtl-net']
+        display logits and argmax logits
+        """
+        if not isinstance(out, list):
+            out = [out]
+
+        logits = self.get_all_task_logits_numpy()
+        logits_argmaxs = 1-np.argmax(logits, axis = -1)
+        ln = "\n"
+        ln += f" ep: {epoch:4d}   "
+        # "logits      s         logits       s\n"
+        # "----------------  -    ----------------  - \n"
+
+        hdr2 = f" ----- "
+        for t_id, _ in enumerate(self.tasks):
+            ln   += "logits       s         " 
+            hdr2 += "----------------- -    "
+        ln = ln + '\n' + hdr2 + '\n'
+        for lyr in range(self.num_layers):
+            ln += f"{lyr:3d}"
+            for tsk in range(self.num_tasks):
+                # ln += f"  task {policy_softmaxs[tsk][lyr]} info"
+                ln += f"  {logits[tsk][lyr][0]:8.4f}  {logits[tsk][lyr][1]:8.4f}  {logits_argmaxs[tsk][lyr]:1d}"
+            ln += '\n'                    
+        
+        for file in out:
+            print(ln, file = file)
+
+
+    def display_trained_policy(self, epoch=0, out = None):
+        if not isinstance(out, list):
+            out = [out]
+
+        logits = self.get_all_task_logits_numpy()
+        policy_softmaxs = softmax(logits, axis= -1)        
+ 
+        # policy[i,0] -> argmax() = 0 -> layer i is selected 
+        # policy[i,1] -> argmax() = 1 -> layer i is NOT selected 
+        policy_argmaxs = 1-np.argmax(policy_softmaxs, axis = -1)
+        
+        ## Print header lines
+        ## " ep: xxxx softmax       s        softmax       s"
+        ## " ---- ----------------- -    ----------------- -"
+        ln = f"\n ep: {epoch:4d}   "
+
+        hdr2 = f" ----- "
+        for t_id, _ in enumerate(self.tasks):
+            ln   += " softmax     s         "
+            hdr2 += "----------------- -    " 
+        ln = ln + '\n' + hdr2 + '\n'
+
+        for lyr in range(self.num_layers):
+            ln += f"{lyr:3d}"
+            for tsk in range(self.num_tasks):
+                ln += f"  {policy_softmaxs[tsk][lyr][0]:8.4f}  {policy_softmaxs[tsk][lyr][1]:8.4f}  {policy_argmaxs[tsk][lyr]:1d}"
+            ln += '\n'
+
+        for file in out:
+            print(ln, file = file)
+
+
+    def display_current_policy(self, epoch=0, out = None):
+        if not isinstance(out, list):
+            out = [out]
+
+        logits = self.get_current_logits()
+        policy_softmaxs = softmax(logits, axis= -1)        
+        policys = self.get_current_policy()       
+        policy_argmaxs = 1-np.argmax(policy_softmaxs, axis = -1)
+
+        # policy[i,0] -> argmax() = 0 -> layer i is selected 
+        # policy[i,1] -> argmax() = 1 -> layer i is NOT selected 
+        
+        ## Print header lines
+        ## " ep: xxxx softmax       s        softmax       s"
+        ## " ---- ----------------- -    ----------------- -"
+        ln = f"\n ep: {epoch:4d}   "
+
+        hdr2 = f" ----- "
+        for t_id, _ in enumerate(self.tasks):
+            ln   += " softmax     s         "
+            hdr2 += "----------------- -    " 
+        ln = ln + '\n' + hdr2 + '\n'
+
+        for lyr in range(self.num_layers):
+            ln += f"{lyr:3d}"
+            for tsk in range(self.num_tasks):
+                ln += f"  {policy_softmaxs[tsk][lyr][0]:8.4f}  {policy_softmaxs[tsk][lyr][1]:8.4f}" 
+                if policys[tsk] is not None:
+                    ln += f"  {policys[tsk][lyr, 0]:1d}"
+                else:
+                    ln += f"  -"
+            ln += '\n'
+
+        for file in out:
+            print(ln, file = file)
+
+
+
+    def display_test_sample_policy(self, epoch=0, hard_sampling = False, out = None):
+        if not isinstance(out, list):
+            out = [out]
+
+        policies, logits = self.get_sample_policy(hard_sampling)
+        # policies = 1-np.argmax(logits, axis = -1)
+        ln =  f" Sample Policy (Testing mode - hard_sampling: {hard_sampling}) "
+        ln += "\n"
+        ln += f" epch: {epoch:3d}   logits         sel        logits         sel         logits         sel \n"
+        ln += f" -----   ----------------  -----    ----------------  -----    ---------------   ----- \n"
+        for idx, (l1,l2,l3,  p1,p2,p3) in enumerate(zip(logits[0], logits[1], logits[2], 
+                                                        policies[0], policies[1], policies[2]),1):
+            # ln += f"   {idx}      {l1[0]}   {l1[1]}   {p1}   {l2[0]}   {l2[1]}  {p2}   {l3[0]}   {l3[1]}  {p3}\n"
+            ln += f"   {idx}    {l1[0]:7.4f}   {l1[1]:7.4f}  {p1}   {l2[0]:7.4f}   {l2[1]:7.4f}  {p2}   {l3[0]:7.4f}   {l3[1]:7.4f}  {p3}\n"
+        ln += '\n'
+        for file in out:
+            print(ln, file = file)
+            
+
+    def display_train_sample_policy(self, epoch=0, temp = None, hard_sampling = False, out = None):
+        if not isinstance(out, list):
+            out = [out]
+        if temp is None:
+            temp = self.gumbel_temperature
+
+        policies_tensors, logits = self.networks['mtl-net'].train_sample_policy(temp, hard_sampling)
+        policies = [p.detach().cpu().numpy() for p in policies_tensors]
+        ln = f" Sample Policy (Training mode - hard_sampling: {hard_sampling}) "
+        ln += "\n"
+        ln += f" epch: {epoch:3d}   logits          gumbel                logits           gumbel               logits             gumbel \n"
+        ln += f" -----   ----------------------------------     ----------------------------------     ------------------------------------ \n"
+        for idx, (l1,l2,l3,  p1,p2,p3) in enumerate(zip(logits[0], logits[1], logits[2], 
+                                                        policies[0], policies[1], policies[2]),1):
+            # ln += f"   {idx}      {l1[0]}   {l1[1]}   {p1[0]}   {p1[1]}      {l2[0]}   {l2[1]}  {p2}   {l3[0]}   {l3[1]}  {p3}\n"
+            ln += f"   {idx}    {l1[0]:7.4f}  {l1[1]:7.4f}   {p1[0]:7.4f}  {p1[1]:7.4f}    {l2[0]:7.4f}  {l2[1]:7.4f}   {p2[0]:7.4f}  {p2[1]:7.4f}" \
+                  f"    {l3[0]:7.4f}   {l3[1]:7.4f}    {p3[0]:7.4f}  {p3[1]:7.4f}\n"
+        ln += '\n'
+        for file in out:
+            print(ln, file = file)
+
+    def display_logit_grads(self, title):
+        for name, param in self.networks['mtl-net'].named_parameters():
+            if 'task' in name and 'logits' in name:
+                grad_sum = param.grad.sum() if param.grad is not None else None
+                print(f" {title} -  {name:30s}   ")
+                print(f"              grad_sum: {grad_sum:.7f}                     param_sum: {param.sum():.7f}  ")
+                for p, g in zip(param, param.grad):
+                    print(f"          {g.detach().cpu().numpy()}            {p.detach().cpu().numpy()}")
+                print(f"------------------------------------------\n")
+        
 
     def visualize(self):
         pass
@@ -757,3 +746,57 @@ class BaseEnv():
 
     def name(self):
         return 'BaseEnv'
+
+    # def print_val_metrics(self, epoch, iter, start_time, metrics=None, title='Iteration', verbose = False):
+    #     """ write metrics to tensorboard and optionally to sysout """
+    #     if metrics is None:
+    #         metrics = self.val_metrics
+
+    #     title = f"{title} ep:{epoch}    it:{iter}"
+
+    #     ## Following items will be written as val_loss[key]:[subkey] to Tensorboard
+    #     for key in ['task', 'task_mean', 'sharing', 'sparsity' , 'total']:
+    #         if key not in metrics:
+    #             continue
+    #         # print(key + ':')
+    #         if isinstance(metrics[key], dict):
+    #             for subkey, metric_value in metrics[key].items():
+    #                 self.writer.add_scalar('val_loss_%s/%s'%(key, subkey), metric_value, iter)
+    #                 # print_current_errors(os.path.join(self.log_dir, 'loss.txt'), current_iter,key, metrics[key], time.time() - start_time)
+    #         elif (isinstance(metrics[key], float)):
+    #             self.writer.add_scalar('val_loss_%s'%(key), metrics[key], iter)
+    #             # print_current_errors(os.path.join(self.log_dir, 'loss.txt'), current_iter,key, metrics[key], time.time() - start_time)
+
+    #     ## Write aggregated metrics for each group (i.e, group of tasks)
+    #     ## Following items will be written as val_metrics:[key]/[subkey] to Tensorboard
+    #     for t_id, _ in enumerate(self.tasks):
+    #         key = f"task{t_id+1}"
+    #         # print_heading(f"{title}  {iter}  {key} : {metrics[key]['classification_agg']}", verbose = verbose)
+
+    #         for subkey, metric_value in metrics[key]['classification_agg'].items():
+    #             self.writer.add_scalar(f"val_metrics:{key:s}/{subkey:s}", metric_value, iter)
+    #              # print_current_errors(os.path.join(self.log_dir, 'loss.txt'), current_iter,key, loss[key], time.time() - start_time)
+
+    #     ## Write aggregated metrics (aggregated accross all groups/tasks)
+    #     ## Following items will be written as val_metrics:[key]/[subkey] to Tensorboard
+    #     key = "aggregated"
+    #     # print_heading(f"{title}  {iter}  {key} : {metrics[key]}", verbose = verbose)
+    #     for subkey, metric_value  in metrics[key].items():
+    #         self.writer.add_scalar(f"val_metrics:{key:s}/{subkey:s}", metric_value, iter)
+    #         # print_current_errors(os.path.join(self.log_dir, 'loss.txt'), current_iter,key, loss[key], time.time() - start_time)        
+
+
+    # def display_sampled_policy(self, epoch=0, hard_sampling = False, out = None):
+    #     if not isinstance(out, list):
+    #         out = [out]
+    #     policy_softmaxs = self.get_sample_policy(hard_sampling = hard_sampling)
+    #     policy_argmaxs = 1-np.argmax(policy_softmaxs, axis = -1)
+    #     ln = "\n"
+    #     ln += f" {epoch:3d} epochs  softmax        sel        softmax       sel        softmax       sel \n"
+    #     ln += f" -----    ---------------   ---     ---------------  ---     ---------------  --- \n"
+    #     for idx, (l1,l2,l3,  p1,p2,p3) in enumerate(zip(policy_softmaxs[0], policy_softmaxs[1], policy_softmaxs[2], 
+    #                                                     policy_argmaxs[0], policy_argmaxs[1], policy_argmaxs[2]),1):
+    #         ln += f"   {idx}      {l1[0]:.4f}   {l1[1]:.4f}   {p1:2d}   {l2[0]:9.4f}   {l2[1]:.4f}  {p2:2d}   {l3[0]:9.4f}   {l3[1]:.4f}  {p3:2d}\n"
+    #     ln += '\n'
+    #     for file in out:
+    #         print(ln, file = file)    

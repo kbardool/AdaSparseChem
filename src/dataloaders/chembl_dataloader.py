@@ -358,16 +358,10 @@ class ClassRegrSparseDataset_v3(Dataset):
             ##-----------------------------------------------------------------------------------
             print(f" Number of non-zero features in ecfp[0]:{ecfp[0].count_nonzero()}")
             self.num_class  = np.array((y_temp != 0).sum(0)).flatten()
-            # self.num_p_4    = np.array((y_temp >= +4).sum(0)).flatten()
-            # self.num_p_3    = np.array((y_temp == +3).sum(0)).flatten()
-            # self.num_p_2    = np.array((y_temp == +2).sum(0)).flatten()
             self.num_p_1    = np.array((y_temp >= +2).sum(0)).flatten()
             self.num_pos    = np.array((y_temp == +1).sum(0)).flatten()
             self.num_neg    = np.array((y_temp == -1).sum(0)).flatten()
             self.num_n_1    = np.array((y_temp <= -2).sum(0)).flatten()
-            # self.num_n_2    = np.array((y_temp == -2).sum(0)).flatten()
-            # self.num_n_3    = np.array((y_temp == -3).sum(0)).flatten()
-            # self.num_n_4    = np.array((y_temp <= -4).sum(0)).flatten()
             print_dbg(f"\n Task {task_id+1} label file: \n"
                       f"    Total > +1  Labels :  {self.num_p_1.sum():9d} \n"
                       f"    Total   +1  Labels :  {self.num_pos.sum():9d} \n"
@@ -407,28 +401,15 @@ class ClassRegrSparseDataset_v3(Dataset):
         
             if verbose:    
                 print_underline(f" task_weights.aggregation_weight: ", verbose = verbose)
-                print_dbg(f" fold_pos >= {n} and  fold_neg >= {n}", verbose = verbose)     
-                print_dbg(f" shape: {weights_temp.aggregation_weight.shape} sum: {weights_temp.aggregation_weight.sum()}\n"
+                print_dbg(f" fold_pos >= {n} and  fold_neg >= {n}  (n = min_samples_class)", verbose = verbose)     
+                print_dbg(f" aggregation_weight:   shape: {weights_temp.aggregation_weight.shape} sum: {weights_temp.aggregation_weight.sum()}\n"
                         f" {weights_temp.aggregation_weight}", verbose = verbose)
 
                 # print_underline(f" task_weights.training_weight: ", verbose = verbose)     
                 # print_dbg(f" shape    : {weights_temp.training_weight.shape} sum: {weights_temp.training_weight.sum()}\n "
                         # f"{weights_temp.training_weight}", verbose = verbose)
 
-            ##-----------------------------------------------------------------------------------
-            ## Regression task aggregation weights 
-            ##-----------------------------------------------------------------------------------
-            # if tasks_regr.aggregation_weight is None:
-            #     if y_censor.nnz == 0:
-            #         y_regr2 = y_regr.copy()
-            #         y_regr2.data[:] = 1
-            #     else:
-            #         ## only counting uncensored data
-            #         y_regr2      = y_censor.copy()
-            #         y_regr2.data = (y_regr2.data == 0).astype(np.int32)
-            #     fold_regr, _ = sc.class_fold_counts(y_regr2, folding)
-            #     del y_regr2
-            #     tasks_regr.aggregation_weight = (fold_regr >= args.min_samples_regr).all(0).astype(np.float64)
+
 
             ##-----------------------------------------------------------------------------------
             # scale labels from {-1, +1} to {0, 1}, zeros are stored explicitly
@@ -473,27 +454,6 @@ class ClassRegrSparseDataset_v3(Dataset):
           
             self.class_tasks += 1
                         
-            ##-----------------------------------------------------------------------------------
-            ## Load censor file if present 
-            ##-----------------------------------------------------------------------------------
-            # y_censor = load_sparse(dataroot, y_censor[i])
-            # if y_censor is None:
-            #     stat = 'Not Supplied - Created'
-            #     # setattr(self, 'y_censor', scipy.sparse.csr_matrix(self.y_task1.shape))
-            #     self.y_censor = scipy.sparse.csr_matrix(self.y_task1.shape)
-            # else:
-            #     stat = 'Supplied'
-            # print(f" y_censor {stat:22s} - type : {type(self.y_censor)}  shape : {self.y_censor.shape}")
-            # setattr(self, "y_censor" , self.y_censor.tocsr(copy=False).astype(np.float32) )
-
-            # assert y_class.shape[1] + y_regr.shape[1] > 0, "No labels provided (both y_class and y_regr are missing)"
-            # assert x.shape[0]==y_class.shape[0], f"Input has {x.shape[0]} rows and class data {y_class.shape[0]} rows. Must be equal."
-            # assert x.shape[0]==y_regr.shape[0], f"Input has {x.shape[0]} rows and regression data has {y_regr.shape[0]} rows. Must be equal."
-            # assert y_regr.shape==y_censor.shape, f"Regression data has shape {y_regr.shape} and censor data has shape {y_censor.shape[0]}. Must be equal."
-            # self.y_class = y_class.tocsr(copy=False).astype(np.float32)
-            # self.y_regr  = y_regr.tocsr(copy=False).astype(np.float32)
-            # self.y_censor = y_censor.tocsr(copy=False).astype(np.float32)
-
             # if verbose:
             #     print_dbg(f"\t y_task[{task_id+1}]  {stat:22s} - type : {type(y_temp)}    shape : {y_temp.shape}", verbose = verbose)
             #     print_dbg(f"\t y_task[{task_id+1}]  {stat:22s} - type : {type(self.y_class_list[task_id])}    shape : {self.y_class_list[task_id].shape}"  , verbose = verbose)
@@ -563,9 +523,6 @@ class ClassRegrSparseDataset_v3(Dataset):
         out["batch_size"] = len(batch)
         return out
     
-    
-
-    
 
     def __len__(self):
         return(self.x.shape[0])
@@ -588,3 +545,40 @@ class ClassRegrSparseDataset_v3(Dataset):
 
     def name(self):
         return 'Chembl_23'
+
+
+            ##-----------------------------------------------------------------------------------
+            ## Regression task aggregation weights 
+            ##-----------------------------------------------------------------------------------
+            # if tasks_regr.aggregation_weight is None:
+            #     if y_censor.nnz == 0:
+            #         y_regr2 = y_regr.copy()
+            #         y_regr2.data[:] = 1
+            #     else:
+            #         ## only counting uncensored data
+            #         y_regr2      = y_censor.copy()
+            #         y_regr2.data = (y_regr2.data == 0).astype(np.int32)
+            #     fold_regr, _ = sc.class_fold_counts(y_regr2, folding)
+            #     del y_regr2
+            #     tasks_regr.aggregation_weight = (fold_regr >= args.min_samples_regr).all(0).astype(np.float64)
+
+            ##-----------------------------------------------------------------------------------
+            ## Load censor file if present 
+            ##-----------------------------------------------------------------------------------
+            # y_censor = load_sparse(dataroot, y_censor[i])
+            # if y_censor is None:
+            #     stat = 'Not Supplied - Created'
+            #     # setattr(self, 'y_censor', scipy.sparse.csr_matrix(self.y_task1.shape))
+            #     self.y_censor = scipy.sparse.csr_matrix(self.y_task1.shape)
+            # else:
+            #     stat = 'Supplied'
+            # print(f" y_censor {stat:22s} - type : {type(self.y_censor)}  shape : {self.y_censor.shape}")
+            # setattr(self, "y_censor" , self.y_censor.tocsr(copy=False).astype(np.float32) )
+
+            # assert y_class.shape[1] + y_regr.shape[1] > 0, "No labels provided (both y_class and y_regr are missing)"
+            # assert x.shape[0]==y_class.shape[0], f"Input has {x.shape[0]} rows and class data {y_class.shape[0]} rows. Must be equal."
+            # assert x.shape[0]==y_regr.shape[0], f"Input has {x.shape[0]} rows and regression data has {y_regr.shape[0]} rows. Must be equal."
+            # assert y_regr.shape==y_censor.shape, f"Regression data has shape {y_regr.shape} and censor data has shape {y_censor.shape[0]}. Must be equal."
+            # self.y_class = y_class.tocsr(copy=False).astype(np.float32)
+            # self.y_regr  = y_regr.tocsr(copy=False).astype(np.float32)
+            # self.y_censor = y_censor.tocsr(copy=False).astype(np.float32)
