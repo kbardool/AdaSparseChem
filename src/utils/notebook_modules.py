@@ -447,7 +447,7 @@ def warmup_phase(ns,opt, environ, dldrs, disable_tqdm = True, epochs = None, ver
         wandb_log_metrics(ns.val_metrics, step = ns.current_epoch)
 
         ## 8-2022 - Commented out, experiment with not reducing LR during warmup
-        # environ.schedulers['weights'].step(ns.val_metrics['total']['task'])
+        environ.schedulers['weights'].step(ns.val_metrics['total']['task'])
         # environ.schedulers['alphas'].step(ns.val_metrics['total']['task'])            
         
         # Checkpoint on best results
