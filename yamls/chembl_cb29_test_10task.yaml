@@ -65,10 +65,10 @@ train:
   
   ## Use with caution - Increasing warmp_up epochs too much 
   ## introduces  instability in the validation 
-  warmup_epochs  :     100
-  training_epochs:     250
-  total_iters    :   25000
-  warm_up_iters  :
+  # warmup_epochs  :     100
+  # training_epochs:     250
+  # total_iters    :   25000
+  # warm_up_iters  :
   
   # Learning Rates
   task_lr                  : 0.001
@@ -151,9 +151,9 @@ train:
 ## Data & Folder parameters
 ##------------------------------------------------------
 paths:
-  log_dir        :     ../../experiments/AdaSparseChem-cb29-10task
-  result_dir     :     ../../experiments/AdaSparseChem-cb29-10task
-  checkpoint_dir :     ../../experiments/AdaSparseChem-cb29-10task
+  log_dir        :     ../../experiments/AdaSparseChem-cb29-10task-test
+  result_dir     :     ../../experiments/AdaSparseChem-cb29-10task-test
+  checkpoint_dir :     ../../experiments/AdaSparseChem-cb29-10task-test
 
 dataload:
   dataset        : Chembl29

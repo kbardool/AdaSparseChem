@@ -215,7 +215,7 @@ class BaseEnv():
 
 ** {self.opt['exp_description']} **
         """
-    # Batch Size          :   {self.opt['train']['batch_size']}             
+    # Batch Size          :   {self.opt['batch_size']}             
     # Data split ratios   :   {self.opt['dataload']['x_split_ratios']}
     # Hidden layers       :   {len(self.opt['hidden_sizes'])} - {self.opt['hidden_sizes']} 
     # starting task_lr    :   {self.opt['train']['task_lr']} 
@@ -230,7 +230,7 @@ class BaseEnv():
 
 | param | values |
 | ----- | ---------- |
-| batch_size | {self.opt['train']['batch_size']} |
+| batch_size | {self.opt['batch_size']} |
 | # of hidden layers | {len(self.opt['hidden_sizes'])} |
 | layer sizes   | {self.opt['hidden_sizes']} |
 | LR tasks:     | {self.opt['train']['task_lr']} |
@@ -398,7 +398,7 @@ class BaseEnv():
             log_file.write('%s \n' % message)
 
 
-    def get_current_state(self, current_iter, current_epoch= -1):
+    def get_current_state(self, current_iter = -1,  current_epoch= -1):
         """ 
         original doc: change the state of each module  
         get the state_dict for all networks and optimizers
@@ -410,11 +410,72 @@ class BaseEnv():
                 current_state[k] = v.module.state_dict()
             else:
                 current_state[k] = v.state_dict()
+
+        current_state['optimizers'] = {}
         for k, v in self.optimizers.items():
-            current_state[k] = v.state_dict()
+            current_state['optimizers'][k] = v.state_dict()
+
+        current_state['schedulers'] = {}
+        for k, v in self.schedulers.items():
+            current_state['schedulers'][k] = v.state_dict()
+
         current_state['iter'] = current_iter
         current_state['epoch'] = current_epoch
+        current_state['temp'] = self.gumbel_temperature
         return current_state
+
+
+    def save_checkpoint(self, label, current_iter, current_epoch = 'unknown', verbose = False):
+        """
+        Save the current checkpoint
+        :param label: str, the label for the loading checkpoint
+        :param current_iter: int, the current iteration
+        """
+        save_filename = 'model_%s.tar' % str(label)
+        save_path = os.path.join(self.checkpoint_dir, save_filename)
+        current_state = self.get_current_state(current_iter, current_epoch)
+        torch.save(current_state, save_path)
+        print_heading(f" Saved checkpoint to {save_path} iteration: {current_iter}", verbose = verbose)
+
+
+    def save_policy(self, label, verbose = False):
+        """
+        Save current policies
+        """
+        save_filename = 'policy_%s.pickle' % str(label)
+        save_path = os.path.join(self.checkpoint_dir, save_filename)
+        policies = self.get_current_policy()
+                
+        with open(save_path, 'wb') as handle:
+            pickle.dump(policies, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+        print_dbg(f" save_policy(): save policies to {save_path}", verbose = True)
+
+
+    def save_metrics(self, label, ns, verbose = False):
+        """
+        Save current policies
+        """
+        # save_to_pickle({'val_metrics'   : environ.val_metrics,
+        #                 'best_metrics'  : ns.best_metrics,
+        #                 'best_accuracy' : ns.best_accuracy, 
+        #                 'best_roc_auc'  : ns.best_roc_auc,
+        #                 'best_iter'     : ns.best_iter   ,
+        #                 'best_epoch'    : ns.best_epoch  },
+        #                 environ.opt['paths']['checkpoint_dir'], ns.metrics_label)        
+        save_filename = 'metrics_%s.pickle' % str(label)
+        save_path = os.path.join(self.checkpoint_dir, save_filename)
+        metrics = {'val_metrics'   : self.val_metrics,
+                   'best_metrics'  : ns.best_metrics,
+                   'best_accuracy' : ns.best_accuracy, 
+                   'best_roc_auc'  : ns.best_roc_auc,
+                   'best_iter'     : ns.best_iter   ,
+                   'best_epoch'    : ns.best_epoch  }
+        
+        with open(save_path, 'wb') as handle:
+            pickle.dump(metrics, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+        print_dbg(f" save_policy(): save policies to {save_path}", verbose = verbose)
 
 
     def load_snapshot(self, snapshot, verbose = False):
@@ -429,11 +490,11 @@ class BaseEnv():
                 model_dict = v.state_dict()
                 pretrained_dict = {}
                 for kk, vv in snapshot[k].items():
-                    print_dbg(f'    network {k} - item {kk}', verbose = verbose)
+                    print_dbg(f'    network {k} - item {kk} - shape: {vv.shape}', verbose = verbose)
                     if kk in model_dict.keys() and model_dict[kk].shape == vv.shape:
                         pretrained_dict[kk] = vv
                     else:
-                        print_dbg('skipping %s' % kk, verbose = verbose)
+                        print_dbg('    skipping %s' % kk, verbose = verbose)
                 model_dict.update(pretrained_dict)
                 self.networks[k].load_state_dict(model_dict)
                 # self.networks[k].load_state_dict(snapshot[k])
@@ -441,23 +502,20 @@ class BaseEnv():
         if self.is_train:
             for k, v in self.optimizers.items():
                 print_dbg(f'  optimizers - optimizer:  {k}', verbose = verbose)
-                if k in snapshot.keys():
+                if k in snapshot['optimizers'].keys():
                     print_dbg(f'    load snapshot - optimizer: {k} ', verbose = verbose)
-                    self.optimizers[k].load_state_dict(snapshot[k])
+                    self.optimizers[k].load_state_dict(snapshot['optimizers'][k])
+                    # for state in self.optimizers[k].state.values():
+                        
+
+            for k, v in self.schedulers.items():
+                print_dbg(f'  schedulers - scheduler:  {k}', verbose = verbose)
+                if k in snapshot['schedulers'].keys():
+                    print_dbg(f'    load snapshot - scheduler: {k} ', verbose = verbose)
+                    self.schedulers[k].load_state_dict(snapshot['schedulers'][k])
+
+        self.gumbel_temperature = snapshot['temp']
         return
-
-
-    def save_checkpoint(self, label, current_iter, current_epoch = 'unknown', verbose = False):
-        """
-        Save the current checkpoint
-        :param label: str, the label for the loading checkpoint
-        :param current_iter: int, the current iteration
-        """
-        save_filename = '%s.tar' % str(label)
-        save_path = os.path.join(self.checkpoint_dir, save_filename)
-        current_state = self.get_current_state(current_iter, current_epoch)
-        torch.save(current_state, save_path)
-        print_heading(f" Saved checkpoint to {save_path} iteration: {current_iter}", verbose = verbose)
 
 
     def load_checkpoint(self, label, path=None, verbose = False):
@@ -466,56 +524,57 @@ class BaseEnv():
         :param label: str, the label for the loading checkpoint
         :param path: str, specify if knowing the checkpoint path
         """
-        save_filename = '%s.tar' % label
-        if path is None:
-            save_path = os.path.join(self.checkpoint_dir, save_filename)
-        else:
-            save_path = os.path.join(path,save_filename)
-            # save_path = path
+        path = self.checkpoint_dir if path is None else path
+        filename = '%s.tar' % label
+        load_path = os.path.join(path, filename)
+        print('=> loading snapshot from {}'.format(load_path))
 
-        if os.path.isfile(save_path):
-            print('=> loading snapshot from {}'.format(save_path))
+        if os.path.isfile(load_path):
             print('=> loading snapshot to   {}'.format(self.device))
             if self.device == 'cpu':
                 print(f'   Loading to CPU')
-                snapshot = torch.load(save_path, map_location='cpu')
+                snapshot = torch.load(load_path, map_location='cpu')
             else:
                 print(f'   Loading to GPU {self.device}')
                 # snapshot = torch.load(save_path, map_location='cuda:%d' % self.device_id)
-                snapshot = torch.load(save_path, map_location=self.device)
+                snapshot = torch.load(load_path, map_location=self.device)
+
             data = self.load_snapshot(snapshot, verbose = verbose)
-            print(' data is : ', data)
+            print(' (epoch, iter ) is : ', data)
             return data 
         else:
-            raise ValueError('snapshot %s does not exist' % save_path)
-
-    def save_policy(self, label, path = None, verbose = False):
-        path = self.checkpoint_dir if path is None else path
-        policy = {}
-        for t_id in range(self.num_tasks):
-            tmp = getattr(self, 'policy%d' % (t_id + 1))
-            policy['task%d_policy' % (t_id + 1)] = tmp.cpu().data
-            print_dbg(f' policy {t_id+1} \n {tmp}', verbose = verbose)
-        save_filename = 'policy_%s.pickle' % str(label)
-        save_path = os.path.join(path, save_filename)
-        print_dbg(f" save_policy(): load policies to {save_path}", verbose = verbose)
-        with open(save_path, 'wb') as handle:
-            pickle.dump(policy, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            raise ValueError('snapshot %s does not exist' % load_path)
+        
+        return
 
 
     def load_policy(self, label, path = None, verbose = False):
         path = self.checkpoint_dir if path is None else path
-        save_filename = 'policy_%s.pickle' % str(label)
-        save_path = os.path.join(path, save_filename)
-        print_dbg(f" load_policy(): load policies from {save_path}", verbose = verbose)
+        filename = '%s.pickle' % str(label)
+        load_path = os.path.join(path, filename)
+        print_dbg(f" load_policy(): load policies from {load_path}", verbose = verbose)
 
-        with open(save_path, 'rb') as handle:
+        with open(load_path, 'rb') as handle:
             policy = pickle.load(handle)
 
         for t_id in range(self.num_tasks):
-            print_dbg(f"setting policy{t_id+1} attribute ....", verbose = verbose)
-            setattr(self, 'policy%d' % (t_id + 1), policy['task%d_policy' % (t_id+1)])
-            print_dbg(getattr(self, 'policy%d' % (t_id + 1)), verbose = verbose)
+            print_dbg(f"setting policy{t_id+1} attribute .... to {policy[t_id]}", verbose = verbose)
+            setattr(self, 'policy%d' % (t_id + 1), policy[t_id])
+            # print_dbg(getattr(self, 'policy%d' % (t_id + 1)), verbose = verbose)
+
+        return policy
+
+
+    def load_metrics(self, label,  path = None, verbose = False):
+        path = self.checkpoint_dir if path is None else path
+        filename = '%s.pickle' % str(label)
+        load_path = os.path.join(path, filename)
+
+        print_dbg(f" load_metrics(): load  data from {load_path}", verbose = verbose)
+        with open(load_path, 'rb') as handle:
+            data = pickle.load(handle)
+
+        return data
 
 
     def check_exist_policy(self, label, path = None, verbose = False):
@@ -559,6 +618,10 @@ class BaseEnv():
 
 
     def display_trained_policy(self, epoch=0, out = None):
+        """
+        call get_all_task_logits_numpy() to obtain all policy logits from networks['mtl-net']
+        compute softmaxs and display
+        """
         if not isinstance(out, list):
             out = [out]
 
@@ -746,57 +809,3 @@ class BaseEnv():
 
     def name(self):
         return 'BaseEnv'
-
-    # def print_val_metrics(self, epoch, iter, start_time, metrics=None, title='Iteration', verbose = False):
-    #     """ write metrics to tensorboard and optionally to sysout """
-    #     if metrics is None:
-    #         metrics = self.val_metrics
-
-    #     title = f"{title} ep:{epoch}    it:{iter}"
-
-    #     ## Following items will be written as val_loss[key]:[subkey] to Tensorboard
-    #     for key in ['task', 'task_mean', 'sharing', 'sparsity' , 'total']:
-    #         if key not in metrics:
-    #             continue
-    #         # print(key + ':')
-    #         if isinstance(metrics[key], dict):
-    #             for subkey, metric_value in metrics[key].items():
-    #                 self.writer.add_scalar('val_loss_%s/%s'%(key, subkey), metric_value, iter)
-    #                 # print_current_errors(os.path.join(self.log_dir, 'loss.txt'), current_iter,key, metrics[key], time.time() - start_time)
-    #         elif (isinstance(metrics[key], float)):
-    #             self.writer.add_scalar('val_loss_%s'%(key), metrics[key], iter)
-    #             # print_current_errors(os.path.join(self.log_dir, 'loss.txt'), current_iter,key, metrics[key], time.time() - start_time)
-
-    #     ## Write aggregated metrics for each group (i.e, group of tasks)
-    #     ## Following items will be written as val_metrics:[key]/[subkey] to Tensorboard
-    #     for t_id, _ in enumerate(self.tasks):
-    #         key = f"task{t_id+1}"
-    #         # print_heading(f"{title}  {iter}  {key} : {metrics[key]['classification_agg']}", verbose = verbose)
-
-    #         for subkey, metric_value in metrics[key]['classification_agg'].items():
-    #             self.writer.add_scalar(f"val_metrics:{key:s}/{subkey:s}", metric_value, iter)
-    #              # print_current_errors(os.path.join(self.log_dir, 'loss.txt'), current_iter,key, loss[key], time.time() - start_time)
-
-    #     ## Write aggregated metrics (aggregated accross all groups/tasks)
-    #     ## Following items will be written as val_metrics:[key]/[subkey] to Tensorboard
-    #     key = "aggregated"
-    #     # print_heading(f"{title}  {iter}  {key} : {metrics[key]}", verbose = verbose)
-    #     for subkey, metric_value  in metrics[key].items():
-    #         self.writer.add_scalar(f"val_metrics:{key:s}/{subkey:s}", metric_value, iter)
-    #         # print_current_errors(os.path.join(self.log_dir, 'loss.txt'), current_iter,key, loss[key], time.time() - start_time)        
-
-
-    # def display_sampled_policy(self, epoch=0, hard_sampling = False, out = None):
-    #     if not isinstance(out, list):
-    #         out = [out]
-    #     policy_softmaxs = self.get_sample_policy(hard_sampling = hard_sampling)
-    #     policy_argmaxs = 1-np.argmax(policy_softmaxs, axis = -1)
-    #     ln = "\n"
-    #     ln += f" {epoch:3d} epochs  softmax        sel        softmax       sel        softmax       sel \n"
-    #     ln += f" -----    ---------------   ---     ---------------  ---     ---------------  --- \n"
-    #     for idx, (l1,l2,l3,  p1,p2,p3) in enumerate(zip(policy_softmaxs[0], policy_softmaxs[1], policy_softmaxs[2], 
-    #                                                     policy_argmaxs[0], policy_argmaxs[1], policy_argmaxs[2]),1):
-    #         ln += f"   {idx}      {l1[0]:.4f}   {l1[1]:.4f}   {p1:2d}   {l2[0]:9.4f}   {l2[1]:.4f}  {p2:2d}   {l3[0]:9.4f}   {l3[1]:.4f}  {p3:2d}\n"
-    #     ln += '\n'
-    #     for file in out:
-    #         print(ln, file = file)    

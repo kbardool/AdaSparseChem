@@ -169,10 +169,6 @@ def listopt(opt, f=None):
 
 
 
-
-
-
-
 def save_to_pickle(data, path, filename, verbose = False):
     save_path = os.path.join(path, filename)
     print_dbg(f" save_to_pickle(): save data to {save_path}", verbose = verbose)
@@ -463,7 +459,7 @@ def read_yaml(args = None, exp_name = None):
     opt["random_seed"] = opt["seed_list"][args.seed_idx]
     
     if args.batch_size is not None:
-        opt['train']['batch_size']
+        opt['batch_size'] = args.batch_size
 
 
     if args.first_dropout is not None:
