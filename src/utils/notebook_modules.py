@@ -88,6 +88,7 @@ def init_wandb(ns, opt, resume = "allow", verbose=False ):
 
     # wandb.watch(environ.networks['mtl-net'], log='all', log_freq=10)
     wandb.define_metric("best_accuracy", summary="last")
+    wandb.define_metric("best_roc_auc", summary="last")
     wandb.define_metric("best_epoch", summary="last")
     wandb.define_metric("best_iter", summary="last")
 
