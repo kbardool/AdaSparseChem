@@ -81,7 +81,7 @@ opt, gpu_ids, _ = read_yaml_from_input(args)
 fix_random_seed(opt["seed"][1])
 
 opt['exp_description'] = f"No Alternating Weight/Policy - training all done with both weights and policy"
-# folder_name=  f"{opt['exp_name']}_bs{opt['train']['batch_size']:03d}_{opt['train']['decay_lr_rate']:3.2f}_{opt['train']['decay_lr_freq']}"
+# folder_name=  f"{opt['exp_name']}_bs{opt['batch_size']:03d}_{opt['train']['decay_lr_rate']:3.2f}_{opt['train']['decay_lr_freq']}"
 
 print_heading(f" Project name          : {opt['exp_name']} \n"
               f" experiment name       : {opt['exp_name']} \n"
@@ -108,14 +108,13 @@ trainset1 = ClassRegrSparseDataset_v3(opt, split_ratios = opt['dataload']['x_spl
 trainset2 = ClassRegrSparseDataset_v3(opt, split_ratios = opt['dataload']['x_split_ratios'], ratio_index = 2)
 valset    = ClassRegrSparseDataset_v3(opt, split_ratios = opt['dataload']['x_split_ratios'], ratio_index = 3)
 
-train_loader  = InfiniteDataLoader(trainset , batch_size=opt['train']['batch_size'], num_workers = 2, pin_memory=True, collate_fn=trainset.collate, shuffle=False)
-val_loader    = InfiniteDataLoader(valset   , batch_size=opt['train']['batch_size'], num_workers = 1, pin_memory=True, collate_fn=valset.collate  , shuffle=False)
+train_loader  = InfiniteDataLoader(trainset , batch_size=opt['batch_size'], num_workers = 2, pin_memory=True, collate_fn=trainset.collate, shuffle=False)
+val_loader    = InfiniteDataLoader(valset   , batch_size=opt['batch_size'], num_workers = 1, pin_memory=True, collate_fn=valset.collate  , shuffle=False)
+train1_loader = InfiniteDataLoader(trainset , batch_size=opt['batch_size'], num_workers = 2, pin_memory=True, collate_fn=trainset.collate, shuffle=False)
+train2_loader = InfiniteDataLoader(trainset , batch_size=opt['batch_size'], num_workers = 2, pin_memory=True, collate_fn=trainset.collate, shuffle=False)
 
-train1_loader = InfiniteDataLoader(trainset , batch_size=opt['train']['batch_size'], num_workers = 2, pin_memory=True, collate_fn=trainset.collate, shuffle=False)
-train2_loader = InfiniteDataLoader(trainset , batch_size=opt['train']['batch_size'], num_workers = 2, pin_memory=True, collate_fn=trainset.collate, shuffle=False)
-
-# train1_loader = InfiniteDataLoader(trainset1, batch_size=opt['train']['batch_size'], num_workers = 2, pin_memory=True, collate_fn=trainset1.collate, shuffle=False)
-# train2_loader = InfiniteDataLoader(trainset2, batch_size=opt['train']['batch_size'], num_workers = 2, pin_memory=True, collate_fn=trainset2.collate, shuffle=False)
+# train1_loader = InfiniteDataLoader(trainset1, batch_size=opt['batch_size'], num_workers = 2, pin_memory=True, collate_fn=trainset1.collate, shuffle=False)
+# train2_loader = InfiniteDataLoader(trainset2, batch_size=opt['batch_size'], num_workers = 2, pin_memory=True, collate_fn=trainset2.collate, shuffle=False)
 
 
 
@@ -216,7 +215,7 @@ print(f' size of training set 2 (policy weights):  {len(trainset2)}')
 print(f' size of validation set                 :  {len(valset)}')
 print(f'                               Total    :  {len(trainset)+len(trainset1)+len(trainset2)+len(valset)}')
 print()
-print(f" batch size                             :  {opt['train']['batch_size']}")
+print(f" batch size                             :  {opt['batch_size']}")
 print()
 print(f" # batches training 0 (warm up)         :  {len(train_loader)}")
 print(f" # batches training 1 (network parms)   :  {len(train1_loader)}")
@@ -231,7 +230,7 @@ print(f"\n experiment name           : {opt['exp_name']}",
       f"\n Network[mtl_net].layers   : {environ.networks['mtl-net'].layers}",
       f"\n Num_blocks                : {sum(environ.networks['mtl-net'].layers)}"    
       f"                                \n"
-      f"\n batch size                : {opt['train']['batch_size']}",    
+      f"\n batch size                : {opt['batch_size']}",    
       f"\n Total iterations          : {opt['train']['total_iters']}",
       f"\n Warm-up iterations        : {opt['train']['warm_up_iters']}",
       f"\n Warm-up epochs            : {opt['train']['warm_up_epochs']}",

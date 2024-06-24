@@ -51,6 +51,17 @@ def initialize(ns, build_folders = True, start_wandb = True):
 
     # ns.config_filename = 'run_config_seed_%04d.txt' % (opt['random_seed'])
     ns.config_filename = 'run_configuration.txt'  
+    ns.resume_training = False
+    ns.loaded_epoch  = None
+    ns.loaded_iter   = None
+    ns.val_metrics   = {}
+    ns.best_metrics  = {}
+    ns.best_accuracy = 0
+    ns.best_roc_auc  = 0  
+    ns.best_iter     = 0
+    ns.best_epoch    = 0    
+    ns.current_epoch = 0
+    ns.current_iter  = 0
 
     write_config_report(opt, filename = ns.config_filename)    
     display_config(opt)
@@ -104,10 +115,10 @@ def init_dataloaders(opt, verbose = False):
     dldrs.valset    = ClassRegrSparseDataset_v3(opt, split_ratios = opt['dataload']['x_split_ratios'], ratio_index = 1)
     dldrs.testset   = ClassRegrSparseDataset_v3(opt, split_ratios = opt['dataload']['x_split_ratios'], ratio_index = 2)
 
-    dldrs.warmup_trn_loader = InfiniteDataLoader(dldrs.trainset0 , batch_size=opt['train']['batch_size'], num_workers = 2, pin_memory=True, collate_fn=dldrs.trainset0.collate, shuffle=True)
-    dldrs.weight_trn_loader = InfiniteDataLoader(dldrs.trainset1 , batch_size=opt['train']['batch_size'], num_workers = 2, pin_memory=True, collate_fn=dldrs.trainset1.collate, shuffle=True)
-    dldrs.policy_trn_loader = InfiniteDataLoader(dldrs.trainset2 , batch_size=opt['train']['batch_size'], num_workers = 2, pin_memory=True, collate_fn=dldrs.trainset2.collate, shuffle=True)
-    dldrs.val_loader        = InfiniteDataLoader(dldrs.valset    , batch_size=opt['train']['batch_size'], num_workers = 1, pin_memory=True, collate_fn=dldrs.valset.collate  , shuffle=True)
+    dldrs.warmup_trn_loader = InfiniteDataLoader(dldrs.trainset0 , batch_size=opt['batch_size'], num_workers = 2, pin_memory=True, collate_fn=dldrs.trainset0.collate, shuffle=True)
+    dldrs.weight_trn_loader = InfiniteDataLoader(dldrs.trainset1 , batch_size=opt['batch_size'], num_workers = 2, pin_memory=True, collate_fn=dldrs.trainset1.collate, shuffle=True)
+    dldrs.policy_trn_loader = InfiniteDataLoader(dldrs.trainset2 , batch_size=opt['batch_size'], num_workers = 2, pin_memory=True, collate_fn=dldrs.trainset2.collate, shuffle=True)
+    dldrs.val_loader        = InfiniteDataLoader(dldrs.valset    , batch_size=opt['batch_size'], num_workers = 1, pin_memory=True, collate_fn=dldrs.valset.collate  , shuffle=True)
     dldrs.test_loader       = InfiniteDataLoader(dldrs.testset   , batch_size=32                        , num_workers = 1, pin_memory=True, collate_fn=dldrs.testset.collate  , shuffle=True)
 
     opt['train']['warmup_iter_alternate'] = opt['train'].get('warmup_iter_alternate' , len(dldrs.weight_trn_loader))
@@ -142,10 +153,10 @@ def init_dataloaders_by_fold_id(opt, warmup_folds=None, weight_folds = None, pol
     # dldrs.trainset2 = dldrs.trainset0
 
 
-    dldrs.warmup_trn_loader = InfiniteDataLoader(dldrs.trainset0 , batch_size=opt['train']['batch_size'], num_workers = 1, pin_memory=True, collate_fn=dldrs.trainset0.collate, shuffle=True)
-    dldrs.weight_trn_loader = InfiniteDataLoader(dldrs.trainset1 , batch_size=opt['train']['batch_size'], num_workers = 1, pin_memory=True, collate_fn=dldrs.trainset1.collate, shuffle=True)
-    dldrs.policy_trn_loader = InfiniteDataLoader(dldrs.trainset2 , batch_size=opt['train']['batch_size'], num_workers = 1, pin_memory=True, collate_fn=dldrs.trainset2.collate, shuffle=True)
-    dldrs.val_loader        = InfiniteDataLoader(dldrs.valset    , batch_size=opt['train']['batch_size'], num_workers = 1, pin_memory=True, collate_fn=dldrs.valset.collate   , shuffle=True)
+    dldrs.warmup_trn_loader = InfiniteDataLoader(dldrs.trainset0 , batch_size=opt['batch_size'], num_workers = 1, pin_memory=True, collate_fn=dldrs.trainset0.collate, shuffle=True)
+    dldrs.weight_trn_loader = InfiniteDataLoader(dldrs.trainset1 , batch_size=opt['batch_size'], num_workers = 1, pin_memory=True, collate_fn=dldrs.trainset1.collate, shuffle=True)
+    dldrs.policy_trn_loader = InfiniteDataLoader(dldrs.trainset2 , batch_size=opt['batch_size'], num_workers = 1, pin_memory=True, collate_fn=dldrs.trainset2.collate, shuffle=True)
+    dldrs.val_loader        = InfiniteDataLoader(dldrs.valset    , batch_size=opt['batch_size'], num_workers = 1, pin_memory=True, collate_fn=dldrs.valset.collate   , shuffle=True)
     
     opt['train']['warmup_iter_alternate'] = len(dldrs.warmup_trn_loader) if opt['train']['warmup_iter_alternate'] == -1 else opt['train']['warmup_iter_alternate']
     opt['train']['weight_iter_alternate'] = len(dldrs.weight_trn_loader) if opt['train']['weight_iter_alternate'] == -1 else opt['train']['weight_iter_alternate']
@@ -157,6 +168,34 @@ def init_dataloaders_by_fold_id(opt, warmup_folds=None, weight_folds = None, pol
     print(f" dataloader preparation - set number of batches per policy training epoch to: {opt['train']['alpha_iter_alternate']}")
     print(f" dataloader preparation - set number of batches per validation to           : {opt['train']['val_iters']}")
     
+    return dldrs
+
+
+def init_test_dataloader(opt, test_folds=None, verbose = False):
+
+    dldrs = types.SimpleNamespace()
+    # ecfp     = load_sparse(opt['dataload']['dataroot'], opt['dataload']['x'])
+    # folding  = np.load(os.path.join(opt['dataload']['dataroot'], opt['dataload']['folding']))
+    # print(ecfp.shape, folding.shape)
+    test_folds   = opt['dataload']['fold_test']  if test_folds is None else test_folds   
+    print(f" Test folds    : {test_folds}")
+    
+    dldrs = types.SimpleNamespace()
+    dldrs.testset = ClassRegrSparseDataset_v3(opt, folds= test_folds, verbose = verbose)
+    dldrs.test_loader = InfiniteDataLoader(dldrs.testset, batch_size=opt['batch_size'], num_workers = 1, pin_memory=True, 
+                                           collate_fn=dldrs.testset.collate   , shuffle=True)
+    
+    opt['train']['test_iters'] = len(dldrs.test_loader) if opt['test']['test_iters'] == -1 else opt['test']['test_iters']
+    
+    print_underline(f"Training dataset :", verbose=True)
+    print(f"  Nnumber of batches per test epoch to: {opt['test']['test_iters']}")
+    print(f"  Size of test set              :  {len(dldrs.testset)} \n"
+          f"  Number of batches in testset  :  {len(dldrs.test_loader)} \n"
+          f"  test set num of positive      :  {dldrs.testset.num_pos.sum()} \n"
+          f"  test set num of negative      :  {dldrs.testset.num_neg.sum()} \n"
+          f"  task_weights_list[0].aggregation_weight sum        :  {dldrs.testset.tasks_weights_list[0].aggregation_weight.sum()}\n")
+    print(f"\n testset.y_class                                   :  {[ i.shape  for i in dldrs.testset.y_class_list]}")
+
     return dldrs
 
 
@@ -190,6 +229,7 @@ def disp_dataloader_info(dldrs):
           f"  validation set num of negative                     : {dldrs.valset.num_neg.sum()}\n"
           f"  task_weights_list[0].aggregation_weight sum        : {dldrs.valset.tasks_weights_list[0].aggregation_weight.sum()}\n")
 
+
 def init_environment(ns, opt, is_train = True, display_cfg = False, verbose = False):
     # ********************************************************************
     # ********************Create the environment *************************
@@ -213,12 +253,14 @@ def init_environment(ns, opt, is_train = True, display_cfg = False, verbose = Fa
     
     return environ
 
+
 def wandb_watch(item = None, log = 'all', log_freq = 1000):
     """
     Note: Increasing the log frequency can result in longer run times
     """
     if item is not None:
         wandb.watch(item, log='all', log_freq= log_freq)     ###  Weights and Biases Initialization         
+
 
 def wandb_log_metrics(val_metrics, step = None):
 
@@ -230,33 +272,30 @@ def wandb_log_metrics(val_metrics, step = None):
                 'epoch'     : val_metrics['epoch']}, step = step)
 
     # wandb.log({'epoch': val_metrics['epoch']}, step = step)
+    return
 
 
 def check_for_resume_training(ns, opt, environ, epoch = None, iter = None):
     ## TODO: Remove hard coded RESUME_MODEL_CKPT and RESUME_METRICS_CKPT
-    ns.resume_training = False
-    ns.loaded_epoch, ns.loaded_iter = None, None
-    ns.val_metrics   = {}
-    ns.best_metrics  = {}
-    ns.best_accuracy = 0
-    ns.best_roc_auc  = 0  
-    ns.best_iter     = 0
-    ns.best_epoch    = 0    
-    ns.current_epoch  = epoch
-    ns.current_iter   = iter
+    # ns.resume_training = False
+    # ns.loaded_epoch, ns.loaded_iter = None, None
+    # ns.val_metrics   = {}
+    # ns.best_metrics  = {}
+    # ns.best_accuracy = 0
+    # ns.best_roc_auc  = 0  
+    # ns.best_iter     = 0
+    # ns.best_epoch    = 0    
+    ns.current_epoch = epoch
+    ns.current_iter  = iter
     
     print(f"opt['train']['which_iter'] :  {opt['train']['which_iter']}")
     
     if opt['train']['resume']:
-        RESUME_MODEL_CKPT = ""
-        RESUME_METRICS_CKPT = ""    
-        # opt['train']['which_iter'] = 'warmup_ep_40_seed_0088'
         print_separator('Resume training')
-        print(opt['train']['which_iter'])
         print(f" Resume training from folder : {opt['resume_path']}")
         print(f" Resume checkpoint filename  : {opt['resume_ckpt']}")
         print(f" Resume metrics filename     : {opt['resume_metrics']}")
-        ns.loaded_iter, ns.loaded_epoch = environ.load_checkpoint(opt['resume_ckpt'], path = opt['resume_path'], verbose = True)
+        ns.loaded_iter, ns.loaded_epoch = environ.load_checkpoint(label = opt['resume_ckpt'], path = opt['resume_path'], verbose = True)
 
         ns.current_epoch  = ns.loaded_epoch
         ns.current_iter   = ns.loaded_iter
@@ -264,6 +303,7 @@ def check_for_resume_training(ns, opt, environ, epoch = None, iter = None):
 
         print(f" Checkpoint loaded - loaded epoch:{ns.loaded_epoch}   loaded iteration:{ns.loaded_iter}")    
         print(f"opt['train']['retrain_total_iters']:   {opt['train']['retrain_total_iters']}")        
+        
         ## In resume, we DO NOT RESET LOGITS
         environ.display_trained_policy(ns.current_epoch)
         environ.display_trained_logits(ns.current_epoch)
@@ -272,7 +312,7 @@ def check_for_resume_training(ns, opt, environ, epoch = None, iter = None):
         # ns.val_metrics = load_from_pickle(path=opt['resume_path'], filename=opt['resume_metrics'])
         # training_prep(ns, opt, environ, dldrs, epoch = loaded_epoch, iter = loaded_iter )
         
-        loaded_metrics   = load_from_pickle(path=opt['resume_path'], filename=opt['resume_metrics'])
+        loaded_metrics   = environ.load_metrics(label = opt['resume_metrics'],path = opt['resume_path'])
 
         if 'val_metrics' not in loaded_metrics:
             print("old style")
@@ -295,7 +335,7 @@ def check_for_resume_training(ns, opt, environ, epoch = None, iter = None):
         print_separator('Initiate Training from scratch ')
 
 
-def model_initializations(ns, opt, environ, phase = 'update_weights', policy_learning = False, verbose = False):
+def model_initializations(ns, opt, environ, policy_learning = False, verbose = False):
     environ.define_optimizer(policy_learning=policy_learning, verbose = verbose)
     print(f" Model optimizers defined . . . policy_learning: {policy_learning}")
 
@@ -326,7 +366,7 @@ def model_fix_weights(ns, opt, environ, phase):
 
 
 def training_initializations(ns, opt, environ, dldrs, 
-                             warmup,
+                             warmup = False,
                              warmup_iterations = 0, 
                              weight_iterations = 0,
                              policy_iterations = 0,
@@ -348,12 +388,6 @@ def training_initializations(ns, opt, environ, dldrs,
     ns.trn_iters_policy = opt['train']['alpha_iter_alternate']  if policy_iterations == 0 else policy_iterations
     ns.eval_iters  = opt['train']['val_iters']  if eval_iterations   == 0 else eval_iterations
 
-    print(f" training preparation: - set print_freq to                                 : {ns.print_freq} ")
-    print(f" training preparation: - set number of batches per warmup training epoch to: {ns.trn_iters_warmup}")
-    print(f" training preparation: - set number of batches per weight training epoch to: {ns.trn_iters_weights}")
-    print(f" training preparation: - set number of batches per policy training epoch to: {ns.trn_iters_policy}")
-    print(f" training preparation: - set number of batches per validation to           : {ns.eval_iters }")
- 
     ns.p_epoch            = 0
     ns.num_train_layers   = None     
     ns.leave              = False   
@@ -374,11 +408,56 @@ def training_initializations(ns, opt, environ, dldrs,
         ns.write_checkpoint = write_checkpoint
     else:
         ns.write_checkpoint   = True
+
+
+    print(f" training preparation: - set print_freq to                        : {ns.print_freq} ")
+    print(f" training preparation: - set batches per warmup training epoch to : {ns.trn_iters_warmup}")
+    print(f" training preparation: - set batches per weight training epoch to : {ns.trn_iters_weights}")
+    print(f" training preparation: - set batches per policy training epoch to : {ns.trn_iters_policy}")
+    print(f" training preparation: - set batches per validation to            : {ns.eval_iters }")
+ 
+    print(f" training preparation: - warmup_epochs                            : {ns.warmup_epochs}")
+    print(f" training preparation: - weight/policy training epochs            : {ns.training_epochs}")
+    print(f" training preparation: - set curriculum speed  to                 : {ns.curriculum_speed}")
+    print(f" training preparation: - set curriculum epochs to                 : {ns.curriculum_epochs}")
+    print(f" training preparation: - write checkpoints                        : {ns.write_checkpoint}")
     print(f" training preparation complete . . .")
+ 
     return
 
 
+def inference_initializations(ns, opt, environ, dldrs, 
+                             eval_iterations   = 0,
+                             epoch = 0, iter = 0, verbose = False):
 
+
+    if torch.cuda.is_available():
+        print_dbg(f" inference preparation: - check for CUDA - cuda available as device id: {opt['gpu_ids']}", True)
+        environ.cuda(opt['gpu_ids'])
+    else:
+        print_dbg(f" inference preparation: - check for CUDA - cuda not available", verbose = True)
+        environ.cpu()
+    
+    print(f" inference preparation complete . . .")
+    return
+
+
+def run_inference(ns, opt, environ, dldrs, hard_sampling= False, verbose = False):
+
+#     val_metrics = eval_fix_policy(environ, val_loader, opt['tasks'], num_seg_cls=num_seg_class, eval_iter=-1)
+    val_metrics = environ.evaluate(dldrs.test_loader, 
+                                   is_policy=True,
+                                   policy_sampling_mode = 'fix_policy',
+                                   hard_sampling=hard_sampling)
+
+# ## hard_sampling=opt['train']['hard_sampling'],
+#                                    eval_iters = -1, 
+#                                    progress = True, 
+#                                    leave = False, 
+#                                    verbose = False)    
+
+    print(val_metrics)    
+    return
 
 
 def warmup_phase(ns,opt, environ, dldrs, disable_tqdm = True, epochs = None, verbose = False):
@@ -446,8 +525,8 @@ def warmup_phase(ns,opt, environ, dldrs, disable_tqdm = True, epochs = None, ver
         line_count +=1
         wandb_log_metrics(ns.val_metrics, step = ns.current_epoch)
 
-        ## 8-2022 - Commented out, experiment with not reducing LR during warmup
         environ.schedulers['weights'].step(ns.val_metrics['total']['task'])
+        ## 8-2022 - Commented out, experiment with not reducing alpha LR during warmup
         # environ.schedulers['alphas'].step(ns.val_metrics['total']['task'])            
         
         # Checkpoint on best results
@@ -712,27 +791,20 @@ def retrain_phase(ns, opt, environ, dldrs, epochs = None, disable_tqdm = True,
 def wrapup_phase(ns, opt, environ, label = None):
     label = ns.phase if label is None else label
 
-    # ns.model_label   = 'model_%s_ep_%d_seed_%04d'  % (label, ns.current_epoch, opt['random_seed'])
-    # ns.metrics_label = 'metrics_%s_ep_%d_seed_%04d.pickle' % (label,ns.current_epoch, opt['random_seed'])
+    ckpt_label = f'{label}_final_ep_{ns.current_epoch}' 
     
     # Write model checkpoint
     if ns.write_checkpoint:
-        ns.model_label = f'model_{label}_last_ep_{ns.current_epoch}' 
-        environ.save_checkpoint(ns.model_label, ns.current_iter, ns.current_epoch) 
-        print_to(f" save {label} checkpoint  to :  {ns.model_label}", out=[sys.stdout, environ.log_file])    
+        # ckpt_label   = '%s_ep_%d_seed_%04d'  % (label, ns.current_epoch, opt['random_seed'])
+        environ.save_checkpoint(ckpt_label, ns.current_iter, ns.current_epoch) 
+        environ.save_policy(ckpt_label) 
+        print_to(f" save {label} checkpoint  to :  {ckpt_label}", out=[sys.stdout, environ.log_file])    
     
     # write metrics to pickle file 
-    ns.metrics_label = f'metrics_{label}_last_ep_{ns.current_epoch}.pickle' 
+    # metrics_label = '%s_ep_%d_seed_%04d.pickle' % (label,ns.current_epoch, opt['random_seed'])
+    environ.save_metrics(ckpt_label, ns)
 
-    save_to_pickle({'val_metrics'   : environ.val_metrics,
-                    'best_metrics'  : ns.best_metrics,
-                    'best_accuracy' : ns.best_accuracy, 
-                    'best_roc_auc'  : ns.best_roc_auc,
-                    'best_iter'     : ns.best_iter   ,
-                    'best_epoch'    : ns.best_epoch  },
-                    environ.opt['paths']['checkpoint_dir'], ns.metrics_label)
-
-    print_to(f" save {label} metrics to     :  {ns.metrics_label}", out=[sys.stdout, environ.log_file])
+    print_to(f" save {label} metrics to     :  {ckpt_label}", out=[sys.stdout, environ.log_file])
     print_loss(environ.val_metrics, title = f"[Final] ep:{ns.current_epoch}  it:{ns.current_iter}",out=[sys.stdout])
     
     # Display training results 
@@ -743,21 +815,21 @@ def wrapup_phase(ns, opt, environ, label = None):
 
 
 def check_for_improvement(ns,opt,environ):
-    label = 'best' 
-    #------------------------------------------------------------------------ 
-    #  Save Best Checkpoint Code (saved below and in sparsechem_env_dev.py)
-    #----------------------------------------------------------------------- 
+    """
+    Take model checkpoint on improvement
+    """
+    label = 'best'  
     ## ns.curriculum_epochs = (environ.num_layers * opt['curriculum_speed']) 
 
     if (ns.current_epoch - ns.check_for_improvment_wait) >= ns.curriculum_epochs:    
 
         # if environ.val_metrics['aggregated']['avg_prec_score'] > ns.best_accuracy:
         if environ.val_metrics['aggregated']['roc_auc_score'] > ns.best_roc_auc:
-            print(f'Previous best_epoch: {ns.best_epoch:5d}   best iter: {ns.best_iter:5d}'
+            print(f' Previous best_epoch: {ns.best_epoch:5d}   best iter: {ns.best_iter:5d}'
                   f'   best_accuracy: {ns.best_accuracy:.5f}    best ROC auc: {ns.best_roc_auc:.5f}')        
-            ns.best_metrics     = environ.val_metrics
-            ns.best_accuracy    = environ.val_metrics['aggregated']['avg_prec_score']
-            ns.best_roc_auc     = environ.val_metrics['aggregated']['roc_auc_score']
+            ns.best_metrics     = ns.val_metrics
+            ns.best_accuracy    = ns.val_metrics['aggregated']['avg_prec_score']
+            ns.best_roc_auc     = ns.val_metrics['aggregated']['roc_auc_score']
             ns.best_iter        = ns.current_iter
             ns.best_epoch       = ns.current_epoch
             wandb.log({"best_roc_auc"  : ns.best_roc_auc,
@@ -766,25 +838,18 @@ def check_for_improvement(ns,opt,environ):
                        "best_iter"     : ns.best_iter}, 
                        step = ns.current_epoch)        
 
-            print(f'Previous best_epoch: {ns.best_epoch:5d}   best iter: {ns.best_iter:5d}'
+            print(f' New      best_epoch: {ns.best_epoch:5d}   best iter: {ns.best_iter:5d}'
                   f'   best_accuracy: {ns.best_accuracy:.5f}    best ROC auc: {ns.best_roc_auc:.5f}')        
             
-            # ns.metrics_label = f"metrics_{label}_seed_{opt['random_seed']:%04d}.pickle"
-            ns.metrics_label = f'metrics_{label}.pickle' 
-            save_to_pickle({'val_metrics'   : environ.val_metrics,
-                            'best_metrics'  : ns.best_metrics,
-                            'best_accuracy' : ns.best_accuracy, 
-                            'best_roc_auc'  : ns.best_roc_auc,
-                            'best_iter'     : ns.best_iter   ,
-                            'best_epoch'    : ns.best_epoch  },
-                            environ.opt['paths']['checkpoint_dir'], ns.metrics_label)
-            print_to(f" save {label} metrics to     :  {ns.metrics_label}", out=[sys.stdout, environ.log_file])    
+            # metrics_label = f"metrics_{label}_seed_{opt['random_seed']:%04d}.pickle"
+            environ.save_metrics(label, ns)
+            # print_to(f" save {label} metrics to     :  {metrics_label}", out=[sys.stdout, environ.log_file])    
 
             if ns.write_checkpoint:
-                # ns.model_label = f"model_{label}_seed_{opt['random_seed']:%04d}"
-                ns.model_label = f"model_{label}"  
-                environ.save_checkpoint(ns.model_label, ns.current_iter, ns.current_epoch) 
-                print_to(f" save  {label} checkpoint to :  {ns.model_label}", out=[sys.stdout, environ.log_file])    
+                # model_label = f"{label}_seed_{opt['random_seed']:%04d}"
+                environ.save_checkpoint(label, ns.current_iter, ns.current_epoch) 
+                environ.save_policy(label) 
+                # print_to(f" save {label} checkpoint to :  {model_label}", out=[sys.stdout, environ.log_file])    
     return
 
 
@@ -792,7 +857,7 @@ def disp_info_1(ns, opt, environ):
     print(
             f"\n Num_blocks                : {sum(environ.networks['mtl-net'].layers)}"    
             f"                                \n"
-            f"\n batch size                : {opt['train']['batch_size']}",    
+            f"\n batch size                : {opt['batch_size']}",    
             f"\n # batches / Warmup epoch  : {ns.trn_iters_weights}",
             f"\n # batches / Weight epoch  : {ns.trn_iters_weights}",
             f"\n # batches / Policy epoch  : {ns.trn_iters_policy}",

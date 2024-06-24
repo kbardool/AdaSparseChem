@@ -181,7 +181,7 @@ class SparseChemEnv(BaseEnv):
         print_dbg(f" optimizers for weights : \n {self.optimizers['weights']}", verbose = verbose)
 
         #---------------------------------------
-        # optimizers for apolicy training
+        # optimizers for policy training
         #---------------------------------------
         # if self.opt['train']['init_method'] == 'all_chosen':
         if self.policy_optimizer == 'adam':
@@ -1007,35 +1007,24 @@ class SparseChemEnv(BaseEnv):
     def get_current_policy(self):
         return  [ None if i is None else i.detach().cpu().numpy() for i in self.policys]
 
-    # def get_current_logits(self):
-    #     logits = []
-    #     for t_id in range(self.num_tasks):
-    #         logit = getattr(self, 'logit%d' % (t_id + 1))
-    #         logit = logit.detach().cpu().numpy()
-    #         logits.append(logit)
-    #     return logits
 
-    # def get_current_policy(self):
-    #     policys = []
-    #     for t_id in range(self.num_tasks):
-    #         policy = getattr(self, 'policy%d' % (t_id + 1))
-    #         policy = policy.detach().cpu().numpy()
-    #         policys.append(policy)
-    #     return policys
+    ## Moved to parent class
 
-
-    def get_current_state(self, current_iter, current_epoch = 'unknown'):
+    # def get_current_state(self, current_iter, current_epoch = 'unknown'):
         # print(f' sparsechem_env-dev get_current_state()   {current_iter}    {current_epoch}')
-        current_state = super(SparseChemEnv, self).get_current_state(current_iter, current_epoch)
-        current_state['temp'] = self.gumbel_temperature
+        # current_state = super(SparseChemEnv, self).get_current_state(current_iter, current_epoch)
+        # current_state['temp'] = self.gumbel_temperature
 
-        return current_state
+        # return current_state
 
 
     def load_snapshot(self, snapshot, verbose = False):
         super(SparseChemEnv, self).load_snapshot(snapshot, verbose)
-        self.gumbel_temperature = snapshot['temp']
 
+        print(f"self.gumbel_temperature: {self.gumbel_temperature}")
+        print(f"snapshot[iter]         : {snapshot['iter']}")
+        print(f"snapshot[iter]         : {snapshot['epoch']}")
+        print(f"keys : {snapshot.keys()}")
         return snapshot['iter'], snapshot['epoch']
 
 
@@ -1129,27 +1118,41 @@ class SparseChemEnv(BaseEnv):
 
     def cuda(self, gpu_ids):
         super(SparseChemEnv, self).cuda(gpu_ids)
-        print(f'sparsechem_env.cuda()')
+        print(f' --> sparsechem_env.cuda()')
         policys = []
 
         for t_id in range(self.num_tasks):
             policy_key = 'policy%d' % (t_id+1)
             if not hasattr(self, policy_key):
-                return
+                raise ValueError(f' cuda()  - environ does not have attribute :{policy_key}')
+                break
             policy = getattr(self, policy_key)
             if policy is not None:
                 print(f" move policy {policy_key} to {self.device}")
                 policy = policy.to(self.device)
-                policys.append(policy)
             else: 
                 print(f" policy {policy_key} is None")
+            policys.append(policy)
 
         if isinstance(self.networks['mtl-net'], nn.DataParallel):
             setattr(self.networks['mtl-net'].module, 'policys', policys)
         else:
             setattr(self.networks['mtl-net'], 'policys', policys)
 
-
+        print(self.optimizers.keys())
+        for o in self.optimizers.keys():
+            print(f" opt:  {o}  ")
+            for k, state in self.optimizers[o].state.items():
+                for kk, vv in state.items():
+                    if torch.is_tensor(vv):
+                        print(f' key: {kk:20s}  value: {type(vv)}   shape: {vv.shape}  location: {vv.device}')
+                        print(f" item [{kk}] is  Tensor - move  to cuda ... ")
+                        state[kk] = vv.cuda()
+                        print(f' key: {kk:20s}  value: {type(state[kk])}   shape: {state[kk].shape}  location: {state[kk].device}')
+                    else:
+                        print(f" item [{kk}] not a Tensor ... ")
+        return 
+                
     def cpu(self):
         super(SparseChemEnv, self).cpu()
         print(f'sparsechem_env.cpu()')
@@ -1198,9 +1201,24 @@ class SparseChemEnv(BaseEnv):
                                              dtype = torch.float,
                                              device = self.device)
     
-
     def resize_results(self):
         pass
+
+    # def get_current_logits(self):
+    #     logits = []
+    #     for t_id in range(self.num_tasks):
+    #         logit = getattr(self, 'logit%d' % (t_id + 1))
+    #         logit = logit.detach().cpu().numpy()
+    #         logits.append(logit)
+    #     return logits
+
+    # def get_current_policy(self):
+    #     policys = []
+    #     for t_id in range(self.num_tasks):
+    #         policy = getattr(self, 'policy%d' % (t_id + 1))
+    #         policy = policy.detach().cpu().numpy()
+    #         policys.append(policy)
+    #     return policys
 
  
 

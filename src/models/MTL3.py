@@ -270,9 +270,6 @@ class MTL3(nn.Module):
                               When hard_sampling == True , applies argmax(task logits) 
         
         '''
-        # if verbose is None:
-        #     verbose = self.verbose
-
         # if verbose:
         #     print_dbg(f" {timestring()} - MTL3 network forward() start", verbose = verbose)
         #     print_dbg(f"   num_train_layers: {num_train_layers}    hard_sampling:{hard_sampling} "
