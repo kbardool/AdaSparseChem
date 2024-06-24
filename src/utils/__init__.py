@@ -14,6 +14,11 @@ from .utils_general             import timestring, print_heading, print_dbg, pri
 from .notebook_modules import (initialize, init_dataloaders, init_environment, init_wandb, 
                                model_initializations, training_initializations, inference_initializations,
                                check_for_resume_training, run_inference, 
+                               model_fix_weights, disp_dataloader_info, disp_info_1, 
+                               warmup_phase, weight_policy_training, display_gpu_info,
+                               init_dataloaders_by_fold_id, init_test_dataloader)
+                               model_initializations, training_initializations, inference_initializations,
+                               check_for_resume_training, run_inference, 
                                model_fix_weights, disp_dataloader_info, disp_training_parms, 
                                warmup_phase, weight_policy_training, display_gpu_info, display_gpu_device_info,
                                init_dataloaders_by_fold_id, init_test_dataloader)

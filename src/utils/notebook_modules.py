@@ -62,6 +62,17 @@ def initialize(ns, build_folders = True, start_wandb = True):
     ns.best_epoch    = 0    
     ns.current_epoch = 0
     ns.current_iter  = 0
+    ns.resume_training = False
+    ns.loaded_epoch  = None
+    ns.loaded_iter   = None
+    ns.val_metrics   = {}
+    ns.best_metrics  = {}
+    ns.best_accuracy = 0
+    ns.best_roc_auc  = 0  
+    ns.best_iter     = 0
+    ns.best_epoch    = 0    
+    ns.current_epoch = 0
+    ns.current_iter  = 0
 
     write_config_report(opt, filename = ns.config_filename)    
     display_config(opt)
@@ -851,8 +862,10 @@ def disp_training_parms(ns, opt, environ):
     print(
             f"\n Num_blocks                : {sum(environ.networks['mtl-net'].layers)}"    
             f"                                \n"
-            f" Configurations Parameters      \n"
             f"\n batch size                : {opt['batch_size']}",    
+            f"\n # batches / Warmup epoch  : {ns.trn_iters_weights}",
+            f"\n # batches / Weight epoch  : {ns.trn_iters_weights}",
+            f"\n # batches / Policy epoch  : {ns.trn_iters_policy}",
             # f"\n Total iterations          : {opt['train']['total_iters']}",
             f"                                \n"
             f"\n Print Frequency           : {opt['train']['print_freq']}",
