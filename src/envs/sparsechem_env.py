@@ -45,7 +45,7 @@ class SparseChemEnv(BaseEnv):
                  verbose = None):
         """
         :param num_class: int, the number of classes in the dataset
-        :param log_dir: str, the path to save logs
+        :param log_dir  : str, the path to save logs
         :param checkpoint_dir: str, the path to save checkpoints
         :param lr: float, the learning rate
         :param is_train: bool, specify during the training
@@ -165,10 +165,10 @@ class SparseChemEnv(BaseEnv):
             self.optimizers['weights'] = optim.SGD([{'params': task_specific_params, 'lr': self.opt['train']['task_lr']},
                                                     {'params': backbone_parameters , 'lr': self.opt['train']['backbone_lr']}],
                                                     momentum=0.9, weight_decay=0.0001)
-        else:
+        else: ## if weight learning
             if self.weight_optimizer == 'adam':
                 self.optimizers['weights'] = optim.Adam([{'params': task_specific_params, 'lr': self.opt['train']['task_lr']},
-                                                        {'params': backbone_parameters , 'lr': self.opt['train']['backbone_lr']}],
+                                                         {'params': backbone_parameters , 'lr': self.opt['train']['backbone_lr']}],
                                                         betas=(0.9, 0.999), weight_decay=0.0001)
             elif self.weight_optimizer == 'sgd':
                 self.optimizers['weights'] = optim.SGD([{'params': task_specific_params, 'lr': self.opt['train']['task_lr'] },
@@ -181,7 +181,7 @@ class SparseChemEnv(BaseEnv):
         print_dbg(f" optimizers for weights : \n {self.optimizers['weights']}", verbose = verbose)
 
         #---------------------------------------
-        # optimizers for policy training
+        # optimizers for Alpha (policy) training
         #---------------------------------------
         # if self.opt['train']['init_method'] == 'all_chosen':
         if self.policy_optimizer == 'adam':
@@ -567,7 +567,6 @@ class SparseChemEnv(BaseEnv):
                                                             hard_sampling    = hard_sampling,
                                                             policy_sampling_mode  = policy_sampling_mode,
                                                             verbose          = verbose)
-
         for t_id,  task in enumerate(self.tasks):
             # if verbose:
             #     print_dbg(f"   set attributes: task id {t_id+1}", verbose = verbose)
@@ -1124,8 +1123,10 @@ class SparseChemEnv(BaseEnv):
         for t_id in range(self.num_tasks):
             policy_key = 'policy%d' % (t_id+1)
             if not hasattr(self, policy_key):
-                raise ValueError(f' cuda()  - environ does not have attribute :{policy_key}')
-                break
+                # raise ValueError(f' cuda()  - environ does not have attribute :{policy_key}')
+                # break
+                print(f' cuda()  - environ does not have attribute :{policy_key}')
+                continue
             policy = getattr(self, policy_key)
             if policy is not None:
                 print(f" move policy {policy_key} to {self.device}")
@@ -1134,10 +1135,10 @@ class SparseChemEnv(BaseEnv):
                 print(f" policy {policy_key} is None")
             policys.append(policy)
 
-        if isinstance(self.networks['mtl-net'], nn.DataParallel):
-            setattr(self.networks['mtl-net'].module, 'policys', policys)
-        else:
-            setattr(self.networks['mtl-net'], 'policys', policys)
+            if isinstance(self.networks['mtl-net'], nn.DataParallel):
+                setattr(self.networks['mtl-net'].module, 'policys', policys)
+            else:
+                setattr(self.networks['mtl-net'], 'policys', policys)
 
         print(self.optimizers.keys())
         for o in self.optimizers.keys():

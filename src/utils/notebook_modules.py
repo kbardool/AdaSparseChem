@@ -69,35 +69,6 @@ def initialize(ns, build_folders = True, start_wandb = True):
     return opt
 
 
-def init_wandb(ns, opt, resume = "allow", verbose=False ):
-    if wandb.run is not None:
-        print(f" End in-flight wandb run . . .")
-        wandb.finish()
-
-    # opt['exp_id'] = wandb.util.generate_id()
-    # print_dbg(f"{opt['exp_id']}, {opt['exp_name']}, {opt['project_name']}", verbose) 
-    
-    ns.wandb_run = wandb.init(project=opt['project_name'], 
-                                     entity="kbardool", 
-                                     id = opt['exp_id'], 
-                                     name = opt['exp_name'],
-                                     notes = opt['exp_description'],
-                                     resume=resume )
-    wandb.config.update(ns.args)
-    wandb.config.update(opt,allow_val_change=True)   ## wandb.config = opt.copy()
-
-    # wandb.watch(environ.networks['mtl-net'], log='all', log_freq=10)
-    wandb.define_metric("best_accuracy", summary="last")
-    wandb.define_metric("best_epoch", summary="last")
-    wandb.define_metric("best_iter", summary="last")
-
-    # assert wandb.run is None, "Run is still running"
-    print(f" WandB Initialization -----------------------------------------------------------\n"
-          f" PROJECT NAME: {ns.wandb_run.project}\n"
-          f" RUN ID      : {ns.wandb_run.id} \n"
-          f" RUN NAME    : {ns.wandb_run.name}\n"     
-          f" --------------------------------------------------------------------------------")
-    return 
 
 def init_dataloaders(opt, verbose = False):
     dldrs = types.SimpleNamespace()
@@ -118,7 +89,7 @@ def init_dataloaders(opt, verbose = False):
     dldrs.warmup_trn_loader = InfiniteDataLoader(dldrs.trainset0 , batch_size=opt['batch_size'], num_workers = 2, pin_memory=True, collate_fn=dldrs.trainset0.collate, shuffle=True)
     dldrs.weight_trn_loader = InfiniteDataLoader(dldrs.trainset1 , batch_size=opt['batch_size'], num_workers = 2, pin_memory=True, collate_fn=dldrs.trainset1.collate, shuffle=True)
     dldrs.policy_trn_loader = InfiniteDataLoader(dldrs.trainset2 , batch_size=opt['batch_size'], num_workers = 2, pin_memory=True, collate_fn=dldrs.trainset2.collate, shuffle=True)
-    dldrs.val_loader        = InfiniteDataLoader(dldrs.valset    , batch_size=opt['batch_size'], num_workers = 1, pin_memory=True, collate_fn=dldrs.valset.collate  , shuffle=True)
+    dldrs.val_loader        = InfiniteDataLoader(dldrs.valset    , batch_size=opt['batch_size'], num_workers = 1, pin_memory=True, collate_fn=dldrs.valset.collate   , shuffle=True)
     dldrs.test_loader       = InfiniteDataLoader(dldrs.testset   , batch_size=32                        , num_workers = 1, pin_memory=True, collate_fn=dldrs.testset.collate  , shuffle=True)
 
     opt['train']['warmup_iter_alternate'] = opt['train'].get('warmup_iter_alternate' , len(dldrs.weight_trn_loader))
@@ -132,12 +103,9 @@ def init_dataloaders(opt, verbose = False):
 def init_dataloaders_by_fold_id(opt, warmup_folds=None, weight_folds = None, policy_folds = None, validation_folds= None, verbose = False):
 
     dldrs = types.SimpleNamespace()
-    # ecfp     = load_sparse(opt['dataload']['dataroot'], opt['dataload']['x'])
-    # folding  = np.load(os.path.join(opt['dataload']['dataroot'], opt['dataload']['folding']))
-    # print(ecfp.shape, folding.shape)
-    warmup_folds   = opt['dataload']['fold_warmup']  if warmup_folds is None else warmup_folds   
-    weight_folds   = opt['dataload']['fold_weights'] if weight_folds is None else weight_folds   
-    policy_folds   = opt['dataload']['fold_policy']  if policy_folds is None else policy_folds   
+    warmup_folds = opt['dataload']['fold_warmup']  if warmup_folds is None else warmup_folds   
+    weight_folds = opt['dataload']['fold_weights'] if weight_folds is None else weight_folds   
+    policy_folds = opt['dataload']['fold_policy']  if policy_folds is None else policy_folds   
     validation_folds = opt['dataload']['fold_va']  if validation_folds is None else validation_folds 
     print(f" Warmup folds    : {warmup_folds}")
     print(f" Weights folds   : {weight_folds}")
@@ -238,7 +206,6 @@ def init_environment(ns, opt, is_train = True, display_cfg = False, verbose = Fa
     print_separator('CREATE THE ENVIRONMENT')
     environ = SparseChemEnv(opt = opt, 
                             is_train         = is_train,
-
                             init_neg_logits  = opt['train']['init_neg_logits'], 
                             init_temperature = opt['train']['init_temp'], 
                             temperature_decay= opt['train']['decay_temp'], 
@@ -253,38 +220,58 @@ def init_environment(ns, opt, is_train = True, display_cfg = False, verbose = Fa
     
     return environ
 
+# def init_wandb(ns, opt, resume = "allow", verbose=False ):
+#     if wandb.run is not None:
+#         print(f" End in-flight wandb run . . .")
+#         wandb.finish()
 
-def wandb_watch(item = None, log = 'all', log_freq = 1000):
-    """
-    Note: Increasing the log frequency can result in longer run times
-    """
-    if item is not None:
-        wandb.watch(item, log='all', log_freq= log_freq)     ###  Weights and Biases Initialization         
+#     # opt['exp_id'] = wandb.util.generate_id()
+#     # print_dbg(f"{opt['exp_id']}, {opt['exp_name']}, {opt['project_name']}", verbose) 
+    
+#     ns.wandb_run = wandb.init(project=opt['project_name'], 
+#                                      entity="kbardool", 
+#                                      id = opt['exp_id'], 
+#                                      name = opt['exp_name'],
+#                                      notes = opt['exp_description'],
+#                                      resume=resume )
+#     wandb.config.update(ns.args)
+#     wandb.config.update(opt,allow_val_change=True)   ## wandb.config = opt.copy()
+
+#     # wandb.watch(environ.networks['mtl-net'], log='all', log_freq=10)
+#     wandb.define_metric("best_accuracy", summary="last")
+#     wandb.define_metric("best_roc_auc", summary="last")
+#     wandb.define_metric("best_epoch", summary="last")
+#     wandb.define_metric("best_iter", summary="last")
+
+#     # assert wandb.run is None, "Run is still running"
+#     print(f" WandB Initialization -----------------------------------------------------------\n"
+#           f" PROJECT NAME: {ns.wandb_run.project}\n"
+#           f" RUN ID      : {ns.wandb_run.id} \n"
+#           f" RUN NAME    : {ns.wandb_run.name}\n"     
+#           f" --------------------------------------------------------------------------------")
+#     return 
+
+# def wandb_watch(item = None, log = 'all', log_freq = 1000):
+#     """
+#     Note: Increasing the log frequency can result in longer run times
+#     """
+#     if item is not None:
+#         wandb.watch(item, log='all', log_freq= log_freq)        
 
 
-def wandb_log_metrics(val_metrics, step = None):
+# def wandb_log_metrics(val_metrics, step = None):
 
-    wandb.log({ **val_metrics['parms'], 
-                **val_metrics['aggregated'],
-                'ERRORS'    : {**val_metrics['total']}, 
-                'SHARING'   : {**val_metrics['sharing']}, 
-                'SPARSITY'  : {**val_metrics['sparsity']},
-                'epoch'     : val_metrics['epoch']}, step = step)
+#     wandb.log({ **val_metrics['parms'], 
+#                 **val_metrics['aggregated'],
+#                 'ERRORS'    : {**val_metrics['total']}, 
+#                 'SHARING'   : {**val_metrics['sharing']}, 
+#                 'SPARSITY'  : {**val_metrics['sparsity']},
+#                 'epoch'     : val_metrics['epoch']}, step = step)
 
-    # wandb.log({'epoch': val_metrics['epoch']}, step = step)
-    return
+#     return
 
 
-def check_for_resume_training(ns, opt, environ, epoch = None, iter = None):
-    ## TODO: Remove hard coded RESUME_MODEL_CKPT and RESUME_METRICS_CKPT
-    # ns.resume_training = False
-    # ns.loaded_epoch, ns.loaded_iter = None, None
-    # ns.val_metrics   = {}
-    # ns.best_metrics  = {}
-    # ns.best_accuracy = 0
-    # ns.best_roc_auc  = 0  
-    # ns.best_iter     = 0
-    # ns.best_epoch    = 0    
+def check_for_resume_training(ns, opt, environ, epoch = 0, iter = 0):
     ns.current_epoch = epoch
     ns.current_iter  = iter
     
@@ -372,7 +359,8 @@ def training_initializations(ns, opt, environ, dldrs,
                              policy_iterations = 0,
                              eval_iterations   = 0,
                              write_checkpoint  = None,
-                             epoch = 0, iter = 0, verbose = False):
+                             epoch = 0, iter = 0, 
+                             verbose = False):
 
     if torch.cuda.is_available():
         print_dbg(f" training preparation: - check for CUDA - cuda available as device id: {opt['gpu_ids']}", True)
@@ -394,6 +382,8 @@ def training_initializations(ns, opt, environ, dldrs,
 
     ns.num_blocks         = sum(environ.networks['mtl-net'].layers)
     ns.warmup_epochs      = opt['train']['warmup_epochs']
+    ns.stop_epoch_warmup  = ns.current_epoch +ns.warmup_epochs
+    
     ns.training_epochs    = opt['train']['training_epochs']
     ns.curriculum_speed   = opt['curriculum_speed'] 
     
@@ -461,6 +451,9 @@ def run_inference(ns, opt, environ, dldrs, hard_sampling= False, verbose = False
 
 
 def warmup_phase(ns,opt, environ, dldrs, disable_tqdm = True, epochs = None, verbose = False):
+    """
+    during warmup phase ONLY weights are modified in the back step
+    """
     ns.phase = 'warmup'
     ns.flag  = 'update_weights'
     if epochs is not None:
@@ -832,11 +825,6 @@ def check_for_improvement(ns,opt,environ):
             ns.best_roc_auc     = ns.val_metrics['aggregated']['roc_auc_score']
             ns.best_iter        = ns.current_iter
             ns.best_epoch       = ns.current_epoch
-            wandb.log({"best_roc_auc"  : ns.best_roc_auc,
-                       "best_accuracy" : ns.best_accuracy,
-                       "best_epoch"    : ns.best_epoch,
-                       "best_iter"     : ns.best_iter}, 
-                       step = ns.current_epoch)        
 
             print(f' New      best_epoch: {ns.best_epoch:5d}   best iter: {ns.best_iter:5d}'
                   f'   best_accuracy: {ns.best_accuracy:.5f}    best ROC auc: {ns.best_roc_auc:.5f}')        
@@ -850,23 +838,26 @@ def check_for_improvement(ns,opt,environ):
                 environ.save_checkpoint(label, ns.current_iter, ns.current_epoch) 
                 environ.save_policy(label) 
                 # print_to(f" save {label} checkpoint to :  {model_label}", out=[sys.stdout, environ.log_file])    
+
+        wandb.log({ "best_roc_auc"  : ns.best_roc_auc,
+                    "best_accuracy" : ns.best_accuracy,
+                    "best_epoch"    : ns.best_epoch,
+                    "best_iter"     : ns.best_iter}, 
+                    step = ns.current_epoch)     
     return
 
 
-def disp_info_1(ns, opt, environ):
+def disp_training_parms(ns, opt, environ):
     print(
             f"\n Num_blocks                : {sum(environ.networks['mtl-net'].layers)}"    
             f"                                \n"
+            f" Configurations Parameters      \n"
             f"\n batch size                : {opt['batch_size']}",    
-            f"\n # batches / Warmup epoch  : {ns.trn_iters_weights}",
-            f"\n # batches / Weight epoch  : {ns.trn_iters_weights}",
-            f"\n # batches / Policy epoch  : {ns.trn_iters_policy}",
             # f"\n Total iterations          : {opt['train']['total_iters']}",
             f"                                \n"
             f"\n Print Frequency           : {opt['train']['print_freq']}",
             f"\n Config Val Frequency      : {opt['train']['val_freq']}",
             f"\n Config Val Iterations     : {opt['train']['val_iters']}",
-            f"\n Val iterations            : {ns.eval_iters}",
             f"\n which_iter                : {opt['train']['which_iter']}",
             f"\n train_resume              : {opt['train']['resume']}",
             f"                                \n",                     
@@ -878,18 +869,22 @@ def disp_info_1(ns, opt, environ):
             f"\n Sparsity regularization   : {opt['train']['lambda_sparsity']}",  
             f"\n Task     regularization   : {opt['train']['lambda_tasks']}",
             f"                                \n"
-            f"\n Current epoch             : {ns.current_epoch} ",
             f"\n Warm-up epochs            : {opt['train']['warmup_epochs']}",
             f"\n Training epochs           : {opt['train']['training_epochs']}",
-            # f"                                \n",
-            # f"\n # of warm-up epochs to do : {ns.warmup_epochs}",
-            # f"\n Warm-up stop              : {ns.stop_epoch_warmup}",
-            # f"\n training_epochs           : {ns.training_epochs}",
-            # f"\n stop_iter_w               : {ns.trn_iters_weights}",
+            f"\n Effective Parameters                                \n",
+            f"\n # batches / Warmup epoch  : {ns.trn_iters_weights}",
+            f"\n # batches / Weight epoch  : {ns.trn_iters_weights}",
+            f"\n # batches / Policy epoch  : {ns.trn_iters_policy}",
+            f"\n Val iterations            : {ns.eval_iters}",
+            f"\n Current epoch             : {ns.current_epoch} ",
+            f"\n # of warm-up epochs to do : {ns.warmup_epochs}",
+            f"\n Warm-up stop              : {ns.stop_epoch_warmup}",
+            f"\n training_epochs           : {ns.training_epochs}",
+            f"\n stop_iter_w               : {ns.trn_iters_weights}",
         )
 
  
-def disp_gpu_device_info():
+def display_gpu_device_info():
     
     print_underline('GPU Device Info ', verbose=True)
     for i in range(torch.cuda.device_count()):
@@ -918,7 +913,7 @@ def display_gpu_info():
         print()
 
 
-        disp_gpu_device_info()
+        display_gpu_device_info()
         nvmlInit()
 
         print_underline('GPU Usage Stats ', verbose=True)

@@ -2,7 +2,7 @@ import sys
 sys.path.insert(0, '..')
 from models.base import *
 import torch.nn.functional as F
-from utils.util import timestring, print_heading
+from utils.utils_general import timestring, print_heading
 from models.base import Classification_Module
 from scipy.special import softmax
 from src.utils.sparsechem_utils import count_params, compute_flops

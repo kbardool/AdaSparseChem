@@ -12,7 +12,7 @@ import scipy.io
 import scipy.special
 import sklearn.metrics
 from collections import namedtuple
-from utils.util import print_heading, print_dbg, debug_on, debug_off, print_underline
+from utils.utils_general import print_heading, print_dbg, debug_on, debug_off, print_underline
 from utils.flops_benchmark import add_flops_counting_methods
 from sklearn.metrics import confusion_matrix
 import torch.nn.functional as F 

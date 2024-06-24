@@ -681,7 +681,7 @@ class BaseEnv():
             for tsk in range(self.num_tasks):
                 ln += f"  {policy_softmaxs[tsk][lyr][0]:8.4f}  {policy_softmaxs[tsk][lyr][1]:8.4f}" 
                 if policys[tsk] is not None:
-                    ln += f"  {policys[tsk][lyr, 0]:1d}"
+                    ln += f"  {policy_argmaxs[tsk][lyr]:1d}"
                 else:
                     ln += f"  -"
             ln += '\n'
@@ -691,45 +691,45 @@ class BaseEnv():
 
 
 
-    def display_test_sample_policy(self, epoch=0, hard_sampling = False, out = None):
-        if not isinstance(out, list):
-            out = [out]
+    # def display_test_sample_policy(self, epoch=0, hard_sampling = False, out = None):
+    #     if not isinstance(out, list):
+    #         out = [out]
 
-        policies, logits = self.get_sample_policy(hard_sampling)
-        # policies = 1-np.argmax(logits, axis = -1)
-        ln =  f" Sample Policy (Testing mode - hard_sampling: {hard_sampling}) "
-        ln += "\n"
-        ln += f" epch: {epoch:3d}   logits         sel        logits         sel         logits         sel \n"
-        ln += f" -----   ----------------  -----    ----------------  -----    ---------------   ----- \n"
-        for idx, (l1,l2,l3,  p1,p2,p3) in enumerate(zip(logits[0], logits[1], logits[2], 
-                                                        policies[0], policies[1], policies[2]),1):
-            # ln += f"   {idx}      {l1[0]}   {l1[1]}   {p1}   {l2[0]}   {l2[1]}  {p2}   {l3[0]}   {l3[1]}  {p3}\n"
-            ln += f"   {idx}    {l1[0]:7.4f}   {l1[1]:7.4f}  {p1}   {l2[0]:7.4f}   {l2[1]:7.4f}  {p2}   {l3[0]:7.4f}   {l3[1]:7.4f}  {p3}\n"
-        ln += '\n'
-        for file in out:
-            print(ln, file = file)
+    #     policies, logits = self.get_sample_policy(hard_sampling)
+    #     # policies = 1-np.argmax(logits, axis = -1)
+    #     ln =  f" Sample Policy (Testing mode - hard_sampling: {hard_sampling}) "
+    #     ln += "\n"
+    #     ln += f" epch: {epoch:3d}   logits         sel        logits         sel         logits         sel \n"
+    #     ln += f" -----   ----------------  -----    ----------------  -----    ---------------   ----- \n"
+    #     for idx, (l1,l2,l3,  p1,p2,p3) in enumerate(zip(logits[0], logits[1], logits[2], 
+    #                                                     policies[0], policies[1], policies[2]),1):
+    #         # ln += f"   {idx}      {l1[0]}   {l1[1]}   {p1}   {l2[0]}   {l2[1]}  {p2}   {l3[0]}   {l3[1]}  {p3}\n"
+    #         ln += f"   {idx}    {l1[0]:7.4f}   {l1[1]:7.4f}  {p1}   {l2[0]:7.4f}   {l2[1]:7.4f}  {p2}   {l3[0]:7.4f}   {l3[1]:7.4f}  {p3}\n"
+    #     ln += '\n'
+    #     for file in out:
+    #         print(ln, file = file)
             
 
-    def display_train_sample_policy(self, epoch=0, temp = None, hard_sampling = False, out = None):
-        if not isinstance(out, list):
-            out = [out]
-        if temp is None:
-            temp = self.gumbel_temperature
+    # def display_train_sample_policy(self, epoch=0, temp = None, hard_sampling = False, out = None):
+    #     if not isinstance(out, list):
+    #         out = [out]
+    #     if temp is None:
+    #         temp = self.gumbel_temperature
 
-        policies_tensors, logits = self.networks['mtl-net'].train_sample_policy(temp, hard_sampling)
-        policies = [p.detach().cpu().numpy() for p in policies_tensors]
-        ln = f" Sample Policy (Training mode - hard_sampling: {hard_sampling}) "
-        ln += "\n"
-        ln += f" epch: {epoch:3d}   logits          gumbel                logits           gumbel               logits             gumbel \n"
-        ln += f" -----   ----------------------------------     ----------------------------------     ------------------------------------ \n"
-        for idx, (l1,l2,l3,  p1,p2,p3) in enumerate(zip(logits[0], logits[1], logits[2], 
-                                                        policies[0], policies[1], policies[2]),1):
-            # ln += f"   {idx}      {l1[0]}   {l1[1]}   {p1[0]}   {p1[1]}      {l2[0]}   {l2[1]}  {p2}   {l3[0]}   {l3[1]}  {p3}\n"
-            ln += f"   {idx}    {l1[0]:7.4f}  {l1[1]:7.4f}   {p1[0]:7.4f}  {p1[1]:7.4f}    {l2[0]:7.4f}  {l2[1]:7.4f}   {p2[0]:7.4f}  {p2[1]:7.4f}" \
-                  f"    {l3[0]:7.4f}   {l3[1]:7.4f}    {p3[0]:7.4f}  {p3[1]:7.4f}\n"
-        ln += '\n'
-        for file in out:
-            print(ln, file = file)
+    #     policies_tensors, logits = self.networks['mtl-net'].train_sample_policy(temp, hard_sampling)
+    #     policies = [p.detach().cpu().numpy() for p in policies_tensors]
+    #     ln = f" Sample Policy (Training mode - hard_sampling: {hard_sampling}) "
+    #     ln += "\n"
+    #     ln += f" epch: {epoch:3d}   logits          gumbel                logits           gumbel               logits             gumbel \n"
+    #     ln += f" -----   ----------------------------------     ----------------------------------     ------------------------------------ \n"
+    #     for idx, (l1,l2,l3,  p1,p2,p3) in enumerate(zip(logits[0], logits[1], logits[2], 
+    #                                                     policies[0], policies[1], policies[2]),1):
+    #         # ln += f"   {idx}      {l1[0]}   {l1[1]}   {p1[0]}   {p1[1]}      {l2[0]}   {l2[1]}  {p2}   {l3[0]}   {l3[1]}  {p3}\n"
+    #         ln += f"   {idx}    {l1[0]:7.4f}  {l1[1]:7.4f}   {p1[0]:7.4f}  {p1[1]:7.4f}    {l2[0]:7.4f}  {l2[1]:7.4f}   {p2[0]:7.4f}  {p2[1]:7.4f}" \
+    #               f"    {l3[0]:7.4f}   {l3[1]:7.4f}    {p3[0]:7.4f}  {p3[1]:7.4f}\n"
+    #     ln += '\n'
+    #     for file in out:
+    #         print(ln, file = file)
 
     def display_logit_grads(self, title):
         for name, param in self.networks['mtl-net'].named_parameters():

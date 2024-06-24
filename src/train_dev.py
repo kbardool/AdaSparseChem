@@ -28,7 +28,7 @@ from tqdm.notebook import trange, tqdm
 
 from envs         import SparseChemEnv
 from dataloaders  import ClassRegrSparseDataset_v3, ClassRegrSparseDataset, InfiniteDataLoader
-from utils.util   import ( makedir, print_separator, create_path, print_yaml, print_yaml2, print_loss, should, 
+from utils.utils_general   import ( makedir, print_separator, create_path, print_yaml, print_yaml2, print_loss, should, 
                          fix_random_seed, read_yaml_from_input, timestring, print_heading, print_dbg, 
                          print_underline, write_parms_report, get_command_line_args, is_notebook, print_metrics_cr)
 

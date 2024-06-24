@@ -2,7 +2,7 @@ import torch
 import numpy as np
 from torch import nn
 import torch.nn.functional as F
-from utils.util             import timestring, print_heading, print_dbg, print_underline, debug_on, debug_off
+from utils.utils_general             import timestring, print_heading, print_dbg, print_underline, debug_on, debug_off
 from models                 import SparseChem_Backbone, SparseChem_Classification_Module
 from scipy.special          import softmax
 
@@ -100,7 +100,11 @@ class MTL3(nn.Module):
                 task_logits = 0.5 * torch.ones(self.num_layers-self.skip_layer, 2)
             else:
                 raise NotImplementedError('Init Method %s is not implemented' % self.init_method)
-
+            
+            self.policys[t_id]=task_logits
+            # setattr(self, 'policy%d' % (t_id + 1), task_logits)
+            # print(f' policy{t_id:d}:   {task_logits}')
+            print(f' policys[{t_id:d}]:   {self.policys[t_id]}')
             self._arch_parameters = []
             self.register_parameter('task%d_logits' % (t_id + 1), nn.Parameter(task_logits, requires_grad=True))
             self._arch_parameters.append(getattr(self, 'task%d_logits' % (t_id + 1)))            
@@ -368,6 +372,8 @@ class MTL3(nn.Module):
             outputs.append(output)
 
         # print_dbg(f" {timestring()} - MTL3 network forward() end", verbose = verbose) 
+        # print(f'self.policys:   {self.policys}')
+        # print(f'self.logits:   {self.logits}')
         return outputs, self.policys, self.logits
 
 

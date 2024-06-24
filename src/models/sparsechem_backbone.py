@@ -6,7 +6,7 @@ import numpy as np
 from torch import nn
 import torch.nn.functional as F
 
-from utils.util import print_heading, print_underline,timestring, print_dbg, debug_off_m, debug_on, debug_off
+from utils.utils_general import print_heading, print_underline,timestring, print_dbg, debug_off_m, debug_on, debug_off
 
 non_linearities = {
     "relu": nn.ReLU,
@@ -238,10 +238,14 @@ class SparseChem_Backbone(torch.nn.Module):
         # layers.append(block(input_sz, output_sz, non_linearity, dropout, bias, verbose = verbose))
         layers = block(input_sz, output_sz, non_linearity, dropout, bias, verbose = verbose)
 
-        if (self.skip_residual) :
-            pass
-        elif (input_sz != output_sz):
-            residual = nn.Sequential(block(input_sz, output_sz, non_linearity, dropout, bias, verbose = verbose))
+        ## 11-22-2022 - Change Residual do be a direct connection from input of block to output 
+        ## residual will always be None, which means :
+        ## if skip_residual == True, it will be bypassed
+        ## if skip_residual == False, it will be == X
+        # if (self.skip_residual) :
+        #     pass
+        # elif (input_sz != output_sz):
+        #     residual = nn.Sequential(block(input_sz, output_sz, non_linearity, dropout, bias, verbose = verbose))
 
         return layers, residual
 

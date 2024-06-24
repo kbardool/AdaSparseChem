@@ -31,9 +31,6 @@ ns.args = get_command_line_args(None, display = True)
 print(f" cuda_devices : {ns.args.cuda_devices}")
 os.environ["CUDA_VISIBLE_DEVICES"]=ns.args.cuda_devices
 
-# import torch  
-# torch.set_printoptions(precision=6, linewidth=132)
-
 
 #-----------------------------------------------------------------
 # ### Parse Input Args, Read YAML config file, wandb initialization
@@ -75,13 +72,12 @@ print(environ.disp_for_excel())
 print_heading(f" Last Epoch: {ns.current_epoch}   # of warm-up epochs to do:  {ns.warmup_epochs} - "\
               f"Run epochs {ns.current_epoch+1} to {ns.current_epoch + ns.warmup_epochs}", verbose = True)
 
-
 # warmup_phase(ns,opt, environ, dldrs, write_checkpoint=False)
 warmup_phase(ns,opt, environ, dldrs, verbose = False, disable_tqdm = True)
 
  
-
-print(f"Best Epoch :       {ns.best_epoch}\n"
+print(f"Current Epoch  :   {ns.current_epoch}\n"
+      f"Best Epoch :       {ns.best_epoch}\n"
       f"Best Iteration :   {ns.best_iter} \n"
       f"Best ROC AUC   :   {ns.best_roc_auc:.5f}\n"
       f"Best Precision :   {ns.best_accuracy:.5f}\n")

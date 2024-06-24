@@ -367,29 +367,32 @@ class ClassRegrSparseDataset_v3(Dataset):
                       f"    Total   +1  Labels :  {self.num_pos.sum():9d} \n"
                       f"    Total   -1  Labels :  {self.num_neg.sum():9d} \n"
                       f"    Total < -1  Labels :  {self.num_n_1.sum():9d} \n"
-                      f"    Total != 0  Labels :  {self.num_class.sum():9d}", verbose = True)
+                      f"    Total != 0  Labels :  {self.num_class.sum():9d}", verbose = verbose)
             if (self.num_class != self.num_pos + self.num_neg).any():
                 raise ValueError("For classification all y values (--y_class/--y) must be 1 or -1.")
             else:
                 print_dbg(f" All y values are 0, 1, or -1.\n", verbose = verbose)
            
-            # num_regr   = np.bincount(y_regr.indices, minlength=y_regr.shape[1])
+            # num_regr = np.bincount(y_regr.indices, minlength=y_regr.shape[1])
 
             ## If no aggregation weight file was provided, define the weight file using  min_samples rule
+            ## --min_samples_class      specifies how many samples a task needs per FOLD and per CLASS to be aggregated
             if weights_temp.aggregation_weight is None:
                 fold_pos, fold_neg = class_fold_counts(y_temp, folding)
                 n = opt['dataload']['min_samples_class']
+                
                 weights_temp.aggregation_weight = ((fold_pos >= n).all(0) & (fold_neg >= n)).all(0).astype(np.float64)
                 if verbose:
-                    print_dbg(f" tasks_class.aggregation_weight WAS NOT passed ", verbose = True)
-                    print_dbg(f" min_samples_class: {opt['dataload']['min_samples_class']}", verbose = True)
-                    print_underline(f"Class fold counts: ", verbose = True) 
                     fold_pos_sum = fold_pos.sum(axis=0)
                     fold_neg_sum = fold_neg.sum(axis=0)                   
-                    print_dbg(f" fold_pos {fold_pos_sum.shape}- total: {fold_pos.sum()} - sum(axis=0):\n{fold_pos_sum} ", verbose = True)
-                    print_dbg(f"\n\n fold_pos: {fold_pos.shape} \n {fold_pos} \n\n\n", verbose = True)                    
-                    print_dbg(f" fold_neg {fold_neg_sum.shape}- total: {fold_neg.sum()} - sum(axis=0):\n{fold_neg_sum} ", verbose = True)
-                    print_dbg(f"\n\n fold_neg: {fold_neg.shape} \n {fold_neg} \n\n\n", verbose = True)
+                    print_dbg(f"\n tasks_class.aggregation_weight WAS NOT passed ", verbose = True)
+                    print_dbg(f" min samples required per fold AND per class: {opt['dataload']['min_samples_class']}", verbose = True)
+                    
+                    print_underline(f"Class fold counts: ", verbose = True) 
+                    print_dbg(f"\n Pos labels per task / fold: {fold_pos.shape} \n {fold_pos} ", verbose = True)                    
+                    print_dbg(f"\n fold_pos {fold_pos_sum.shape}- total: {fold_pos.sum()} - sum(axis=0):\n{fold_pos_sum} ", verbose = True)
+                    print_dbg(f"\n\n Neg labels per task / fold: {fold_neg.shape} \n {fold_neg} ", verbose = True)
+                    print_dbg(f"\n fold_neg {fold_neg_sum.shape}- total: {fold_neg.sum()} - sum(axis=0):\n{fold_neg_sum} ", verbose = True)
                     
                     # for fold_idx, (fold_pos, fold_neg) in enumerate(zip(fold_pos, fold_neg),1):
                         # print_underline(f" fold # {fold_idx}", verbose=True)
@@ -420,16 +423,22 @@ class ClassRegrSparseDataset_v3(Dataset):
                 # self.y_cat_class.data = (self.y_cat_class.data + 1) / 2.0
 
             print_underline(f" Task {task_id+1} files pre-filtering : ", verbose = True)
-            y_temp_sum = (y_temp != 0).sum(axis =1) 
-            y_temp_sum = (y_temp_sum > 0).sum()
-            print_dbg(f"X file : # Samples :  {ecfp.shape[0]}     # Features per Sample: {ecfp.shape[1]}   ", verbose = True)
-            print_dbg(f"Y file : # Samples :  {y_temp.shape[0]}     # Labels per Sample  : {y_temp.shape[1]} "
-                      f" Y rows with populated labels: {y_temp_sum.sum()}  non zero cols: {(y_temp != 0).sum()}", verbose = True)
+            y_temp_sum = (y_temp != 0).sum(axis =1)             ## sum across columns for each row
+            y_temp_one = (y_temp_sum > 0).sum()
+            y_temp_zero = (y_temp_sum == 0).sum()
+            print_dbg(f"X file : {ecfp.shape} ", verbose = True)
+            print_dbg(f"Y file : {y_temp.shape}     non zero labels: {(y_temp != 0).sum()}", verbose = True)
+            print_dbg(f"         Training samples with at least one non-zero label: {y_temp_one}  no non-zero labels {y_temp_zero}", verbose = True)
 
             ## Finally, append to list of y_class files
             # if index is not None :
             # self.x = copy.copy(ecfp[index])
             # self.folding = copy.copy(folding[index])
+
+            ##-----------------------------------------------------------------------------------
+            # apply folding to X and Y files  
+            ##-----------------------------------------------------------------------------------
+            
             self.x = ecfp[index]
             self.folding = folding[index]
             y_temp = y_temp[index]
@@ -437,13 +446,15 @@ class ClassRegrSparseDataset_v3(Dataset):
             self.tasks_weights_list.append(weights_temp)
 
             y_temp_sum = (y_temp != 0).sum(axis =1) 
-            y_temp_sum = (y_temp_sum > 0).sum()
-            print_underline(f" Task {task_id+1} files post-filtering : ", verbose = True)
-            print_dbg(f"X file : # Samples :  {self.x.shape[0]}     # Features per Sample: {self.x.shape[1]} ", verbose = True)
-            print_dbg(f"Y file : # Samples :  {y_temp.shape[0]}     # Labels per Sample  : {y_temp.shape[1]} "
-                      f" Y rows with populated labels: {y_temp_sum.sum()}  non zero cols: {(y_temp != 0).sum()}", verbose = True)
+            y_temp_one = (y_temp_sum > 0).sum()
+            y_temp_zero = (y_temp_sum == 0).sum()
+            print_underline(f" Task {task_id+1} files after applying folding : ", verbose = True)
+            print_dbg(f"X file : {self.x.shape}", verbose = True)
+            print_dbg(f"Y file : {y_temp.shape}     non zero labels: {(y_temp != 0).sum()}", verbose = True)
+            print_dbg(f"         Training samples with at least one non-zero label: {y_temp_one}  no non-zero labels {y_temp_zero}", verbose = True)
+
             print_dbg(f"\nUsing {(weights_temp.aggregation_weight > 0).sum()} of {y_temp.shape[1]} classification "
-                      f"tasks for calculating aggregated metrics (AUCROC, F1_max, etc).", verbose = True)
+                      f"tasks for calculating aggregated metrics (AUCROC, F1_max, etc). \n\n", verbose = True)
             
             # y_regr = y_regr[index]
             # y_censor = y_censor[index]
